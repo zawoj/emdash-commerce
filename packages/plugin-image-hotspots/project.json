@@ -1,0 +1,30 @@
+{
+  "name": "plugin-image-hotspots",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "packages/plugin-image-hotspots/src",
+  "tags": ["type:lib"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec tsc --noEmit",
+        "cwd": "packages/plugin-image-hotspots"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec vitest run",
+        "cwd": "packages/plugin-image-hotspots"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec tsc --noEmit",
+        "cwd": "packages/plugin-image-hotspots"
+      }
+    }
+  }
+}

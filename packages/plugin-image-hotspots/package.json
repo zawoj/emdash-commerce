@@ -1,0 +1,46 @@
+{
+  "name": "@emdash-commerce/plugin-image-hotspots",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./admin": {
+      "types": "./src/admin/index.ts",
+      "default": "./src/admin/index.ts"
+    },
+    "./value": {
+      "types": "./src/value/index.ts",
+      "default": "./src/value/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  },
+  "peerDependencies": {
+    "@emdash-cms/admin": "^1.5.0",
+    "emdash": "^1.5.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@emdash-cms/admin": "1.5.0",
+    "@types/node": "^24.6.0",
+    "@types/react": "19.2.8",
+    "@types/react-dom": "19.2.3",
+    "emdash": "^1.5.0",
+    "happy-dom": "20.9.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "typescript": "^5.9.3",
+    "vitest": "4.1.5"
+  }
+}
