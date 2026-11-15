@@ -5,6 +5,7 @@
 // so in words under it (dashed outline), a disabled chip is struck through.
 import Icon from '../icon/index.astro'
 import { iconNames } from '../icon/names'
+import { soldOutNoteText } from '../../../utils/sold-out-note'
 import type { OptionChipProps } from './types'
 
 type Props = OptionChipProps
@@ -12,12 +13,12 @@ type Props = OptionChipProps
 const { id, name, option, soldOutLabel, kind = 'radio', ...attrs } = Astro.props
 ---
 
-<label class:list={['option-chip', option.isSoldOut && 'option-chip--sold-out', option.isDisabled && 'option-chip--disabled']} for={id}>
+<label class:list={['option-chip', option.isSoldOut && 'option-chip--sold-out', option.isDisabled && 'option-chip--disabled']} for={id} data-sold-out-label={soldOutLabel}>
   <input id={id} {...attrs} class="option-chip__input" type={kind} name={name} value={option.value} checked={option.isChecked} disabled={option.isDisabled} />
   <span class="option-chip__box">
     <span class="option-chip__check" aria-hidden="true"><Icon name={iconNames.check} size={12} /></span>
     <span class="option-chip__label">{option.label}</span>
-    {soldOutLabel && <span class="option-chip__note" hidden={!option.isSoldOut} data-sold-out-note>{soldOutLabel}</span>}
+    {soldOutLabel && option.isSoldOut && <span class="option-chip__note" data-sold-out-note>{soldOutNoteText(soldOutLabel)}</span>}
   </span>
 </label>
 
@@ -92,8 +93,8 @@ const { id, name, option, soldOutLabel, kind = 'radio', ...attrs } = Astro.props
     outline-offset: 2px;
   }
 
-  /* Sold out reads from the strike-through and dashed outline; the words stay for screen readers so
-     every chip keeps one height in a size grid. */
+  /* Sold out reads from the strike-through and dashed outline; the words, present only on a sold-out
+     chip, stay for screen readers so every chip keeps one height in a size grid. */
   .option-chip__note {
     position: absolute;
     width: 1px; /* token-lint-ignore: visually hidden */

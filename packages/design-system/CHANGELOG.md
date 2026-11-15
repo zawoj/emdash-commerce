@@ -4,6 +4,11 @@ Newest on top. Each entry says what changed in the package and why.
 
 ## 2026-11-15
 
+### fix: option chips carry "Sold out" only when the option is sold out
+- `OptionChip` rendered a visually hidden `Sold out` note on every chip, so the text of an in-stock chip contained it.
+  The note now exists only for a sold-out option (server render and `syncVariantChips`, via `utils/sold-out-note`,
+  exported as `./sold-out-note`) and reads `, sold out`, so the accessible name is "XL" versus "XL, sold out".
+
 ### fix: product gallery filter never leaves the gallery empty
 - `product-gallery:filter` shows the chosen group's photos, else the untagged ones, else all (`product-gallery-core`,
   exported for tests).

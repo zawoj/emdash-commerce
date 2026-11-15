@@ -10,6 +10,12 @@
   hand-typed title without the prefix still gets it. The stored order line snapshot is unchanged (title and the
   variant title as it was). Existing Stripe products are renamed by the next catalog resync.
 
+### fix: "Sold out" text only on option chips that are sold out — Claude Code
+- Every option chip carried a visually hidden "Sold out" note, toggled with the `hidden` attribute, so the text content
+  of an in-stock chip (and anything reading it) included it. The note is now added and removed with the state
+  (`setSoldOutNote`, used by the server render and by `syncVariantChips`, so the product page and the kit dialog
+  agree): the accessible name is "XL" in stock and "XL, sold out" otherwise.
+
 ## 2026-11-15 (QA fixes)
 
 ### fix: PDP gallery and mini-cart never empty; neutral shop identity — Claude Code
