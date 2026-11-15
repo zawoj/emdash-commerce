@@ -1,5 +1,5 @@
 import type { CartLineContent, ImageAttrs } from "@emdash-commerce/design-system";
-import type { CartView, ProductDetailView } from "@emdash-commerce/plugin-stripe/contracts";
+import { variantOptionsLabelOf, type CartView, type ProductDetailView } from "@emdash-commerce/plugin-stripe/contracts";
 
 import type { Locale } from "../../lib/i18n";
 import { imageFromUrl } from "../../lib/media";
@@ -53,7 +53,7 @@ export const lineContents = (
 		id: line.priceId,
 		name: { label: line.title, href: productHrefForLine(line.productId, slugByProductId) },
 		image: imageByPriceId.get(line.priceId),
-		variantText: line.variantTitle ?? undefined,
+		variantText: (line.variantTitle && variantOptionsLabelOf(line.title, line.variantTitle)) || undefined,
 		unitPrice: {
 			label: formatMoney(line.unitAmount.amount, locale, line.unitAmount.currency),
 			value: Number(toDecimalString(line.unitAmount.amount)),

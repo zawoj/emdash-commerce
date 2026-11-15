@@ -14,9 +14,27 @@ const KEY_SEPARATOR = "|";
 /** Identical combinations share a key whatever order their values were linked in. */
 export const optionsKeyOf = (valueIds: readonly string[]): string => [...valueIds].sort().join(KEY_SEPARATOR);
 
+const TITLE_SEPARATOR = " — ";
+
 /** `Shirt — M / Black`; just the product title when no value label is known. */
 export const variantTitleOf = (productTitle: string, valueLabels: readonly string[]): string =>
-	valueLabels.length > 0 ? `${productTitle} — ${valueLabels.join(" / ")}` : productTitle;
+	valueLabels.length > 0 ? `${productTitle}${TITLE_SEPARATOR}${valueLabels.join(" / ")}` : productTitle;
+
+/**
+ * The option part of a variant title (`M / Black`). A derived variant title already starts with the product title, so
+ * that prefix is dropped; a title an editor typed by hand is returned as is. Empty when the variant has no option text.
+ */
+export const variantOptionsLabelOf = (productTitle: string, variantTitle: string): string => {
+	if (variantTitle === productTitle) return "";
+	const prefix = `${productTitle}${TITLE_SEPARATOR}`;
+	return variantTitle.startsWith(prefix) ? variantTitle.slice(prefix.length) : variantTitle;
+};
+
+/** `Shirt — M / Black` for display and provider names, whether or not the variant title already carries the product. */
+export const variantDisplayNameOf = (productTitle: string, variantTitle: string | null): string => {
+	const options = variantTitle ? variantOptionsLabelOf(productTitle, variantTitle) : "";
+	return options ? `${productTitle}${TITLE_SEPARATOR}${options}` : productTitle;
+};
 
 const skuPart = (value: string): string =>
 	value

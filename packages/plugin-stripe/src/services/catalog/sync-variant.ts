@@ -1,11 +1,12 @@
 import type { Product, Variant } from "../../core/catalog.js";
+import { variantDisplayNameOf } from "../../core/catalog-rules.js";
 import type { CatalogProvider, ProviderProductInput } from "../../ports/payment-provider.js";
 import type { CatalogMirror } from "../../adapters/emdash/content/catalog-mirror.js";
 import type { CatalogLinkStore, Clock } from "../../ports/repositories.js";
 import { isVariantProviderActive } from "./active.js";
 import { writeProviderProduct, type ProductWriteMode } from "./product-write.js";
 
-const variantName = (product: Product, variant: Variant): string => `${product.title} — ${variant.title}`;
+const variantName = (product: Product, variant: Variant): string => variantDisplayNameOf(product.title, variant.title);
 
 const inputOf = (entityKey: string, product: Product, variant: Variant, isActive: boolean): ProviderProductInput => ({
 	entityKey,

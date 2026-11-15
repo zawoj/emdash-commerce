@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-15 (QA fixes, round 2)
+
+### fix: a variant name is never prefixed with the product name twice — Claude Code
+- A variant title is derived as `<product> — <options>`, and the catalog sync, the cart line, the emails, the admin
+  low-stock list and the subscription items all prefixed the product title again, so Stripe Checkout and the cart read
+  "Velocity Shell Jacket — Velocity Shell Jacket — XL / Red". `variantDisplayNameOf` and `variantOptionsLabelOf`
+  (`core/catalog-rules.ts`, exported from `/contracts`) now compose every display name and the Stripe Product name; a
+  hand-typed title without the prefix still gets it. The stored order line snapshot is unchanged (title and the
+  variant title as it was). Existing Stripe products are renamed by the next catalog resync.
+
 ## 2026-11-15 (QA fixes)
 
 ### fix: PDP gallery and mini-cart never empty; neutral shop identity — Claude Code

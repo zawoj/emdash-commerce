@@ -17,7 +17,7 @@ const apiBase = `/_emdash/api/plugins/${PLUGIN_ID}`;
 		</div>
 	</section>
 	<script>
-		import type { CartView } from "@emdash-commerce/plugin-stripe/contracts";
+		import { variantDisplayNameOf, type CartView } from "@emdash-commerce/plugin-stripe/contracts";
 		import { buildCartLineBody } from "../utils/add-to-cart";
 		import { dispatchCartUpdated } from "../utils/cart-events";
 		import { parseApiEnvelope, syncCartCookie } from "../utils/commerce-fetch";
@@ -100,10 +100,10 @@ const apiBase = `/_emdash/api/plugins/${PLUGIN_ID}`;
 					.map((line) => {
 						const lineIssue = cart.issues.find((issue) => issue.priceId === line.priceId);
 						const lineTotal = formatMoney(line.lineTotal.amount, line.lineTotal.currency);
-						const variant = line.variantTitle ? ` (${line.variantTitle})` : "";
+						const name = variantDisplayNameOf(line.title, line.variantTitle);
 						return `<li class="cart-line" data-price-id="${line.priceId}">
 							<div>
-								<strong>${line.title}${variant}</strong>
+								<strong>${name}</strong>
 								${lineIssue ? `<p class="chip">${lineIssue.message}</p>` : `<p>${lineTotal}</p>`}
 							</div>
 							<div class="cart-line__controls">

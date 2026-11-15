@@ -128,7 +128,7 @@ describe("subscription checkout settlement", () => {
 		const [order] = await allOrders(h);
 		const record = (await recordOf(h, seeded.subscriptionId!))!;
 		expect(order).toMatchObject({ paymentStatus: "paid", mode: "subscription", subscriptionId: record.id });
-		expect(record).toMatchObject({ initialOrderId: order!.id, items: [expect.objectContaining({ priceId: seeded.priceId, title: "Shirt – Blue M", quantity: 2 })] });
+		expect(record).toMatchObject({ initialOrderId: order!.id, items: [expect.objectContaining({ priceId: seeded.priceId, title: "Shirt — Blue M", quantity: 2 })] });
 		expect(await h.container.recordIndex.get(RECORD_INDEX_KEY.orderBySubscription(seeded.subscriptionId!))).toBe(order!.id);
 		const paymentId = (await h.container.recordIndex.get(RECORD_INDEX_KEY.paymentByInvoice(session.invoiceId!)))!;
 		expect(await h.container.payments.get(paymentId)).toMatchObject({ orderId: order!.id, subscriptionId: record.id, purpose: "checkout", stripe: { invoiceId: session.invoiceId } });

@@ -1,4 +1,5 @@
 import { WEBHOOK_EVENT_TYPES } from "../../adapters/stripe/webhook-events.js";
+import { variantDisplayNameOf } from "../../core/catalog-rules.js";
 import { sellableKey, type SellableRef } from "../../core/catalog.js";
 import type { Order } from "../../core/order.js";
 import type { CommerceContainer } from "../../plugin/container.js";
@@ -136,7 +137,7 @@ const lowStockOf = async (container: CommerceContainer): Promise<{ entries: LowS
 			continue;
 		}
 		for (const variant of await container.catalog.listVariants(product.id)) {
-			if (variant.isActive) sellables.push({ ref: { kind: "variant", id: variant.id }, title: `${product.title} / ${variant.title}` });
+			if (variant.isActive) sellables.push({ ref: { kind: "variant", id: variant.id }, title: variantDisplayNameOf(product.title, variant.title) });
 		}
 	}
 	const refs = sellables.map((entry) => entry.ref);

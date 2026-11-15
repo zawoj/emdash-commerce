@@ -16,6 +16,31 @@ describe("productHrefForLine", () => {
 });
 
 describe("lineContents", () => {
+	it("shows only the options under the product name for a derived variant title", () => {
+		const cart = {
+			lines: [
+				{
+					priceId: "price-1",
+					productId: "prod-abc",
+					variantId: "var-1",
+					title: "Velocity Shell Jacket",
+					variantTitle: "Velocity Shell Jacket — XL / Red",
+					quantity: 1,
+					unitAmount: { amount: 8900, currency: "PLN" },
+					lineTotal: { amount: 8900, currency: "PLN" },
+					priceType: "one_time",
+					interval: null,
+					intervalCount: null,
+					trialDays: null,
+					available: null,
+				},
+			],
+		} as CartView;
+		const [line] = lineContents(cart, "en");
+		expect(line?.name.label).toBe("Velocity Shell Jacket");
+		expect(line?.variantText).toBe("XL / Red");
+	});
+
 	it("links cart lines by product slug", () => {
 		const cart = {
 			lines: [

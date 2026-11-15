@@ -12,6 +12,8 @@ import {
 	reshapeSpecs,
 	swatchProblem,
 	variantSkuOf,
+	variantDisplayNameOf,
+	variantOptionsLabelOf,
 	variantTitleOf,
 	variantValueProblems,
 } from "./catalog-rules.js";
@@ -147,5 +149,20 @@ describe("specifications", () => {
 
 	it("caps a product at 50 variants", () => {
 		expect(MAX_VARIANTS_PER_PRODUCT).toBe(50);
+	});
+});
+
+describe("variant display names", () => {
+	it("never repeats the product title of a derived variant title", () => {
+		const derived = variantTitleOf("Velocity Shell Jacket", ["XL", "Red"]);
+		expect(variantDisplayNameOf("Velocity Shell Jacket", derived)).toBe("Velocity Shell Jacket — XL / Red");
+		expect(variantOptionsLabelOf("Velocity Shell Jacket", derived)).toBe("XL / Red");
+	});
+
+	it("prefixes a hand-typed variant title and keeps the product title alone when there is no option text", () => {
+		expect(variantDisplayNameOf("Mug", "Large")).toBe("Mug — Large");
+		expect(variantDisplayNameOf("Mug", "Mug")).toBe("Mug");
+		expect(variantDisplayNameOf("Mug", null)).toBe("Mug");
+		expect(variantOptionsLabelOf("Mug", "Mug")).toBe("");
 	});
 });

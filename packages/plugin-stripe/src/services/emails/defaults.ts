@@ -1,4 +1,5 @@
 import type { EmailMessage, EmailRenderers } from "../../contracts/extensions.js";
+import { variantOptionsLabelOf } from "../../core/catalog-rules.js";
 import type { Order } from "../../core/order.js";
 import { escapeHtml, formatAmount, singleLine } from "./html.js";
 
@@ -22,7 +23,7 @@ const button = (label: string, url: string): string =>
 
 /** "Shirt (Blue M)": the variant title, or the option labels when the variant has no title of its own. */
 const lineLabel = (line: Order["lines"][number]): string => {
-	const detail = line.variantTitle ?? line.optionsText;
+	const detail = (line.variantTitle ? variantOptionsLabelOf(line.title, line.variantTitle) : "") || line.optionsText;
 	return detail ? `${line.title} (${detail})` : line.title;
 };
 

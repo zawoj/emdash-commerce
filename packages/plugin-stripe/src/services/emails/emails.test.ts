@@ -63,6 +63,13 @@ describe("default email templates", () => {
 		expect(defaultEmailRenderers.orderAccessLink({ orderNumber: "N1", viewUrl: "https://x.test/v", storeName: "Shop" }).html).toContain("https://x.test/v");
 	});
 
+	it("lists a derived variant title without repeating the product title", () => {
+		const derived = order({ lines: [{ ...order().lines[0]!, title: "Mug", variantTitle: "Mug — Blue / M" }] });
+		const { text } = defaultEmailRenderers.orderConfirmation({ order: derived, viewUrl: "https://x.test/v", storeName: "Shop" });
+		expect(text).toContain("Mug (Blue / M)");
+		expect(text).not.toContain("Mug — Blue");
+	});
+
 	it("escapes every interpolated value in the HTML (names, titles, store name, URLs) and keeps headers single-line", () => {
 		const hostile = order({ customerName: NASTY, lines: [{ ...order().lines[0]!, title: NASTY, variantTitle: NASTY }] });
 		const message = defaultEmailRenderers.orderConfirmation({ order: hostile, viewUrl: `https://x.test/?q="><script>1</script>`, storeName: NASTY });

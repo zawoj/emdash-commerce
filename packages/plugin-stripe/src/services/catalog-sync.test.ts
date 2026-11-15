@@ -55,6 +55,16 @@ describe("catalog sync service", () => {
 		expect(variants.get("var_1")).toMatchObject({ stripeSyncStatus: "synced" });
 	});
 
+	it("names the variant's Stripe product once when the variant title already carries the product title", async () => {
+		world.catalog.addProduct(product({ hasVariants: true }));
+		world.catalog.addVariant(variant({ title: "Mug — Large / Red" }));
+		world.catalog.addPrice(price({ variantId: "var_1" }));
+		const container = buildContainer(world, provider, mirrorRecorder().mirror);
+		await createCatalogSyncService(container, recordingPublisher()).syncEntity({ entity: "variant", id: "var_1" });
+		const stripeProduct = [...provider.products.values()].find((entry) => entry.entityKey === variantEntityKey("var_1"));
+		expect(stripeProduct?.name).toBe("Mug — Large / Red");
+	});
+
 	it("creates a new Stripe price when terms change and archives the previous one", async () => {
 		world.catalog.addProduct(product());
 		world.catalog.addPrice(price());

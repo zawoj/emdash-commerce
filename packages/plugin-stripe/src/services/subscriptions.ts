@@ -1,3 +1,4 @@
+import { variantDisplayNameOf } from "../core/catalog-rules.js";
 import { CommerceError } from "../core/errors.js";
 import type { Subscription, SubscriptionItem } from "../core/subscription.js";
 import { SUBSCRIPTION_STATUS } from "../core/subscription.js";
@@ -32,7 +33,7 @@ const resolveItems = async (container: CommerceContainer, provider: ProviderSubs
 			priceId: price?.id ?? null,
 			productId: price?.productId ?? null,
 			variantId: price?.variantId ?? null,
-			title: product ? (variant ? `${product.title} – ${variant.title}` : product.title) : (item.description ?? "Subscription"),
+			title: product ? variantDisplayNameOf(product.title, variant?.title ?? null) : (item.description ?? "Subscription"),
 			quantity: item.quantity,
 			stripePriceId: item.providerPriceId,
 		});
