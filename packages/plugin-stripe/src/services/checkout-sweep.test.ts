@@ -25,9 +25,13 @@ describe("sweepCheckouts", () => {
 
 		const result = await sweepCheckouts(h.container);
 
-		expect(result).toMatchObject({ snapshots: 1, sessionsExpired: 1, holdsReleased: 1, carts: 1, holdRecords: 1 });
+		expect(result).toMatchObject({ snapshots: 1, sessionsExpired: 1, holdsReleased: 1, carts: 1 });
 		expect(h.provider.sessions.get(seeded.sessionId)?.session.status).toBe("expired");
 		expect(await h.container.snapshots.get(seeded.checkoutId)).toBeNull();
+		// the released hold record is kept for the retention window counted from its release, then purged
+		expect((await h.container.inventory.getReservation(seeded.reservationId))?.status).toBe(RESERVATION_STATUS.released);
+		advance(h, 49 * HOUR);
+		expect(await sweepCheckouts(h.container)).toMatchObject({ holdRecords: 1 });
 		expect(await h.container.inventory.getReservation(seeded.reservationId)).toBeNull();
 		expect(await h.container.carts.get(seeded.cartId)).toBeNull();
 		expect(await h.container.inventory.get(seeded.sellable)).toMatchObject({ reserved: 0, available: 10 });
@@ -58,6 +62,21 @@ describe("sweepCheckouts", () => {
 		advance(h, 31 * 60_000);
 		expect(await sweepCheckouts(h.container, { retentionMs: 0 })).toMatchObject({ snapshots: 1, carts: 1 });
 		expect(await h.container.snapshots.get(seeded.checkoutId)).toBeNull();
+	});
+
+	it("with no retention also sweeps a session Stripe closed early, but never one still open", async () => {
+		const h = createHarness();
+		const open = await seedCheckout(h);
+		const closed = await seedCheckout(h);
+		await h.container.provider().then((provider) => provider.checkout.expireSession(closed.sessionId));
+		advance(h, 1000);
+		const result = await sweepCheckouts(h.container, { retentionMs: 0 });
+		expect(result).toMatchObject({ snapshots: 1, sessionsExpired: 0, holdsReleased: 1, carts: 1, holdRecords: 0 });
+		expect(await h.container.snapshots.get(closed.checkoutId)).toBeNull();
+		expect(await h.container.snapshots.get(open.checkoutId)).not.toBeNull();
+		expect(h.provider.sessions.get(open.sessionId)?.session.status).toBe("open");
+		advance(h, 1000);
+		expect(await sweepCheckouts(h.container, { retentionMs: 0 })).toMatchObject({ holdRecords: 1 });
 	});
 
 	it("never touches a paid checkout: its snapshot, reservation and order stay", async () => {

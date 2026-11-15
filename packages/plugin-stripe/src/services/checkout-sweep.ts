@@ -39,26 +39,40 @@ export interface CheckoutSweepOptions {
 
 const isoBefore = (container: CommerceContainer, ms: number): string => new Date(container.clock.now().getTime() - ms).toISOString();
 
-type SessionOutcome = "expired" | "paid" | "closed";
+type SessionOutcome = "paid" | "open" | "closed";
 
-/**
- * Closes an open session early so it cannot be paid while its records go. A session the buyer paid is reported as
- * `paid`: its webhook may still be waiting in the inbox, so settlement keeps the snapshot and the stock hold.
- */
-const closeSession = async (container: CommerceContainer, sessionId: string): Promise<SessionOutcome> => {
-	const provider = await container.provider();
-	const session = await provider.checkout.retrieveSession(sessionId);
+const sessionOutcome = async (container: CommerceContainer, sessionId: string): Promise<SessionOutcome> => {
+	const session = await (await container.provider()).checkout.retrieveSession(sessionId);
 	if (session?.status === "complete") return "paid";
-	if (session?.status !== "open") return "closed";
-	await provider.checkout.expireSession(sessionId);
-	return "expired";
+	return session?.status === "open" ? "open" : "closed";
 };
 
-const sweepAbandoned = async (container: CommerceContainer, snapshot: CheckoutSnapshot, cutoff: string, hasProvider: boolean, result: CheckoutSweepResult): Promise<void> => {
-	if (hasProvider && snapshot.sessionId) {
-		const outcome = await closeSession(container, snapshot.sessionId);
+/** When the session ends: the stored expiry, or the creation time plus the configured lifetime for an older snapshot. */
+const endOfSession = (container: CommerceContainer, snapshot: CheckoutSnapshot): number =>
+	snapshot.expiresAt ? Date.parse(snapshot.expiresAt) : Date.parse(snapshot.createdAt) + container.options.checkout.sessionMinutes * MINUTE_MS;
+
+interface SweepScope {
+	hasProvider: boolean;
+	retentionMs: number;
+	nowMs: number;
+	/** Carts idle since before this are not coming back. */
+	idleCutoff: string;
+}
+
+const sweepAbandoned = async (container: CommerceContainer, snapshot: CheckoutSnapshot, scope: SweepScope, result: CheckoutSweepResult): Promise<void> => {
+	const isTimeEnded = endOfSession(container, snapshot) + scope.retentionMs <= scope.nowMs;
+	let outcome: SessionOutcome | null = null;
+	if (scope.hasProvider && snapshot.sessionId) {
+		outcome = await sessionOutcome(container, snapshot.sessionId);
+		// Paid: its webhook may still be in the inbox, so settlement keeps the snapshot and the stock hold.
 		if (outcome === "paid") return;
-		if (outcome === "expired") result.sessionsExpired += 1;
+	}
+	// A session already closed at the provider (expired early) counts as ended when no retention is asked for.
+	const isClosedNow = scope.retentionMs === 0 && outcome === "closed";
+	if (!isTimeEnded && !isClosedNow) return;
+	if (outcome === "open") {
+		await (await container.provider()).checkout.expireSession(snapshot.sessionId as string);
+		result.sessionsExpired += 1;
 	}
 	if (snapshot.reservationId) {
 		const reservation = await container.inventory.getReservation(snapshot.reservationId);
@@ -70,7 +84,7 @@ const sweepAbandoned = async (container: CommerceContainer, snapshot: CheckoutSn
 	const stored = (await container.carts.get(snapshot.cartId))?.value;
 	// Only the cart this checkout belongs to, idle since before the sweep window, without an email to win back.
 	const isOwnCheckout = stored?.status === CART_STATUS.checkoutOpen && (stored.checkout?.sessionId === snapshot.sessionId || stored.checkout?.reservationId === snapshot.reservationId);
-	const isIdleAnonymous = stored && !stored.email && stored.updatedAt < cutoff && (stored.status === CART_STATUS.active || isOwnCheckout);
+	const isIdleAnonymous = stored && !stored.email && stored.updatedAt < scope.idleCutoff && (stored.status === CART_STATUS.active || isOwnCheckout);
 	if (stored && isIdleAnonymous) {
 		await container.carts.delete(stored.id);
 		result.carts += 1;
@@ -85,25 +99,29 @@ const sweepAbandoned = async (container: CommerceContainer, snapshot: CheckoutSn
 };
 
 /**
- * Removes what unpaid checkouts leave behind, bounded per run. A snapshot is swept when its session ended
- * (`checkout.sessionMinutes`) and `checkout.abandonedRetentionHours` passed and no order exists for its session;
- * a paid checkout's snapshot is removed only after `MAINTENANCE.retentionMs`. Each snapshot is isolated: a failure
- * is logged and the next run tries again.
+ * Removes what unpaid checkouts leave behind, bounded per run. A snapshot is swept when its session ended and
+ * `checkout.abandonedRetentionHours` passed (with no retention a session that Stripe already closed counts as ended)
+ * and no order exists for its session; a paid checkout's snapshot is removed only after `MAINTENANCE.retentionMs`.
+ * Each snapshot is isolated: a failure is logged and the next run tries again.
  */
 export const sweepCheckouts = async (container: CommerceContainer, options: CheckoutSweepOptions = {}): Promise<CheckoutSweepResult> => {
 	const result: CheckoutSweepResult = { snapshots: 0, sessionsExpired: 0, holdsReleased: 0, carts: 0, holdRecords: 0, settledSnapshots: 0 };
 	const retentionMs = options.retentionMs ?? container.options.checkout.abandonedRetentionHours * HOUR_MS;
-	const cutoff = isoBefore(container, container.options.checkout.sessionMinutes * MINUTE_MS + retentionMs);
+	const scope: SweepScope = {
+		hasProvider: Boolean((await container.secrets()).stripeSecretKey),
+		retentionMs,
+		nowMs: container.clock.now().getTime(),
+		idleCutoff: isoBefore(container, retentionMs),
+	};
 	const settledCutoff = isoBefore(container, MAINTENANCE.retentionMs);
-	const hasProvider = Boolean((await container.secrets()).stripeSecretKey);
 
 	let after: string | undefined;
 	for (let page = 0; page < MAX_SNAPSHOT_PAGES; page += 1) {
-		const snapshots = await container.snapshots.listCreatedBefore(cutoff, MAINTENANCE.cartBatch, after);
+		const snapshots = await container.snapshots.listCreatedBefore(isoBefore(container, retentionMs), MAINTENANCE.cartBatch, after);
 		for (const snapshot of snapshots) {
 			try {
 				const isPaid = snapshot.sessionId ? Boolean(await container.recordIndex.get(RECORD_INDEX_KEY.orderBySession(snapshot.sessionId))) : false;
-				if (!isPaid) await sweepAbandoned(container, snapshot, cutoff, hasProvider, result);
+				if (!isPaid) await sweepAbandoned(container, snapshot, scope, result);
 				else if (snapshot.createdAt < settledCutoff) {
 					await container.snapshots.delete(snapshot.checkoutId);
 					result.settledSnapshots += 1;

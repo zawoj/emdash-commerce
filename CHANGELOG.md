@@ -29,6 +29,13 @@
   shoppers. It now rewrites to the site's 404 page (`Astro.rewrite("/404")`, status 404), like every other dynamic
   content route. A test scans all dynamic pages so a new one cannot redirect on a miss.
 
+### fix: the checkout sweep also takes sessions Stripe closed early — Claude Code
+- Live check of the sweep: a session expired through the Stripe API is released by its webhook but its stored expiry is
+  still in the future, so the first version of the sweep (time based) kept its snapshot and cart for the full session
+  lifetime. A snapshot now ends at its stored `expiresAt`, and with `retentionHours: 0` a session the provider reports
+  as closed counts as ended; a still-open session is never touched early. Released reservation records are purged by
+  their release time (`updatedAt`) instead of the hold's expiry.
+
 ### feat: sweep of abandoned checkouts — Claude Code
 - Verified with a sandbox session expired through the Stripe API: `checkout.session.expired` arrives through
   `stripe listen`, answers 200, releases the reservation and puts the cart back to `active`. What stayed behind were

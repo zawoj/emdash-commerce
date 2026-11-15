@@ -203,12 +203,10 @@ export const createInventoryStore = (
 			return page.items.map((item) => toReservation(item.data));
 		},
 		async purgeReleasedReservations(before, limit) {
-			const page = await reservations.query({
-				where: { status: RESERVATION_STATUS.released, expiresAt: { lt: before } },
-				orderBy: { expiresAt: "asc" },
-				limit,
-			});
-			return reservations.deleteMany(page.items.map((item) => item.id));
+			// The index is (status, expiresAt); the release time is checked here, so a hold released long before its
+			// expiry (the session was expired early) is purged too.
+			const page = await reservations.query({ where: { status: RESERVATION_STATUS.released }, orderBy: { expiresAt: "asc" }, limit });
+			return reservations.deleteMany(page.items.filter((item) => item.data.updatedAt < before).map((item) => item.id));
 		},
 		async adjust(sellable, delta, reason) {
 			for (;;) {

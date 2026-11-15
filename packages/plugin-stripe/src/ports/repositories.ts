@@ -168,7 +168,7 @@ export interface InventoryStore {
 	getReservation(reservationId: string): Promise<Reservation | null>;
 	listExpiredReservations(now: string, limit: number): Promise<Reservation[]>;
 	/**
-	 * Housekeeping: deletes `released` reservations whose hold ended (`expiresAt`) before `before`, at most `limit`
+	 * Housekeeping: deletes `released` reservations released (`updatedAt`) before `before`, at most `limit`
 	 * per call. Held and committed ones are never purged: a held one is the expiry sweep's, a committed one belongs
 	 * to an order.
 	 */

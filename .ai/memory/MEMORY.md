@@ -18,3 +18,4 @@ Layout, naming and rules: [../README.md](../README.md). Read this index at sessi
 - [A hidden status note is still text](option-chip-hidden-note-is-still-text.md) — the option chip rendered "Sold out" on every chip and toggled hidden; the note now exists only while sold out (setSoldOutNote)
 - [Abandoned checkouts left records behind](emdash-plugin-stripe-abandoned-checkout-leftovers.md) — unpaid checkouts kept a snapshot, a released reservation and a cart forever; the checkout-sweep step removes them and what it must never touch
 - [A resync queues, it does not sync](emdash-plugin-stripe-resync-is-slow-by-design.md) — the cron task syncs 25 links per five minutes, so a seeded catalog needs admin/catalog/sync driven until due is 0 (what the seed now does)
+- [Site URL is read at startup](emdash-site-url-is-read-at-startup.md) — after the first seed on an empty database checkout answers NOT_CONFIGURED until the server is restarted once

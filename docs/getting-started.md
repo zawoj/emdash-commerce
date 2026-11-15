@@ -164,6 +164,10 @@ On a fresh database the seed first applies the schema through the dev login, the
 - nine apparel products with variants and prices, four accessories, and a membership with a recurring price;
 - the Homepage fields: the call-to-action band, the shop-the-look points and the spotlight callouts.
 
+**After the very first seed on an empty database, restart the server once** (`npx astro dev stop`, then `pnpm dev`). EmDash
+reads the site URL when it starts, and on an empty database it is only stored by the setup the first run performs, so until a
+restart the first checkout answers `NOT_CONFIGURED` ("a checkout redirect URL points outside the site's allowed origins").
+
 Photos are downloaded on demand from Unsplash into the git-ignored `.cache/unsplash/` and uploaded to the media library,
 so the first run needs internet access.
 
@@ -240,6 +244,7 @@ Prices next to the old ones (archive the old ones in the dashboard if they bothe
 | `stripe listen` shows `[503]` | No webhook secret configured at all. Same fix. |
 | Paid at Stripe, no order in the admin | The webhook did not arrive or failed. Is `stripe listen` running, forwarding to the right port, with the same account as your key? The Commerce page lists failed or dead webhook events and can replay one. **Reconcile now** fetches events the site missed. |
 | Checkout answers 503 `NOT_CONFIGURED` | No `STRIPE_SECRET_KEY`, or the server was started without `.env` (plain `astro dev`). Start with `pnpm dev` and restart after editing `.env`. |
+| Very first checkout after the first seed answers `NOT_CONFIGURED` "points outside the site's allowed origins" | EmDash read the site URL before setup stored it. Restart the server once (`npx astro dev stop`, `pnpm dev`); see `.ai/memory/emdash-site-url-is-read-at-startup.md`. |
 | Stripe rejects the key | A restricted key without a needed permission (step 2). The message names the call. |
 | Node version warning at `pnpm install` or start | You are on a Node older than 24.22.1. Switch with your version manager (`fnm use`, `nvm use`), reinstall if needed. |
 | `astro dev` returns immediately, "nothing happens" | Astro 7 detaches the dev server in agent and CI-like shells. It is running: `npx astro dev status`, `npx astro dev logs`, `npx astro dev stop` (run in `apps/storefront`). Port busy means an old server is still up; stop it first. |

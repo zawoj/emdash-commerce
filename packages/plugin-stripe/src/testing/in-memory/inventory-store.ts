@@ -142,7 +142,7 @@ export const createInMemoryInventoryStore = (clock: Clock): InventoryStore => {
 		async purgeReleasedReservations(before, limit) {
 			await tick();
 			const doomed = [...reservations.values()]
-				.filter((item) => item.status === RESERVATION_STATUS.released && item.expiresAt < before)
+				.filter((item) => item.status === RESERVATION_STATUS.released && item.updatedAt < before)
 				.sort((a, b) => a.expiresAt.localeCompare(b.expiresAt))
 				.slice(0, limit);
 			for (const item of doomed) reservations.delete(item.id);
