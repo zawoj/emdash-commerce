@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-11-15 (Cloudflare merch theme)
+
+### feat: the demo shop is mock Cloudflare merch, with an orange skin, USD and generated art — Claude Code
+- **Catalog.** The sportswear demo is replaced by fictional, unofficial Cloudflare-style merch, as data in
+  `scripts/lib/merch-catalog.mjs`: three labels, eight categories (apparel with a "Hoodies & jackets" child, desk setup,
+  drinkware, stickers & pins, bundles, new arrivals, sale), five variant products (size x colour), twelve simple products
+  (one low on stock, one sold out), two fixed-price bundles (a Desk Setup Bundle and a New Hire Welcome Kit, with a new
+  "Bundle" product type and an "Includes" specification) and an Edge Club membership with a recurring price. A test checks
+  that the data, the home config and the art agree, and that every bundle costs less than its parts and says so.
+- **Home page.** Rails, tabs and the category index are now Apparel, Desk setup, Drinkware and Bundles (a new Bundles rail);
+  shop-the-look is a desk setup (lamp, mat, mug, cable kit, keycaps) whose kit adds to the cart in one dialog; the spotlight
+  is the Packet Windbreaker with callouts. Copy in en and pl, including an FAQ answer that says this is an unofficial demo.
+- **Art.** `scripts/art/` (`pnpm art`) draws the product, scene and category art as flat vector shapes (no text) and
+  rasterises it with `sharp` to PNG in `apps/storefront/public/merch/`, committed, so the seed needs no network. PNG, not
+  SVG, because EmDash's media upload rejects SVG (`.ai/memory/emdash-media-upload-rejects-svg.md`). `sharp` is a root
+  devDependency for it. Hotspot positions are computed from the same drawing coordinates (`scripts/art/hotspots.mjs`).
+- **Currency.** Prices are USD: `DEFAULT_CURRENCY`, the plugin options in `apps/storefront/astro.config.mjs`
+  (`defaultCurrency` and `supportedCurrencies` `usd`) and the price filter unit (`currencySymbolOf`, was a literal "zł").
+  **A database made before this change keeps a PLN-only currency select on prices: reset it** (`docs/getting-started.md` §8).
+- **Seed.** `scripts/seed-demo.mjs` reads the catalog module and the committed art (no Unsplash), gains `--only bundle`, and
+  `seed.json` drops its two Unsplash `$media` fields and takes the new title, tagline, About and footer text.
+- **Onboarding.** `pnpm bootstrap` prepares `apps/storefront/.env` (generates the encryption key, takes a sandbox Stripe
+  key from the environment or a prompt, reads the webhook secret from the Stripe CLI, refuses a live key, never prints a
+  secret) and `pnpm doctor` re-checks the toolchain, `.env`, dev server and seeded catalog without changing anything
+  (`pnpm init` and `pnpm setup` are pnpm built-ins, hence the names). `docs/ai-guide.md` is the memo for an AI agent and a
+  newcomer: architecture map, what exists, ready prompts per job and the "Re-theme the catalog" checklist; the README opens
+  with a paste-in prompt and the disclaimer that this is not affiliated with Cloudflare.
+- **Skin.** Cloudflare orange on warm charcoal in `packages/design-system` (see its changelog and
+  `.ai/decisions/2026-11-15-cloudflare-merch-theme.md`).
+- To do outside the code: nothing. Existing Stripe sandbox products from the sportswear seed stay in the sandbox; archive
+  them in the dashboard or use a fresh sandbox.
+
 ## 2026-11-15 (QA fixes, round 2)
 
 ### docs: getting started from zero — Claude Code

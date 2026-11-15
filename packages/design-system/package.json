@@ -1,7 +1,7 @@
 {
   "name": "@emdash-commerce/design-system",
   "version": "0.0.1",
-  "description": "Shop storefront design system: a blue wireframe with no decoration \u2014 design tokens and every visual component as props-driven Astro components, no app logic, no imports from any app.",
+  "description": "Shop storefront design system: a warm ink and orange wireframe with no decoration (the Cloudflare palette) \u2014 design tokens and every visual component as props-driven Astro components, no app logic, no imports from any app.",
   "private": true,
   "type": "module",
   "exports": {
@@ -50,7 +50,7 @@
   },
   "scripts": {
     "typecheck": "astro check",
-    "test": "node scripts/token-lint.mjs src && node scripts/wireframe-lint.mjs src ../../apps/storefront/src && node --test scripts/wireframe-lint.test.mjs"
+    "test": "node scripts/token-lint.mjs src && node scripts/wireframe-lint.mjs src ../../apps/storefront/src && node --test scripts/wireframe-lint.test.mjs scripts/token-contrast.test.mjs"
   },
   "dependencies": {
     "astro": "7.3.2"

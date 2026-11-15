@@ -15,6 +15,9 @@ importers:
       nx:
         specifier: 22.7.0
         version: 22.7.0
+      sharp:
+        specifier: 0.34.5
+        version: 0.34.5
 
   apps/storefront:
     dependencies:

@@ -4,6 +4,31 @@ Newest on top. Each entry says what changed in the package and why.
 
 ## 2026-11-15
 
+### feat: Cloudflare palette (orange on warm charcoal), replaces the blue wireframe ink
+- The skin is now a warm ink + orange wireframe taken from the Cloudflare merch look: the `--ink-0…1000` ramp is warm
+  neutral (800 is the charcoal `#404041`), a new `--orange-50…900` ramp holds `#F6821F` (500) and the amber `#FBAD41`
+  (300). Token names are unchanged; every other wireframe rule stays (square corners, 1px outlines, no shadow, gradient,
+  blur, motion or uppercase, system fonts, state never by colour alone).
+- `--accent` is orange-500 with `--on-accent` ink (7.2:1; white would be 2.6:1), `--accent-hover` orange-600,
+  new `--accent-pressed` amber. `--action-primary` / `--control-solid` are the orange accent on the light surface (primary
+  buttons, selected chips, current steps, pagination), with the new `--on-action-primary` text token; on a dark surface
+  the solid control stays inverted (white, ink text). `--hot` is the dark `--orange-700` (5.3:1 on white, white text on it
+  holds 4.5:1), still told by `<del>`, a 2px border and an icon.
+- New `--accent-text` (orange as text: `--orange-700`, amber on dark) and `--control-edge` (charcoal / white strokes that
+  mark a state: current nav item, selected thumbnail, ticked checkbox, current marker outline), because orange on white
+  is under 3:1. Components that read them: `tag-posts`, `order-confirmation`, `account-nav`, `product-gallery`,
+  `product-card` (sold-out outline), `order-progress`, `timeline`, `option-chip` (selected border), checkbox / radio /
+  toggle `accent-color`. Pressed states of `Button` and the pickup-point button use `--accent-pressed` (they were ink,
+  which would hide the ink label); `board-hero` markers and `product-card` badges use `--on-action-primary`.
+- Photos show as shot: `--image-filter: none`; `--logo-filter-*` are plain charcoal / grey silhouettes (no hue rotate).
+  The scrim is one flat charcoal layer. Category tones are eight charcoal and dark orange-brown fills (white text 4.5:1).
+- Dark surface: `--text-muted` is `--ink-300` and `--border-strong` is `--ink-500` (the old values failed 4.5:1 / 3:1).
+- `scripts/wireframe-lint.mjs` enforces the new palette (hex must be grey or hue 15-45 degrees, `--hot` is
+  `var(--orange-700)`); its test and fixtures cover a blue ramp failing and orange passing.
+- New `scripts/token-contrast.test.mjs` (in `test`): WCAG contrast of every text / background pair and of border, edge and
+  focus tokens on both surfaces.
+- Prop and tone names are unchanged (`voltText`, `brandMarqueeTones.volt`, `collectionTileTones.volt`): they are API.
+
 ### fix: option chips carry "Sold out" only when the option is sold out
 - `OptionChip` rendered a visually hidden `Sold out` note on every chip, so the text of an in-stock chip contained it.
   The note now exists only for a sold-out option (server render and `syncVariantChips`, via `utils/sold-out-note`,

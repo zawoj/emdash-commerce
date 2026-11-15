@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
-import { lintText, RULES } from './wireframe-lint.mjs'
+import { HOT_TOKEN_VALUE, lintText, RULES } from './wireframe-lint.mjs'
 
 const here = (p) => fileURLToPath(new URL(p, import.meta.url))
 const fixture = (name) => here(`./fixtures/wireframe/${name}`)
@@ -56,9 +56,24 @@ test('the token file must stay a wireframe', () => {
   assert.ok(hit(findings, '--radius-md'), 'non-zero radius token')
   assert.ok(hit(findings, '--tracking-label'), 'non-zero tracking token')
   assert.ok(hit(findings, '--text-case'), 'uppercase case token')
-  assert.ok(hit(findings, '--hot'), 'a --hot that is not ink-700')
-  assert.ok(hit(findings, '#4caf50'), 'a hue outside the blue ramp')
+  assert.ok(hit(findings, '--hot'), 'a --hot that is not the dark orange step')
+  assert.ok(hit(findings, '#4caf50'), 'a green outside the warm range')
+  assert.ok(hit(findings, '--ink-700: #d7261e'), 'a red hue (under 15deg) outside the warm range')
   assert.ok(hit(findings, '--image-scrim'), 'a gradient scrim')
+})
+
+test('the token file palette is grey or warm: a blue ramp fails, orange and charcoal pass', () => {
+  const lint = (decl) => lintText('src/tokens/index.css', `:root {\n  ${decl}\n}\n`)
+  assert.ok(hit(lint('--ink-600: #3a63d1;'), '#3a63d1'), 'the old blue ink fails')
+  assert.ok(hit(lint('--ink-300: #b4c9fb;'), '#b4c9fb'), 'a pale blue fails')
+  assert.ok(hit(lint('--x: #8a2be2;'), '#8a2be2'), 'a purple fails')
+  assert.deepEqual(lint('--orange-500: #f6821f;'), [], 'the Cloudflare orange passes')
+  assert.deepEqual(lint('--orange-300: #fbad41;'), [], 'the amber passes')
+  assert.deepEqual(lint('--ink-800: #404041;'), [], 'the charcoal passes')
+  assert.deepEqual(lint('--ink-0: #ffffff;'), [], 'white passes')
+  assert.deepEqual(lint(`--hot: ${HOT_TOKEN_VALUE};`), [], '--hot as the dark orange step passes')
+  assert.ok(hit(lint('--hot: var(--orange-500);'), '--hot'), '--hot as another step fails')
+  assert.ok(hit(lint('--hot: var(--ink-700);'), '--hot'), 'the old ink --hot fails')
 })
 
 test('the real token file passes', () => {

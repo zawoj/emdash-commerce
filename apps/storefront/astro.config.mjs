@@ -39,6 +39,8 @@ export default defineConfig({
 					id: "stripe-commerce",
 					entrypoint: "@emdash-commerce/plugin-stripe",
 					componentsEntry: "@emdash-commerce/plugin-stripe/astro",
+					// Mock Cloudflare merch is priced in USD (the storefront's DEFAULT_CURRENCY in src/lib/money.ts).
+					options: { storeName: "Cloudflare Merch", defaultCurrency: "usd", supportedCurrencies: ["usd"] },
 				},
 			],
 		}),

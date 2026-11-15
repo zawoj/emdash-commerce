@@ -189,8 +189,13 @@ const promises = [
 	) : null
 }
 {
-	railByKey(rails, "running") ? (
-		<ProductRail {...railProps(railByKey(rails, "running")!)} />
+	railByKey(rails, "bundles") ? (
+		<ProductRail {...railProps(railByKey(rails, "bundles")!)} />
+	) : null
+}
+{
+	railByKey(rails, "apparel") ? (
+		<ProductRail {...railProps(railByKey(rails, "apparel")!)} />
 	) : null
 }
 {
@@ -269,8 +274,8 @@ const promises = [
 	) : null
 }
 {
-	railByKey(rails, "cycling") ? (
-		<ProductRail {...railProps(railByKey(rails, "cycling")!)} />
+	railByKey(rails, "desk") ? (
+		<ProductRail {...railProps(railByKey(rails, "desk")!)} />
 	) : null
 }
 <ActivityIndex
@@ -284,8 +289,8 @@ const promises = [
 	}))}
 />
 {
-	railByKey(rails, "triathlon") ? (
-		<ProductRail {...railProps(railByKey(rails, "triathlon")!)} />
+	railByKey(rails, "drinkware") ? (
+		<ProductRail {...railProps(railByKey(rails, "drinkware")!)} />
 	) : null
 }
 <BrandMarquee text={homeStrings.marquee} />

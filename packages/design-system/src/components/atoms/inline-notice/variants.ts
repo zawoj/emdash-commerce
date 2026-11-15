@@ -1,4 +1,4 @@
-// Tone of an `InlineNotice`. The skin is monochrome (plus `--hot` for errors), so tones differ by
+// Tone of an `InlineNotice`. The skin is warm ink plus orange (`--hot` for errors), so tones differ by
 // glyph, outline and the words — never by colour alone.
 export const noticeTones = {
   info: 'info',

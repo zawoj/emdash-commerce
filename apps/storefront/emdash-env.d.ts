@@ -141,7 +141,7 @@ export interface Price {
   nickname?: string;
   type: "one_time" | "recurring";
   unit_amount: number;
-  currency: "pln";
+  currency: "usd";
   interval?: "day" | "week" | "month" | "year";
   interval_count?: number;
   trial_days?: number;

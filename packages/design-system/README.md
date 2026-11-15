@@ -6,19 +6,34 @@ for what changed in the package itself and why.
 
 The package is **de-branded**: no logos or brand photos; site chrome uses a text wordmark from `siteName`.
 
-The look is a **blue wireframe with no decoration**, taken from the zavcode design system: one blue-tinted ink
-ramp (`--ink-0`…`--ink-1000`, no hue besides ink), system font stacks (nothing is loaded), square corners
-everywhere (circles included), 1px outlines (2px for emphasis: selected, invalid, danger), no shadow, no gradient, no
-blur, no transition, transform or animation, and sentence case in normal width. State is told by outline, border
-width, underline, strike-through, marker shape and fill inversion, never by colour alone: a sale price is a `<del>`
-plus the ink price, an error is a 2px ink border with an icon. Every photo is tinted into the ink colour by one global
-filter (`--image-filter` on `img, video, picture` in `reset.css`); the scrim under copy on a photo is one flat ink
-layer. Tokens live in `src/tokens/index.css`; shared glyphs live in `src/assets/` (play icon, social SVGs).
+The look is a **warm ink + orange wireframe with no decoration**, in the Cloudflare palette: one warm neutral ramp
+(`--ink-0`…`--ink-1000`, step 800 is the charcoal `#404041`), one orange ramp (`--orange-50`…`--orange-900`, 500 is
+`#F6821F`, 300 the amber `#FBAD41`), system font stacks (nothing is loaded), square corners everywhere (circles
+included), 1px outlines (2px for emphasis: selected, invalid, danger), no shadow, no gradient, no blur, no transition,
+transform or animation, and sentence case in normal width. Orange is the accent: a **fill with near-black text**
+(`--accent` / `--on-accent`, 7.2:1; white on `#F6821F` is only 2.6:1), the default solid button and selected control
+(`--action-primary`, `--control-solid` on the light surface). State is told by outline, border width, underline,
+strike-through, marker shape and fill inversion, never by colour alone: a sale price is a `<del>` plus the dark-orange
+price (`--hot`), an error is a 2px border with an icon. Photos show as shot (`--image-filter: none`; one global filter
+on `img, video, picture` in `reset.css` if a skin wants a tint again); the scrim under copy on a photo is one flat
+charcoal layer. Tokens live in `src/tokens/index.css`; shared glyphs live in `src/assets/` (play icon, social SVGs).
 
 A few tokens exist only so components keep compiling and are neutral on purpose (`--text-case`, `--label-case`,
 `--tracking-*`, `--*-stretch`, the semantic `--radius-*`, `--duration-collapse`): `none`, `0`, `100%`, `0ms`.
-Deviations from zavcode, for contrast: form borders use `--ink-500` (zavcode's `--ink-400` is 2.4:1 on white) and the
-focus ring on a dark surface is `--ink-50`.
+
+Contrast roles (checked with real WCAG maths by `scripts/token-contrast.test.mjs`, both surfaces):
+
+- `--ink-500` is the lightest step with 3:1 on white (form borders, `--border-strong`); `--ink-600` the lightest with
+  4.5:1 (secondary / muted text); `--ink-400` is for disabled text only. `--border` is a decorative hairline.
+- Orange on a light surface is a **fill, never text or a thin stroke**: text uses `--accent-text` (`--orange-700`,
+  5.3:1 on white; amber `--orange-300` on dark) and a stroke that marks state (current nav item, selected thumbnail,
+  ticked box, marker outline) uses `--control-edge` (charcoal on light, white on dark). `--hot` is `--orange-700`, the
+  fill behind white `--on-color` text (5.3:1).
+- `--on-action-primary` is the text on `--action-primary` (ink); `--on-color` (white) is only for the dark fills
+  (`--hot`, `--category-tone-*`). Pressed buttons use `--accent-pressed` (amber) so the ink text keeps 4.5:1.
+- The focus ring stays ink (an orange ring on white is 2.6:1); on the dark surface it is `--ink-50`. On the dark
+  surface the solid control is inverted (white, ink text) and `--border-strong` is `--ink-500`.
+- Category tones `--category-tone-1…8` are charcoals and dark orange-browns that keep white label text at 4.5:1.
 
 ## Why this package exists
 
@@ -148,14 +163,20 @@ after `font`):
 - buttons: `text-transform: var(--button-case)` (sentence case); body, form copy and nav links set
   no transform. Product names use `--type-title-md` / `--type-title-sm`, never condensed caps.
 
-`--accent` is a fill with `--on-accent` text — never text or a stroke on a light surface.
+`--accent` is a fill with `--on-accent` text — never text or a stroke on a light surface (`--accent-text`, `--control-edge`).
 
 `wireframe-lint` (`scripts/wireframe-lint.mjs`, also run by `test`, over this package and `apps/storefront/src`) fails on
 anything that decorates: a `border-radius` other than `0` or a token, any `box-shadow`, gradients, blur, uppercase,
 non-zero tracking, rotate / skew / scale, `transform` other than centring, `@keyframes` / `animation` / `transition`,
-raw colours outside the tokens, webfonts and a `filter` on a photo. `scripts/wireframe-lint.test.mjs` proves each rule
-against the fixtures in `scripts/fixtures/wireframe/`. A line ending in `/* wireframe-ignore: <reason> */` is skipped
-(only the one-colour logo silhouette uses it).
+raw colours outside the tokens, webfonts and a `filter` on a photo. In `tokens/index.css` it also fails a hex colour that
+is neither grey nor warm (hue 15-45 degrees: no blue, green, red or purple), a `--hot` that is not `var(--orange-700)`,
+a non-zero radius or tracking and a gradient scrim. `scripts/wireframe-lint.test.mjs` proves each rule against the
+fixtures in `scripts/fixtures/wireframe/` (a blue ramp fails, orange and charcoal pass). A line ending in
+`/* wireframe-ignore: <reason> */` is skipped (only the one-colour logo silhouette uses it).
+
+`scripts/token-contrast.test.mjs` (no dependencies) parses `src/tokens/index.css`, resolves the `var()` chains and asserts
+the WCAG contrast of the text / background pairs (4.5:1) and of border, edge and focus tokens (3:1) on `[data-surface='light']`
+and `[data-surface='dark']`: change a colour token and it tells you which pair broke.
 
 `token-lint` (this package's bin, `scripts/token-lint.mjs`) enforces it on `.astro` styles and CSS:
 the package's `test` script runs it, so `pnpm test` / CI fail on a raw value that has a token. A value with genuinely no token stays raw with a trailing
@@ -163,10 +184,11 @@ the package's `test` script runs it, so `pnpm test` / CI fail on a raw value tha
 
 ## Re-skinning
 
-1. Palette (`--ink-*`), the semantic radii, borders, `--image-filter`, `--image-scrim` and the `--logo-filter-*`
+1. Palette (`--ink-*`, `--orange-*`), the semantic radii, borders, `--image-filter`, `--image-scrim` and the `--logo-filter-*`
    silhouettes in `src/tokens/index.css` (`--accent` / `--on-accent`, `--control-solid`, `--hot`, `--link`,
-   `--category-tone-*` and the surface aliases are the semantic layer every component reads). A skin that wants a hue
-   or a decoration has to relax `wireframe-lint` first.
+   `--category-tone-*` and the surface aliases are the semantic layer every component reads). A skin with another hue
+   or a decoration has to relax `wireframe-lint` (the warm range and the `--hot` step) first; keep
+   `token-contrast.test.mjs` green.
 2. Fonts: `src/tokens/fonts.css` is empty on purpose; to load a webfont import it there and point `--font-display` /
    `--font-body` at it.
 3. Artwork: replace the files in `src/assets/` (keep the exported sizes, or update them in `artwork.ts`). Site chrome

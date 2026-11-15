@@ -1,7 +1,12 @@
 # Getting started: run the shop end to end
 
 This page takes you from a fresh clone to a test purchase that shows up as an order in the admin. Everything runs on
-your machine against a **Stripe sandbox**; no real money moves. Allow about 20 minutes the first time.
+your machine against a **Stripe sandbox**; no real money moves. Allow about 20 minutes the first time. The shop is an
+unofficial **mock Cloudflare-merch store**: fictional products in USD, generated art, nothing ships.
+
+**Shortcut:** after `pnpm install`, `pnpm bootstrap` does steps 3 and part of 4 for you (it creates `.env`, generates the
+encryption key, takes your Stripe sandbox key and reads the webhook secret from the Stripe CLI, and refuses a live key);
+`pnpm doctor` re-checks everything without changing anything. The sections below are the same steps by hand.
 
 1. [Prerequisites](#1-prerequisites)
 2. [A Stripe sandbox and its keys](#2-a-stripe-sandbox-and-its-keys)
@@ -75,7 +80,7 @@ events of a different account and nothing arrives. Check with `stripe config --l
 ## 3. Environment variables
 
 ```bash
-cp apps/storefront/.env.example apps/storefront/.env
+pnpm bootstrap      # or by hand: cp apps/storefront/.env.example apps/storefront/.env
 ```
 
 `apps/storefront/.env` is git-ignored. The dev and start scripts load it with `node --env-file-if-exists=.env`; plain
@@ -161,19 +166,24 @@ On a fresh database the seed first applies the schema through the dev login, the
 
 - the site identity (title and tagline);
 - the attribute vocabulary, brands and categories;
-- nine apparel products with variants and prices, four accessories, and a membership with a recurring price;
-- the Homepage fields: the call-to-action band, the shop-the-look points and the spotlight callouts.
+- five apparel products with size and colour variants and prices, twelve accessories (one low on stock, one sold out),
+  two fixed-price bundles (Desk Setup, New Hire Welcome Kit) and an "Edge Club" membership with a recurring price;
+- the Homepage fields: the call-to-action band, the shop-the-look points on the desk setup photo and the spotlight
+  callouts on the jacket.
+
+The catalog is data in `scripts/lib/merch-catalog.mjs`; the photos are committed art in `apps/storefront/public/merch/`
+(regenerate with `pnpm art`). The prices are USD: the storefront registers the plugin with `defaultCurrency: "usd"` in
+`apps/storefront/astro.config.mjs`.
 
 **After the very first seed on an empty database, restart the server once** (`npx astro dev stop`, then `pnpm dev`). EmDash
 reads the site URL when it starts, and on an empty database it is only stored by the setup the first run performs, so until a
 restart the first checkout answers `NOT_CONFIGURED` ("a checkout redirect URL points outside the site's allowed origins").
 
-Photos are downloaded on demand from Unsplash into the git-ignored `.cache/unsplash/` and uploaded to the media library,
-so the first run needs internet access.
+Each photo is uploaded once to the media library (matched by file name). No network is needed: the art is in the repo.
 
 - **Idempotent.** Everything is matched by slug or name, so running it again updates in place and creates no duplicates.
-- **`--only`** runs part of it: `pnpm seed -- --only site,home` (names: `site`, `apparel`, `accessory`, `membership`,
-  `home`).
+- **`--only`** runs part of it: `pnpm seed -- --only site,home` (names: `site`, `apparel`, `accessory`, `bundle`,
+  `membership`, `home`).
 - **Automatic Stripe sync.** At the end, when a sandbox key is configured, the seed queues the plugin's catalog resync and
   drives it until nothing is due (Stripe Products and Prices for every product and variant), printing progress and a
   clear message if it times out (`SEED_SYNC_TIMEOUT_SECONDS`, default 300) or if some entities failed. Look for the line
@@ -202,7 +212,7 @@ The dev login exists only in development. A deployed site uses passkeys and need
 
 1. Open <http://localhost:4360/shop>, pick a product, choose the options (size, colour) and add it to the cart.
 2. Open the cart and press **Checkout**. You are redirected to Stripe's hosted page. The line item is named
-   "Product name, then options", for example "Velocity Shell Jacket — XL / Red".
+   "Product name, then options", for example "Packet Windbreaker — XL / Orange".
 3. Pay with the test card **4242 4242 4242 4242**, any future expiry, any three-digit CVC and any name and postcode.
    (Other cards, such as one that declines, are listed in the [Stripe docs](https://docs.stripe.com/testing).)
 4. Stripe sends you back to the success page. In the `stripe listen` terminal you should see
@@ -233,7 +243,7 @@ pnpm seed
 
 Open the dev login again afterwards (step 6). Stripe sandbox objects are not removed: the new seed creates new Products and
 Prices next to the old ones (archive the old ones in the dashboard if they bother you, or create a fresh sandbox).
-`.cache/unsplash/` can stay; it only saves downloads.
+A database created before the move to USD still has a PLN-only `currency` select on prices: reset it as above.
 
 ## 9. Troubleshooting
 

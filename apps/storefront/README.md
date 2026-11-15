@@ -1,6 +1,6 @@
 # @emdash-commerce/storefront
 
-A sportswear shop on [EmDash](https://github.com/emdash-cms/emdash): Astro 7 server-rendered, Node + SQLite, local media
+An unofficial mock Cloudflare-merch shop on [EmDash](https://github.com/emdash-cms/emdash): Astro 7 server-rendered, Node + SQLite, local media
 uploads. It is the demo site of this repo and the reference for how a storefront talks to
 [`@emdash-commerce/plugin-stripe`](../../packages/plugin-stripe/README.md) and renders with
 [`@emdash-commerce/design-system`](../../packages/design-system/README.md).

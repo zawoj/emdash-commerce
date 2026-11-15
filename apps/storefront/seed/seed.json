@@ -7,8 +7,8 @@
     "author": "EmDash"
   },
   "settings": {
-    "title": "EmDash Commerce",
-    "tagline": "Demo sportswear shop on EmDash and Stripe"
+    "title": "Cloudflare Merch",
+    "tagline": "Mock merch store — an unofficial demo on EmDash and Stripe"
   },
   "collections": [
     {
@@ -311,7 +311,7 @@
               "children": [
                 {
                   "_type": "span",
-                  "text": "A blog about software, design, and the occasional stray thought.",
+                  "text": "An unofficial mock merch store built on EmDash and Stripe. Fictional products, nothing ships.",
                   "_key": "k1"
                 }
               ],
@@ -402,7 +402,7 @@
               "children": [
                 {
                   "_type": "span",
-                  "text": "A place for writing about software, design, and the occasional stray thought. No posting schedule, no newsletter funnel. Just things I wanted to write down.",
+                  "text": "Cloudflare Merch is an unofficial demo store with fictional products and mock data. It is not affiliated with Cloudflare, and nothing here is for sale or ships. It exists to show what EmDash and Stripe can do together.",
                   "_key": "k1"
                 }
               ],
@@ -414,7 +414,7 @@
               "children": [
                 {
                   "_type": "span",
-                  "text": "Built with Astro and EmDash. The source is open if you want to see how it works.",
+                  "text": "Built with Astro, EmDash and Stripe (sandbox only). The source is open if you want to see how it works.",
                   "_key": "k3"
                 }
               ],
@@ -1085,25 +1085,11 @@
         "status": "published",
         "data": {
           "title": "Homepage",
-          "hero_image": {
-            "$media": {
-              "url": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&h=800&fit=crop",
-              "alt": "Laptop and coffee on a wooden table",
-              "filename": "case-for-static.jpg"
-            }
-          },
-          "cta_eyebrow": "Members club",
-          "cta_heading": "Train with the club",
-          "cta_text": "Weekly group runs, member-only drops and 10% off every order. First 7 days free.",
+          "cta_eyebrow": "Edge Club",
+          "cta_heading": "Join the Edge Club",
+          "cta_text": "Member-only drops, early access to limited runs and 10% off every order. First 7 days free.",
           "cta_button_label": "Join the club",
-          "cta_button_url": "/shop/club-membership",
-          "cta_image": {
-            "$media": {
-              "url": "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1600&h=1067&fit=crop",
-              "alt": "Two cyclists on a coastal road",
-              "filename": "1541625602330-2277a4c46182.jpg"
-            }
-          }
+          "cta_button_url": "/shop/edge-club"
         }
       }
     ]

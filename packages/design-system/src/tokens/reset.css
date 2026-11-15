@@ -63,7 +63,7 @@ img {
   height: auto;
 }
 
-/* The wireframe tints every photo into the ink colour (`--image-filter`, see index.css). */
+/* One global photo filter (`--image-filter`, see index.css; `none` shows photos as shot). */
 img,
 video,
 picture {

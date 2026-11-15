@@ -1,6 +1,7 @@
 import type { ListingFiltersProps, ListingToolbarProps } from "@emdash-commerce/design-system";
 
 import type { Locale } from "../../../lib/i18n";
+import { currencySymbolOf } from "../../../lib/money";
 import { format } from "../../../lib/strings";
 import type { CatalogCopy } from "../copy";
 import { CATALOG_SORT, LISTING_PARAMS } from "./constants";
@@ -89,7 +90,7 @@ export const filtersProps = (ctx: ListingContext): ListingFiltersProps => ({
 				label: ctx.copy.filterPriceTo,
 				value: ctx.state.priceMax ?? undefined,
 			},
-			unit: "zł",
+			unit: currencySymbolOf(ctx.locale),
 		},
 	],
 	keep: { [LISTING_PARAMS.sort]: ctx.state.sort },

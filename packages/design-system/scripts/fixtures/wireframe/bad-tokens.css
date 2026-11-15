@@ -4,5 +4,9 @@
   --text-case: uppercase;
   --hot: #d7261e;
   --ink-500: #4caf50;
+  --ink-600: #3a63d1;
+  --ink-700: #d7261e;
+  --orange-500: #f6821f;
+  --ink-800: #404041;
   --image-scrim: linear-gradient(180deg, transparent, black);
 }

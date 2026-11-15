@@ -12,8 +12,8 @@ export interface BlogSiteIdentitySettings {
 	favicon?: MediaReference;
 }
 
-const DEFAULT_SITE_TITLE = "EmDash Commerce";
-const DEFAULT_SITE_TAGLINE = "Demo sportswear shop on EmDash and Stripe";
+const DEFAULT_SITE_TITLE = "Cloudflare Merch";
+const DEFAULT_SITE_TAGLINE = "Mock merch store — an unofficial demo on EmDash and Stripe";
 
 export function resolveBlogSiteIdentity(settings?: BlogSiteIdentitySettings) {
 	return {

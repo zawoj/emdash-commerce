@@ -8,9 +8,10 @@ export const loadHomeConfig = (locale: Locale): HomeConfig => {
 	const railMore = (key: string): string | undefined => {
 		if (key === "new") return strings.railMore.new;
 		if (key === "sale") return strings.railMore.sale;
-		if (key === "running") return strings.railMore.running;
-		if (key === "cycling") return strings.railMore.cycling;
-		if (key === "triathlon") return strings.railMore.triathlon;
+		if (key === "bundles") return strings.railMore.bundles;
+		if (key === "apparel") return strings.railMore.apparel;
+		if (key === "desk") return strings.railMore.desk;
+		if (key === "drinkware") return strings.railMore.drinkware;
 		return undefined;
 	};
 
