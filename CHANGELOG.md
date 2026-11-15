@@ -16,6 +16,11 @@
   (`setSoldOutNote`, used by the server render and by `syncVariantChips`, so the product page and the kit dialog
   agree): the accessible name is "XL" in stock and "XL, sold out" otherwise.
 
+### fix: unknown product slug answers 404 — Claude Code
+- `/shop/<missing>` answered a 302 to `/shop`, so a mistyped or deleted product looked like a live page to crawlers and
+  shoppers. It now rewrites to the site's 404 page (`Astro.rewrite("/404")`, status 404), like every other dynamic
+  content route. A test scans all dynamic pages so a new one cannot redirect on a miss.
+
 ## 2026-11-15 (QA fixes)
 
 ### fix: PDP gallery and mini-cart never empty; neutral shop identity — Claude Code
