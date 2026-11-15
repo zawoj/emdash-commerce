@@ -20,6 +20,8 @@ reservation document and the cart stayed in plugin storage for good (only expire
   early through the Stripe API is released at once by its webhook but its `expiresAt` is still in the future, so only
   `retentionHours: 0` (provider says closed) sweeps it before then. Released reservation records are purged by release
   time, not by the hold's expiry, for the same reason.
+- A snapshot is written before its session, and a failed creation (for example `NOT_CONFIGURED`) releases the hold but
+  leaves the snapshot with `sessionId: null`; the sweep treats it as ended 10 minutes after it was written.
 - A scan of old snapshots must page (`listCreatedBefore(before, limit, after)`): paid snapshots stay, so a single
   oldest-first page would hide the unpaid ones behind them.
 - `checkout_snapshots` needed a `createdAt` index in `storage/declaration.ts`; a `where`/`orderBy` on an undeclared

@@ -47,9 +47,17 @@ const sessionOutcome = async (container: CommerceContainer, sessionId: string): 
 	return session?.status === "open" ? "open" : "closed";
 };
 
-/** When the session ends: the stored expiry, or the creation time plus the configured lifetime for an older snapshot. */
-const endOfSession = (container: CommerceContainer, snapshot: CheckoutSnapshot): number =>
-	snapshot.expiresAt ? Date.parse(snapshot.expiresAt) : Date.parse(snapshot.createdAt) + container.options.checkout.sessionMinutes * MINUTE_MS;
+/** A snapshot is written before its session; one still without a session after this long never got one (creation failed). */
+const ORPHAN_SNAPSHOT_MS = 10 * MINUTE_MS;
+
+/**
+ * When the checkout ends: the stored session expiry, the creation time plus the configured lifetime for a snapshot
+ * written before the expiry was stored, or a short grace for a snapshot whose session was never created.
+ */
+const endOfSession = (container: CommerceContainer, snapshot: CheckoutSnapshot): number => {
+	if (!snapshot.sessionId) return Date.parse(snapshot.createdAt) + ORPHAN_SNAPSHOT_MS;
+	return snapshot.expiresAt ? Date.parse(snapshot.expiresAt) : Date.parse(snapshot.createdAt) + container.options.checkout.sessionMinutes * MINUTE_MS;
+};
 
 interface SweepScope {
 	hasProvider: boolean;

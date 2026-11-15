@@ -79,6 +79,18 @@ describe("sweepCheckouts", () => {
 		expect(await sweepCheckouts(h.container, { retentionMs: 0 })).toMatchObject({ holdRecords: 1 });
 	});
 
+	it("removes the snapshot of a checkout whose session was never created, after a short grace", async () => {
+		const h = createHarness();
+		const seeded = await seedCheckout(h);
+		const snapshot = (await h.container.snapshots.get(seeded.checkoutId))!;
+		await h.container.snapshots.put({ ...snapshot, sessionId: null });
+		advance(h, 5 * 60_000);
+		expect(await sweepCheckouts(h.container, { retentionMs: 0 })).toMatchObject({ snapshots: 0 });
+		advance(h, 6 * 60_000);
+		expect(await sweepCheckouts(h.container, { retentionMs: 0 })).toMatchObject({ snapshots: 1, holdsReleased: 1 });
+		expect(await h.container.snapshots.get(seeded.checkoutId)).toBeNull();
+	});
+
 	it("never touches a paid checkout: its snapshot, reservation and order stay", async () => {
 		const h = createHarness();
 		const { order, seeded } = await paidOrder(h);

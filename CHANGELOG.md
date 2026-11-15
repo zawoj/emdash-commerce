@@ -35,6 +35,8 @@
   lifetime. A snapshot now ends at its stored `expiresAt`, and with `retentionHours: 0` a session the provider reports
   as closed counts as ended; a still-open session is never touched early. Released reservation records are purged by
   their release time (`updatedAt`) instead of the hold's expiry.
+- A checkout whose creation failed (for example `NOT_CONFIGURED` on a fresh database) leaves a snapshot with no session
+  after releasing its hold; the sweep removes such a snapshot ten minutes after it was written.
 
 ### feat: sweep of abandoned checkouts — Claude Code
 - Verified with a sandbox session expired through the Stripe API: `checkout.session.expired` arrives through
