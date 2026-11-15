@@ -56,10 +56,13 @@ export interface HomeConfig {
 	newsletterAction: string;
 }
 
+/** Demo default photos: Unsplash photo ids, so a fresh database needs no media-library keys. Replace with your own. */
+const unsplash = (photoId: string): string => `https://images.unsplash.com/photo-${photoId}?w=1600&q=80&fm=jpg`;
+
 /** Locale-neutral home structure (copy merged in `loadHomeConfig`). */
 export const homeStructure = {
 	hero: {
-		imageUrl: "/_emdash/api/media/file/01M7AGCTBS5ASHH98FH2CNK75Z.jpg",
+		imageUrl: unsplash("1552674605-db6ffd4facb5"),
 		imageAlt: "Runners on an open road",
 		ctaHref: "/shop?category=new-arrivals",
 		secondaryHref: "/shop?category=cycling",
@@ -87,23 +90,23 @@ export const homeStructure = {
 	],
 	spotlight: {
 		productSlug: "velocity-shell",
-		imageUrl: "/_emdash/api/media/file/01M7AGCTEFJB52PAGXJJW32HSQ.jpg",
+		imageUrl: unsplash("1541625602330-2277a4c46182"),
 		imageAlt: "Two cyclists on a coastal road",
 	},
 	activityCategories: [
 		{
 			slug: "running",
-			imageUrl: "/_emdash/api/media/file/01M7AGCTBS5ASHH98FH2CNK75Z.jpg",
+			imageUrl: unsplash("1552674605-db6ffd4facb5"),
 			href: "/shop?category=running",
 		},
 		{
 			slug: "cycling",
-			imageUrl: "/_emdash/api/media/file/01M7AGCTEFJB52PAGXJJW32HSQ.jpg",
+			imageUrl: unsplash("1541625602330-2277a4c46182"),
 			href: "/shop?category=cycling",
 		},
 		{
 			slug: "triathlon",
-			imageUrl: "/_emdash/api/media/file/01M7AGCTH42RATK67WTXYGT542.jpg",
+			imageUrl: unsplash("1606903037631-f09fd0bd74b4"),
 			href: "/shop?category=triathlon",
 		},
 	],

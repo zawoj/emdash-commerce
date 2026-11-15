@@ -174,6 +174,12 @@ const imageValue = async (filename, alt) => {
 	};
 };
 
+/** A media value for the points widget (a json field): like the admin picker, it carries the storage key in `meta`. */
+const pointsImage = async (filename, alt) => {
+	const item = await upload(filename, alt);
+	return { ...(await imageValue(filename, alt)), meta: { storageKey: item.storageKey } };
+};
+
 const gallery = async (files, alt) =>
 	Promise.all(files.map(async (file, i) => ({ image: await imageValue(file, alt), alt: `${alt} (${i + 2})` })));
 
@@ -525,7 +531,7 @@ const seedHome = async () => {
 		cta_button_url: "/shop/club-membership",
 		cta_image: await imageValue("1541625602330-2277a4c46182.jpg", "Two cyclists on a coastal road"),
 		look_hotspots: {
-			image: await imageValue("1552674605-db6ffd4facb5.jpg", "Runners on an open road"),
+			image: await pointsImage("1552674605-db6ffd4facb5.jpg", "Runners on an open road"),
 			points: [
 				point(1, 46, 34, { productSlug: "aero-run-tee" }),
 				point(2, 52, 60, { productSlug: "pace-shorts" }),
@@ -534,7 +540,7 @@ const seedHome = async () => {
 			],
 		},
 		spotlight_callouts: {
-			image: await imageValue("1590333748338-d629e4564ad9.jpg", "Velocity Shell Jacket"),
+			image: await pointsImage("1590333748338-d629e4564ad9.jpg", "Velocity Shell Jacket"),
 			points: [
 				point(1, 63, 14, { title: "Wind blocking", text: "Light membrane for cool mornings.", side: "end" }),
 				point(2, 66, 44, { title: "Pockets", text: "Three rear pockets for gels and phone.", side: "end" }),
