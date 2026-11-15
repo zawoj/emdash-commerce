@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import type { adminCatalogResyncInput, adminInventoryAdjustInput, adminInventoryGetInput } from "../../contracts/api.js";
+import type { adminCatalogResyncInput, adminCatalogSyncInput, adminInventoryAdjustInput, adminInventoryGetInput } from "../../contracts/api.js";
 import type { SellableRef } from "../../core/catalog.js";
 import type { Reservation } from "../../core/inventory.js";
 import { createCatalogSyncService } from "../catalog-sync.js";
@@ -38,3 +38,26 @@ export const adjustInventory = ({ container, publisher }: AdminContext, input: z
 
 export const resyncCatalog = async ({ container, publisher }: AdminContext, input: z.infer<typeof adminCatalogResyncInput>): Promise<{ queued: number }> =>
 	createCatalogSyncService(container, publisher).resync(input.productId ?? null);
+
+/** More links than this are reported as `MAX_PROGRESS_SCAN` (a progress figure, not an exact count). */
+const MAX_PROGRESS_SCAN = 500;
+
+export interface CatalogSyncProgress {
+	/** Links synced in this call. */
+	processed: number;
+	/** Links still due (`isCapped`: at least this many). */
+	due: number;
+	/** Links whose last attempt failed; they retry with backoff. */
+	failed: number;
+	isCapped: boolean;
+}
+
+/** Syncs a batch of due links now and reports what is left, so a caller can drive a resync to the end by repeating it. */
+export const syncCatalogNow = async ({ container, publisher }: AdminContext, input: z.infer<typeof adminCatalogSyncInput>): Promise<CatalogSyncProgress> => {
+	const processed = await createCatalogSyncService(container, publisher).processDue(input.limit);
+	const [due, failed] = await Promise.all([
+		container.catalogLinks.listDue(container.clock.now().toISOString(), MAX_PROGRESS_SCAN + 1),
+		container.catalogLinks.listFailed(MAX_PROGRESS_SCAN + 1),
+	]);
+	return { processed, due: Math.min(due.length, MAX_PROGRESS_SCAN), failed: Math.min(failed.length, MAX_PROGRESS_SCAN), isCapped: due.length > MAX_PROGRESS_SCAN };
+};

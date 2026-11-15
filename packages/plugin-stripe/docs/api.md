@@ -203,6 +203,7 @@ All `POST`, JSON body (`{}` or no body where there is no input). `read` = `conte
 | `admin/subscriptions/cancel` | manage | `{ subscriptionId (plugin id), atPeriodEnd? (default true) }` | the `Subscription`; cancelling a cancelled one changes nothing |
 | `admin/inventory/adjust` | manage | `{ kind, id, delta (non-zero int), reason (1-200) }` | `StockView`. Never below zero (`CONFLICT`). **Not idempotent.** The only way to change product-level stock. |
 | `admin/catalog/resync` | manage | `{ productId? }` | `{ queued }`; the cron task syncs within minutes |
+| `admin/catalog/sync` | manage | `{ limit? (1-100, default 25) }` | `{ processed, due, failed, isCapped }`. Syncs a batch of due links now; repeat until `due` is 0 to finish a resync without waiting for the five-minute maintenance task (which does 25 per run). |
 | `admin/webhooks/register` | manage | none | `{ action: created\|updated, endpointId, url, enabledEventCount, isSecretStored, message }` |
 | `admin/webhooks/replay` | manage | `{ eventId }` | `{ outcome, error?, reason? }`; `NOT_FOUND`, `CONFLICT` (being processed right now) |
 | `admin/reconcile` | manage | `{ since? (epoch seconds) }` | `{ since, scanned, recorded, processed, ignored, failed, isTruncated }` (run again when truncated) |
@@ -255,6 +256,7 @@ agent. `destructive` makes an MCP client ask first.
 | `commerce_inventory_get` | `admin/inventory/get` | no |
 | `commerce_inventory_adjust` | `admin/inventory/adjust` | **yes** (not idempotent) |
 | `commerce_catalog_resync` | `admin/catalog/resync` | no |
+| `commerce_catalog_sync` | `admin/catalog/sync` | no |
 | `commerce_checkouts_sweep` | `admin/checkouts/sweep` | no |
 | `commerce_webhooks_register` | `admin/webhooks/register` | no |
 | `commerce_webhooks_list` | `admin/webhooks/list` | no |

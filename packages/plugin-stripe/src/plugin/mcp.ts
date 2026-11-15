@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import {
 	adminCatalogResyncInput,
+	adminCatalogSyncInput,
 	adminCheckoutsSweepInput,
 	adminInventoryAdjustInput,
 	adminInventoryGetInput,
@@ -111,6 +112,12 @@ export const MCP_TOOLS = {
 		route: ROUTE.adminCatalogResync,
 		description: "Queues products, variants and prices for synchronisation to Stripe (one product by productId, or the whole catalog when omitted). The maintenance task performs the syncs within minutes. Safe to repeat.",
 		input: adminCatalogResyncInput,
+	},
+	commerce_catalog_sync: {
+		route: ROUTE.adminCatalogSync,
+		description:
+			"Syncs a batch of due catalog links to Stripe right now (limit, default 25, max 100) and answers { processed, due, failed }: repeat until due is 0 to finish a commerce_catalog_resync without waiting for the maintenance task. Failed links retry with backoff. Safe to repeat.",
+		input: adminCatalogSyncInput,
 	},
 	commerce_checkouts_sweep: {
 		route: ROUTE.adminCheckoutsSweep,

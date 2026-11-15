@@ -47,6 +47,7 @@ export const ROUTE = {
 	adminInventoryGet: "admin/inventory/get",
 	adminInventoryAdjust: "admin/inventory/adjust",
 	adminCatalogResync: "admin/catalog/resync",
+	adminCatalogSync: "admin/catalog/sync",
 	adminWebhooksRegister: "admin/webhooks/register",
 	adminWebhooksList: "admin/webhooks/list",
 	adminWebhooksReplay: "admin/webhooks/replay",
@@ -381,6 +382,8 @@ export const adminInventoryAdjustInput = z.object({
 	reason: z.string().min(1).max(200),
 });
 export const adminCatalogResyncInput = z.object({ productId: id.optional() });
+/** Runs the due catalog syncs now (the maintenance task only does a batch every five minutes). */
+export const adminCatalogSyncInput = z.object({ limit: z.number().int().min(1).max(100).default(25) });
 export const adminWebhooksListInput = z.object({
 	status: z.enum(["received", "processing", "processed", "failed", "dead", "ignored"]).default("failed"),
 	cursor: z.string().nullable().default(null),

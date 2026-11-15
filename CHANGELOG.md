@@ -42,6 +42,15 @@
   its alert area and cleans the URL. The notice values are a fixed list, so the query string cannot inject text. A 502
   stays for a genuine provider or server failure (`PROVIDER_ERROR`, `NOT_CONFIGURED`, `INTERNAL`).
 
+### fix: `pnpm seed` syncs the catalog to Stripe itself — Claude Code
+- The seed publishes products before anything syncs them, so the first checkout needed a manual "Resync catalog". It now
+  ends by queuing the plugin's resync and driving it to the end (`scripts/lib/sync-stripe-catalog.mjs`): with a sandbox
+  key configured it repeats the new `admin/catalog/sync` call (a batch of due syncs per call; MCP
+  `commerce_catalog_sync`) until nothing is due, with a timeout (`SEED_SYNC_TIMEOUT_SECONDS`, default 300) and a clear
+  message on timeout or failed links. Without a key it prints what to run later; with a live key it does nothing.
+- Why a new route: the maintenance task syncs only 25 links every five minutes, which is about 40 minutes for the demo
+  catalog.
+
 ## 2026-11-15 (QA fixes)
 
 ### fix: PDP gallery and mini-cart never empty; neutral shop identity — Claude Code

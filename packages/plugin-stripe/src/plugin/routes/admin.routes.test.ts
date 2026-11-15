@@ -257,6 +257,22 @@ describe("inventory and catalog", () => {
 	});
 });
 
+describe("catalog sync progress", () => {
+	it("syncs the queued links on demand and reports what is left until nothing is due", async () => {
+		const h = createOpsHarness();
+		h.seedProduct();
+		const queued = ((await h.call(ROUTE.adminCatalogResync, { input: {} })) as any).queued as number;
+		expect(queued).toBeGreaterThanOrEqual(1);
+		const first = (await h.call(ROUTE.adminCatalogSync, { input: { limit: 1 } })) as any;
+		expect(first).toMatchObject({ processed: 1, failed: 0, isCapped: false });
+		expect(first.due).toBeLessThan(queued);
+		let progress = first;
+		for (let round = 0; round < queued && progress.due > 0; round += 1) progress = (await h.call(ROUTE.adminCatalogSync, { input: {} })) as any;
+		expect(progress).toMatchObject({ due: 0, failed: 0 });
+		expect(h.provider.callsOf("createProduct").length).toBeGreaterThanOrEqual(1);
+	});
+});
+
 describe("abandoned checkouts", () => {
 	it("sweeps with the default retention or an explicit one and answers the counts", async () => {
 		const h = createOpsHarness();

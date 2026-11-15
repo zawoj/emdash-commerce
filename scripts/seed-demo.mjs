@@ -6,7 +6,12 @@
  * again updates in place.
  *
  * Usage:  pnpm seed [-- --only site,apparel,accessory,membership,home]
- * Env:    EMDASH_URL  base URL of the running storefront (default http://localhost:4360)
+ * Env:    EMDASH_URL                    base URL of the running storefront (default http://localhost:4360)
+ *         SEED_SYNC_TIMEOUT_SECONDS     how long the final Stripe catalog sync may take (default 300)
+ *
+ * After the products it queues the plugin's catalog resync and drives it to the end (Stripe Products and Prices
+ * for every variant), when a Stripe key is configured; without a key it prints what to run later. Never against a
+ * live key.
  *
  * Needs the dev server running (dev login) on a database that already has the schema: see "Fresh clone" in README.md.
  * Photos are Unsplash images named by photo id (`<id>.jpg`); each one is downloaded on demand into the git-ignored
@@ -15,6 +20,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { syncStripeCatalog } from "./lib/sync-stripe-catalog.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CACHE = join(ROOT, ".cache", "unsplash");
@@ -562,6 +569,10 @@ const seedHome = async () => {
 	console.log("home: CTA, shop-the-look points, spotlight callouts");
 };
 
+// ---------------------------------------------------------------- stripe catalog sync
+const SYNC_TIMEOUT_MS = Math.max(10, Number(process.env.SEED_SYNC_TIMEOUT_SECONDS ?? 300)) * 1000;
+const syncCatalog = () => syncStripeCatalog({ call: (method, path, options) => call(method, path, options), plugin: PLUGIN, timeoutMs: SYNC_TIMEOUT_MS });
+
 // ---------------------------------------------------------------- main
 const main = async () => {
 	const flag = process.argv.indexOf("--only");
@@ -577,6 +588,7 @@ const main = async () => {
 		if (wants("membership")) await seedMembership(v);
 	}
 	if (wants("home")) await seedHome();
+	if (wants("apparel") || wants("accessory") || wants("membership")) await syncCatalog();
 	console.log("done");
 };
 
