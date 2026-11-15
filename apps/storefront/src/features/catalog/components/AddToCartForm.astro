@@ -1,0 +1,49 @@
+---
+import Button from "@emdash-commerce/design-system/components/atoms/button/index.astro";
+import { buttonSizes, buttonVariants } from "@emdash-commerce/design-system";
+import type { CartCopy } from "../../cart/copy";
+
+interface Props {
+	copy: CartCopy;
+	priceFieldName?: string;
+	isDisabled?: boolean;
+	submitLabel: string;
+}
+
+const { copy, priceFieldName, isDisabled = false, submitLabel } = Astro.props;
+---
+
+<form
+	class="add-to-cart"
+	method="post"
+	data-add-to-cart
+	data-price-field={priceFieldName}
+	data-label-adding={copy.addToCartAdding}
+	data-label-added={copy.addToCartAdded}
+	data-message-choose-variant={copy.chooseVariant}
+	data-message-failed={copy.addFailedGeneric}
+>
+	{priceFieldName ? <input type="hidden" name={priceFieldName} value="" data-price-id /> : null}
+	<slot />
+	<Button type="submit" variant={buttonVariants.primary} size={buttonSizes.lg} isDisabled={isDisabled} data-add-to-cart-button>
+		{submitLabel}
+	</Button>
+	<div class="add-to-cart__status" role="status" aria-live="polite" data-add-to-cart-status></div>
+</form>
+
+<script>
+	import "../../cart/client/add-to-cart.client";
+</script>
+
+<style>
+	.add-to-cart {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-16);
+		width: 100%;
+	}
+
+	.add-to-cart__status:empty {
+		display: none;
+	}
+</style>

@@ -1,0 +1,2151 @@
+{
+  "collections": [
+    {
+      "slug": "products",
+      "label": "Products",
+      "labelSingular": "Product",
+      "description": "Sellable products. Published products are mirrored to Stripe.",
+      "icon": "shopping-bag",
+      "supports": [
+        "drafts",
+        "revisions",
+        "seo",
+        "search"
+      ],
+      "hidden": false,
+      "sortOrder": 1000,
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "description",
+          "label": "Description",
+          "type": "portableText",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "image",
+          "label": "Image",
+          "type": "image",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "product_type",
+          "label": "Product type",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_product_type",
+            "relationSide": "child",
+            "targetCollection": "product_types"
+          }
+        },
+        {
+          "slug": "brand",
+          "label": "Brand",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_product_brand",
+            "relationSide": "child",
+            "targetCollection": "brands"
+          }
+        },
+        {
+          "slug": "categories",
+          "label": "Categories",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_product_categories",
+            "relationSide": "child",
+            "multiple": true,
+            "targetCollection": "product_categories"
+          }
+        },
+        {
+          "slug": "price",
+          "label": "Price (minor units, e.g. grosze; the base price of the product and its variants)",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "sku",
+          "label": "SKU (a product without variants)",
+          "type": "string",
+          "required": false,
+          "unique": true
+        },
+        {
+          "slug": "has_variants",
+          "label": "Has variants",
+          "type": "boolean",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "variants",
+          "label": "Variants",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_product_variants",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "product_variants"
+          }
+        },
+        {
+          "slug": "prices",
+          "label": "Prices",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_product_prices",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "prices"
+          }
+        },
+        {
+          "slug": "track_inventory",
+          "label": "Track inventory",
+          "type": "boolean",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "allow_backorder",
+          "label": "Allow backorder",
+          "type": "boolean",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "tax_code",
+          "label": "Stripe tax code (txcd_…)",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "specs",
+          "label": "Specification (edit it in the Specification panel)",
+          "type": "json",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "gallery",
+          "label": "Gallery (more pictures; for a product without variants, or shared by all variants)",
+          "type": "repeater",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "subFields": [
+              {
+                "slug": "image",
+                "type": "image",
+                "label": "Image"
+              },
+              {
+                "slug": "alt",
+                "type": "string",
+                "label": "Alt text"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "product_types",
+      "label": "Product types",
+      "labelSingular": "Product type",
+      "description": "Which attributes make up a variant (up to three axes) and which ones a product specifies.",
+      "icon": "stack",
+      "supports": [],
+      "hidden": false,
+      "sortOrder": 1001,
+      "fields": [
+        {
+          "slug": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "code",
+          "label": "Code",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "variant_axes",
+          "label": "Variant axes (select attributes, up to 3)",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_type_variant_axes",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "attributes"
+          }
+        },
+        {
+          "slug": "allowed_values",
+          "label": "Allowed values (empty for an axis = all of its values)",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_type_allowed_values",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "attribute_values"
+          }
+        },
+        {
+          "slug": "spec_attributes",
+          "label": "Specification attributes",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_type_spec_attributes",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "attributes"
+          }
+        },
+        {
+          "slug": "required_specs",
+          "label": "Required specifications (a subset of the above)",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_type_required_specs",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "attributes"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "attributes",
+      "label": "Attributes",
+      "labelSingular": "Attribute",
+      "description": "Properties products are described by (Colour, Size, Material) and their values.",
+      "icon": "tag",
+      "supports": [],
+      "hidden": false,
+      "sortOrder": 1002,
+      "fields": [
+        {
+          "slug": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "storefront_label",
+          "label": "Storefront label (defaults to the name)",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "code",
+          "label": "Code",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "input_type",
+          "label": "Input type",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "defaultValue": "select",
+          "validation": {
+            "options": [
+              "select",
+              "multi_select",
+              "text",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        {
+          "slug": "presentation",
+          "label": "Presentation (select attributes)",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "defaultValue": "buttons",
+          "validation": {
+            "options": [
+              "buttons",
+              "swatch",
+              "dropdown"
+            ]
+          }
+        },
+        {
+          "slug": "unit",
+          "label": "Unit (e.g. cm, kg)",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "is_filterable",
+          "label": "Filterable on the storefront",
+          "type": "boolean",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "values",
+          "label": "Values",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_attribute_values",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "attribute_values"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "brands",
+      "label": "Brands",
+      "labelSingular": "Brand",
+      "description": "Brands products belong to; each has its own page.",
+      "icon": "bookmark",
+      "supports": [
+        "seo",
+        "search"
+      ],
+      "hidden": false,
+      "sortOrder": 1003,
+      "fields": [
+        {
+          "slug": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "logo",
+          "label": "Logo",
+          "type": "image",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "website",
+          "label": "Website",
+          "type": "url",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "intro",
+          "label": "Intro",
+          "type": "text",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "description",
+          "label": "Description",
+          "type": "portableText",
+          "required": false,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "slug": "product_categories",
+      "label": "Categories",
+      "labelSingular": "Category",
+      "description": "Product categories; a category can have subcategories.",
+      "icon": "folder",
+      "supports": [
+        "seo",
+        "search"
+      ],
+      "hidden": false,
+      "sortOrder": 1004,
+      "fields": [
+        {
+          "slug": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "image",
+          "label": "Image",
+          "type": "image",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "intro",
+          "label": "Intro",
+          "type": "text",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "description",
+          "label": "Description",
+          "type": "portableText",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "parent",
+          "label": "Parent category",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_category_tree",
+            "relationSide": "child",
+            "targetCollection": "product_categories"
+          }
+        },
+        {
+          "slug": "subcategories",
+          "label": "Subcategories",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_category_tree",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "product_categories"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "product_variants",
+      "label": "Variants",
+      "labelSingular": "Variant",
+      "description": "Sellable combinations of a product's axes (one value per axis). Edited from the product.",
+      "icon": "stack",
+      "supports": [],
+      "hidden": true,
+      "sortOrder": 1005,
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title (derived when empty)",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "product",
+          "label": "Product",
+          "type": "reference",
+          "required": true,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_product_variants",
+            "relationSide": "child",
+            "targetCollection": "products"
+          }
+        },
+        {
+          "slug": "option_values",
+          "label": "Option values (one per axis of the product type)",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_variant_option_values",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "attribute_values"
+          }
+        },
+        {
+          "slug": "options_key",
+          "label": "Options key (derived)",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "price",
+          "label": "Price override (minor units; empty = the product price)",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "image",
+          "label": "Image",
+          "type": "image",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "sku",
+          "label": "SKU (derived when empty)",
+          "type": "string",
+          "required": false,
+          "unique": true
+        },
+        {
+          "slug": "is_active",
+          "label": "Active",
+          "type": "boolean",
+          "required": false,
+          "unique": false,
+          "defaultValue": true
+        },
+        {
+          "slug": "track_inventory",
+          "label": "Track inventory",
+          "type": "boolean",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "allow_backorder",
+          "label": "Allow backorder",
+          "type": "boolean",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stock",
+          "label": "Stock (units on hand)",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "prices",
+          "label": "Prices",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_variant_prices",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "prices"
+          }
+        },
+        {
+          "slug": "stripe_product_id",
+          "label": "Stripe product id",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stripe_sync_status",
+          "label": "Stripe sync status",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "options": [
+              "pending",
+              "synced",
+              "failed"
+            ]
+          }
+        },
+        {
+          "slug": "stripe_sync_error",
+          "label": "Stripe sync error",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "gallery",
+          "label": "Gallery (more pictures of this variant, e.g. one colour)",
+          "type": "repeater",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "subFields": [
+              {
+                "slug": "image",
+                "type": "image",
+                "label": "Image"
+              },
+              {
+                "slug": "alt",
+                "type": "string",
+                "label": "Alt text"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "attribute_values",
+      "label": "Attribute values",
+      "labelSingular": "Attribute value",
+      "description": "The choices of an attribute (Black, M). Edited from the attribute.",
+      "icon": "list",
+      "supports": [],
+      "hidden": true,
+      "sortOrder": 1006,
+      "fields": [
+        {
+          "slug": "label",
+          "label": "Label",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "code",
+          "label": "Code (used in derived SKUs)",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "swatch",
+          "label": "Swatch colour (#rgb or #rrggbb)",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "attribute",
+          "label": "Attribute",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_attribute_values",
+            "relationSide": "child",
+            "targetCollection": "attributes"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "prices",
+      "label": "Prices",
+      "labelSingular": "Price",
+      "description": "One-time or recurring prices of a product or one of its variants. Edited from the product or variant.",
+      "icon": "currency-circle-dollar",
+      "supports": [],
+      "hidden": true,
+      "sortOrder": 1007,
+      "fields": [
+        {
+          "slug": "nickname",
+          "label": "Nickname",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "product",
+          "label": "Product (set this or the variant, not both)",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_product_prices",
+            "relationSide": "child",
+            "targetCollection": "products"
+          }
+        },
+        {
+          "slug": "variant",
+          "label": "Variant (set this or the product, not both)",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "catalog_variant_prices",
+            "relationSide": "child",
+            "targetCollection": "product_variants"
+          }
+        },
+        {
+          "slug": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "unique": false,
+          "validation": {
+            "options": [
+              "one_time",
+              "recurring"
+            ]
+          }
+        },
+        {
+          "slug": "unit_amount",
+          "label": "Amount (minor units, e.g. grosze)",
+          "type": "integer",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "currency",
+          "label": "Currency",
+          "type": "select",
+          "required": true,
+          "unique": false,
+          "validation": {
+            "options": [
+              "pln"
+            ]
+          }
+        },
+        {
+          "slug": "interval",
+          "label": "Billing interval",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "options": [
+              "day",
+              "week",
+              "month",
+              "year"
+            ]
+          }
+        },
+        {
+          "slug": "interval_count",
+          "label": "Interval count",
+          "type": "integer",
+          "required": false,
+          "unique": false,
+          "defaultValue": 1
+        },
+        {
+          "slug": "trial_days",
+          "label": "Trial days",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "tax_behavior",
+          "label": "Tax behavior",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "defaultValue": "unspecified",
+          "validation": {
+            "options": [
+              "unspecified",
+              "inclusive",
+              "exclusive"
+            ]
+          }
+        },
+        {
+          "slug": "lookup_key",
+          "label": "Lookup key",
+          "type": "string",
+          "required": false,
+          "unique": true
+        },
+        {
+          "slug": "is_active",
+          "label": "Active",
+          "type": "boolean",
+          "required": false,
+          "unique": false,
+          "defaultValue": true
+        },
+        {
+          "slug": "is_default",
+          "label": "Default price",
+          "type": "boolean",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "is_managed",
+          "label": "Managed by the plugin (mirrors the product / variant price)",
+          "type": "boolean",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stripe_price_id",
+          "label": "Stripe price id",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stripe_sync_status",
+          "label": "Stripe sync status",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "options": [
+              "pending",
+              "synced",
+              "failed"
+            ]
+          }
+        },
+        {
+          "slug": "stripe_sync_error",
+          "label": "Stripe sync error",
+          "type": "string",
+          "required": false,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "slug": "orders",
+      "label": "Orders",
+      "labelSingular": "Order",
+      "description": "Orders created by the plugin from provider events. Money and Stripe fields are read-only.",
+      "icon": "receipt",
+      "supports": [],
+      "hidden": false,
+      "sortOrder": 1010,
+      "fields": [
+        {
+          "slug": "order_number",
+          "label": "Order number",
+          "type": "string",
+          "required": true,
+          "unique": true
+        },
+        {
+          "slug": "order_status",
+          "label": "Order status",
+          "type": "select",
+          "required": true,
+          "unique": false,
+          "defaultValue": "open",
+          "validation": {
+            "options": [
+              "open",
+              "completed",
+              "cancelled",
+              "archived"
+            ]
+          }
+        },
+        {
+          "slug": "payment_status",
+          "label": "Payment status",
+          "type": "select",
+          "required": true,
+          "unique": false,
+          "validation": {
+            "options": [
+              "pending",
+              "paid",
+              "failed",
+              "partially_refunded",
+              "refunded",
+              "disputed",
+              "dispute_lost",
+              "cancelled"
+            ]
+          }
+        },
+        {
+          "slug": "status_before_dispute",
+          "label": "Payment status before dispute",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "options": [
+              "pending",
+              "paid",
+              "failed",
+              "partially_refunded",
+              "refunded",
+              "disputed",
+              "dispute_lost",
+              "cancelled"
+            ]
+          }
+        },
+        {
+          "slug": "fulfillment_status",
+          "label": "Fulfillment",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "defaultValue": "unfulfilled",
+          "validation": {
+            "options": [
+              "unfulfilled",
+              "partially_fulfilled",
+              "fulfilled",
+              "partially_returned",
+              "returned"
+            ]
+          }
+        },
+        {
+          "slug": "order_mode",
+          "label": "Mode",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "options": [
+              "payment",
+              "subscription"
+            ]
+          }
+        },
+        {
+          "slug": "customer",
+          "label": "Customer",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "order_customer",
+            "relationSide": "child",
+            "targetCollection": "customers"
+          }
+        },
+        {
+          "slug": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "customer_name",
+          "label": "Customer name",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "phone",
+          "label": "Phone",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "billing_address",
+          "label": "Billing address",
+          "type": "json",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "shipping_address",
+          "label": "Shipping address",
+          "type": "json",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "lines",
+          "label": "Lines",
+          "type": "repeater",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "subFields": [
+              {
+                "slug": "title",
+                "type": "string",
+                "label": "Title"
+              },
+              {
+                "slug": "variant_title",
+                "type": "string",
+                "label": "Variant"
+              },
+              {
+                "slug": "sku",
+                "type": "string",
+                "label": "SKU"
+              },
+              {
+                "slug": "options",
+                "type": "string",
+                "label": "Options (Size: M, Colour: Black)"
+              },
+              {
+                "slug": "quantity",
+                "type": "integer",
+                "label": "Quantity"
+              },
+              {
+                "slug": "unit_amount",
+                "type": "integer",
+                "label": "Unit price (minor units)"
+              },
+              {
+                "slug": "subtotal_amount",
+                "type": "integer",
+                "label": "Subtotal"
+              },
+              {
+                "slug": "discount_amount",
+                "type": "integer",
+                "label": "Discount"
+              },
+              {
+                "slug": "tax_amount",
+                "type": "integer",
+                "label": "Tax"
+              },
+              {
+                "slug": "total_amount",
+                "type": "integer",
+                "label": "Total"
+              },
+              {
+                "slug": "product_id",
+                "type": "string",
+                "label": "Product id"
+              },
+              {
+                "slug": "variant_id",
+                "type": "string",
+                "label": "Variant id"
+              },
+              {
+                "slug": "price_id",
+                "type": "string",
+                "label": "Price id"
+              },
+              {
+                "slug": "stripe_price_id",
+                "type": "string",
+                "label": "Stripe price id"
+              },
+              {
+                "slug": "price_type",
+                "type": "select",
+                "label": "Price type",
+                "options": [
+                  "one_time",
+                  "recurring"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "slug": "subtotal_amount",
+          "label": "Subtotal (minor units)",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "discount_amount",
+          "label": "Discount",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "tax_amount",
+          "label": "Tax",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "shipping_amount",
+          "label": "Shipping",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "total_amount",
+          "label": "Total",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "refunded_amount",
+          "label": "Refunded",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "review_flags",
+          "label": "Review flags",
+          "type": "json",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "cart_id",
+          "label": "Cart id",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "subscriptions",
+          "label": "Subscription",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "subscription_initial_order",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "subscriptions"
+          }
+        },
+        {
+          "slug": "payments",
+          "label": "Payments",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "payment_order",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "payments"
+          }
+        },
+        {
+          "slug": "events",
+          "label": "Timeline",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "order_timeline",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "order_events"
+          }
+        },
+        {
+          "slug": "stripe_checkout_session_id",
+          "label": "Stripe checkout session",
+          "type": "string",
+          "required": false,
+          "unique": true
+        },
+        {
+          "slug": "stripe_payment_intent_id",
+          "label": "Stripe payment intent",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stripe_customer_id",
+          "label": "Stripe customer",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stripe_subscription_id",
+          "label": "Stripe subscription",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stripe_invoice_id",
+          "label": "Stripe invoice",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "is_livemode",
+          "label": "Live mode",
+          "type": "boolean",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "placed_at",
+          "label": "Placed at",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "paid_at",
+          "label": "Paid at",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "notes",
+          "label": "Internal notes",
+          "type": "text",
+          "required": false,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "slug": "customers",
+      "label": "Customers",
+      "labelSingular": "Customer",
+      "description": "Guest customers identified by email and linked to one Stripe customer. Read-only.",
+      "icon": "users",
+      "supports": [],
+      "hidden": false,
+      "sortOrder": 1011,
+      "fields": [
+        {
+          "slug": "orders",
+          "label": "Orders",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "order_customer",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "orders"
+          }
+        },
+        {
+          "slug": "subscriptions",
+          "label": "Subscriptions",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "subscription_customer",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "subscriptions"
+          }
+        },
+        {
+          "slug": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "unique": true
+        },
+        {
+          "slug": "name",
+          "label": "Name",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "phone",
+          "label": "Phone",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "billing_address",
+          "label": "Billing address",
+          "type": "json",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "shipping_address",
+          "label": "Shipping address",
+          "type": "json",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stripe_customer_id",
+          "label": "Stripe customer",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "order_count",
+          "label": "Orders",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "total_spent",
+          "label": "Total spent per currency (minor units)",
+          "type": "json",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "first_order_at",
+          "label": "First order",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "last_order_at",
+          "label": "Last order",
+          "type": "string",
+          "required": false,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "slug": "subscriptions",
+      "label": "Subscriptions",
+      "labelSingular": "Subscription",
+      "description": "Provider subscriptions mirrored from Stripe. Read-only.",
+      "icon": "arrows-clockwise",
+      "supports": [],
+      "hidden": false,
+      "sortOrder": 1012,
+      "fields": [
+        {
+          "slug": "customer",
+          "label": "Customer",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "subscription_customer",
+            "relationSide": "child",
+            "targetCollection": "customers"
+          }
+        },
+        {
+          "slug": "initial_order",
+          "label": "Initial order",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "subscription_initial_order",
+            "relationSide": "child",
+            "targetCollection": "orders"
+          }
+        },
+        {
+          "slug": "payments",
+          "label": "Payments",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "payment_subscription",
+            "relationSide": "parent",
+            "multiple": true,
+            "targetCollection": "payments"
+          }
+        },
+        {
+          "slug": "subscription_status",
+          "label": "Status",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "options": [
+              "incomplete",
+              "incomplete_expired",
+              "trialing",
+              "active",
+              "past_due",
+              "canceled",
+              "unpaid",
+              "paused"
+            ]
+          }
+        },
+        {
+          "slug": "items",
+          "label": "Items",
+          "type": "json",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "billing_interval",
+          "label": "Interval",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "options": [
+              "day",
+              "week",
+              "month",
+              "year"
+            ]
+          }
+        },
+        {
+          "slug": "interval_count",
+          "label": "Interval count",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "amount",
+          "label": "Recurring amount (minor units)",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "current_period_start",
+          "label": "Period start",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "current_period_end",
+          "label": "Period end",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "trial_end",
+          "label": "Trial end",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "cancel_at_period_end",
+          "label": "Cancels at period end",
+          "type": "boolean",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "canceled_at",
+          "label": "Canceled at",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stripe_subscription_id",
+          "label": "Stripe subscription",
+          "type": "string",
+          "required": true,
+          "unique": true
+        },
+        {
+          "slug": "stripe_customer_id",
+          "label": "Stripe customer",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "latest_invoice_id",
+          "label": "Latest invoice",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "provider_updated_at",
+          "label": "Provider updated (epoch s)",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "slug": "payments",
+      "label": "Payments",
+      "labelSingular": "Payment",
+      "description": "Provider payments (checkout payments and subscription renewals). Read-only.",
+      "icon": "credit-card",
+      "supports": [],
+      "hidden": true,
+      "sortOrder": 1013,
+      "fields": [
+        {
+          "slug": "order",
+          "label": "Order",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "payment_order",
+            "relationSide": "child",
+            "targetCollection": "orders"
+          }
+        },
+        {
+          "slug": "subscription",
+          "label": "Subscription",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "payment_subscription",
+            "relationSide": "child",
+            "targetCollection": "subscriptions"
+          }
+        },
+        {
+          "slug": "order_id",
+          "label": "Order id (system)",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "subscription_id",
+          "label": "Subscription id (system)",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "purpose",
+          "label": "Purpose",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "options": [
+              "checkout",
+              "subscription_renewal"
+            ]
+          }
+        },
+        {
+          "slug": "payment_status",
+          "label": "Status",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "options": [
+              "processing",
+              "requires_action",
+              "succeeded",
+              "failed",
+              "canceled"
+            ]
+          }
+        },
+        {
+          "slug": "amount",
+          "label": "Amount (minor units)",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "amount_refunded",
+          "label": "Refunded",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "method_type",
+          "label": "Method",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "failure_code",
+          "label": "Failure code",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "failure_message",
+          "label": "Failure message",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stripe_payment_intent_id",
+          "label": "Stripe payment intent",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stripe_charge_id",
+          "label": "Stripe charge",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "stripe_invoice_id",
+          "label": "Stripe invoice",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "payment_created_at",
+          "label": "Created",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "payment_updated_at",
+          "label": "Updated",
+          "type": "string",
+          "required": false,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "slug": "carts",
+      "label": "Carts",
+      "labelSingular": "Cart",
+      "description": "Admin mirror of shopping carts (best effort; the authoritative cart lives in plugin storage).",
+      "icon": "shopping-cart",
+      "supports": [],
+      "hidden": true,
+      "sortOrder": 1014,
+      "fields": [
+        {
+          "slug": "cart_id",
+          "label": "Cart id",
+          "type": "string",
+          "required": true,
+          "unique": true
+        },
+        {
+          "slug": "cart_status",
+          "label": "Status",
+          "type": "select",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "options": [
+              "active",
+              "checkout_open",
+              "converted",
+              "abandoned",
+              "expired"
+            ]
+          }
+        },
+        {
+          "slug": "email",
+          "label": "Email",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "lines",
+          "label": "Lines",
+          "type": "json",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "item_count",
+          "label": "Items",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "subtotal_amount",
+          "label": "Subtotal (minor units)",
+          "type": "integer",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "priced_lines",
+          "label": "Priced lines",
+          "type": "json",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "checkout_session_id",
+          "label": "Checkout session",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "order_id",
+          "label": "Order id",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "country",
+          "label": "Country",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "user_agent",
+          "label": "User agent",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "cart_created_at",
+          "label": "Created",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "last_activity_at",
+          "label": "Last activity",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "expires_at",
+          "label": "Expires",
+          "type": "string",
+          "required": false,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "slug": "order_events",
+      "label": "Order events",
+      "labelSingular": "Order event",
+      "description": "Append-only timeline of an order (status changes, refunds, disputes, emails, notes). Shown inside the order.",
+      "icon": "clock-counter-clockwise",
+      "supports": [],
+      "hidden": true,
+      "sortOrder": 1015,
+      "fields": [
+        {
+          "slug": "message",
+          "label": "Message",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "event_type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "unique": false,
+          "validation": {
+            "options": [
+              "placed",
+              "payment_status_changed",
+              "order_status_changed",
+              "fulfillment_status_changed",
+              "refund_created",
+              "dispute_opened",
+              "dispute_closed",
+              "email_sent",
+              "note"
+            ]
+          }
+        },
+        {
+          "slug": "actor_kind",
+          "label": "Actor",
+          "type": "select",
+          "required": true,
+          "unique": false,
+          "validation": {
+            "options": [
+              "system",
+              "admin",
+              "provider",
+              "customer"
+            ]
+          }
+        },
+        {
+          "slug": "actor_label",
+          "label": "Actor label",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "data",
+          "label": "Data",
+          "type": "json",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "occurred_at",
+          "label": "Occurred at",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "source_key",
+          "label": "Source key (idempotency)",
+          "type": "string",
+          "required": true,
+          "unique": true
+        },
+        {
+          "slug": "order",
+          "label": "Order",
+          "type": "reference",
+          "required": false,
+          "unique": false,
+          "validation": {
+            "relation": "order_timeline",
+            "relationSide": "child",
+            "targetCollection": "orders"
+          }
+        },
+        {
+          "slug": "order_id",
+          "label": "Order id (system)",
+          "type": "string",
+          "required": true,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "slug": "feedback",
+      "label": "Feedback",
+      "labelSingular": "Feedback",
+      "description": "Dev tool: comments left on page elements with the editing pill (Notes). An agent marks them done.",
+      "supports": [],
+      "hidden": false,
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "comment",
+          "label": "Comment",
+          "type": "text",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "state",
+          "label": "State (open, done, wontfix)",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "resolution",
+          "label": "Resolution",
+          "type": "text",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "page_path",
+          "label": "Page path",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "page_url",
+          "label": "Page URL",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "selector",
+          "label": "Selector",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "element",
+          "label": "Element",
+          "type": "json",
+          "required": false,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "slug": "home",
+      "label": "Homepage",
+      "labelSingular": "Homepage",
+      "description": "Content of the home page (intro image)",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "hidden": false,
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "hero_image",
+          "label": "Intro image",
+          "type": "image",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "cta_eyebrow",
+          "label": "CTA eyebrow",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "cta_heading",
+          "label": "CTA heading",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "cta_text",
+          "label": "CTA text",
+          "type": "text",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "cta_button_label",
+          "label": "CTA button label",
+          "type": "string",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "cta_button_url",
+          "label": "CTA button URL",
+          "type": "url",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "cta_image",
+          "label": "CTA image",
+          "type": "image",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "look_hotspots",
+          "label": "Shop the look points",
+          "type": "json",
+          "required": false,
+          "unique": false,
+          "widget": "image-hotspots:hotspots",
+          "options": {
+            "mode": "products",
+            "maxPoints": 6
+          }
+        },
+        {
+          "slug": "spotlight_callouts",
+          "label": "Spotlight callouts",
+          "type": "json",
+          "required": false,
+          "unique": false,
+          "widget": "image-hotspots:hotspots",
+          "options": {
+            "mode": "callouts",
+            "maxPoints": 6
+          }
+        }
+      ]
+    },
+    {
+      "slug": "pages",
+      "label": "Pages",
+      "labelSingular": "Page",
+      "supports": [
+        "drafts",
+        "revisions",
+        "preview",
+        "search",
+        "seo"
+      ],
+      "hidden": false,
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText",
+          "required": false,
+          "unique": false
+        }
+      ]
+    },
+    {
+      "slug": "posts",
+      "label": "Posts",
+      "labelSingular": "Post",
+      "supports": [
+        "drafts",
+        "revisions",
+        "preview",
+        "scheduling",
+        "search",
+        "seo"
+      ],
+      "hidden": false,
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "unique": false
+        },
+        {
+          "slug": "featured_image",
+          "label": "Featured Image",
+          "type": "image",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText",
+          "required": false,
+          "unique": false
+        },
+        {
+          "slug": "excerpt",
+          "label": "Excerpt",
+          "type": "text",
+          "required": false,
+          "unique": false
+        }
+      ]
+    }
+  ],
+  "version": "b48d9d013dfe847f"
+}

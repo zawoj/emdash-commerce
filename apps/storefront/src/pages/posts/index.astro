@@ -1,0 +1,209 @@
+---
+import {
+	getEmDashCollection,
+	getTaxonomyTermsWithCacheHint,
+	getTermsForEntries,
+} from "emdash";
+import Base from "../../layouts/Base.astro";
+import ArchiveControls from "../../components/ArchiveControls.astro";
+import PostCard from "../../components/PostCard.astro";
+import Pagination from "../../components/Pagination.astro";
+import {
+	ARCHIVE_SORT,
+	ARCHIVE_VIEW,
+	DEFAULT_CONTROLS,
+	SORT_LABELS,
+	archiveHref,
+	isCustomised,
+	isFiltered,
+	orderByFor,
+	parseArchiveControls,
+	postArchiveFormDefaults,
+	resultLabel,
+	whereFor,
+} from "../../utils/archive-controls";
+
+const BASE_PATH = "/posts";
+
+const [categoryTerms, tagTerms] = await Promise.all([
+	getTaxonomyTermsWithCacheHint("category", { includeCounts: false }),
+	getTaxonomyTermsWithCacheHint("tag", { includeCounts: false }),
+]);
+const categories = categoryTerms.data.map((t) => ({ slug: t.slug, label: t.label }));
+const tags = tagTerms.data.map((t) => ({ slug: t.slug, label: t.label }));
+
+// Filter, sort and layout live in the query string, so a view can be shared and works without scripts
+const controls = parseArchiveControls(Astro.url.searchParams, {
+	categories: categories.map((t) => t.slug),
+	tags: tags.map((t) => t.slug),
+});
+const cursor = Astro.url.searchParams.get("cursor") || undefined;
+
+// Filter and sort in the database rather than in JS — lets the DB use its
+// indexes and avoids a full-table scan on the client.
+const {
+	entries: posts,
+	cacheHint,
+	nextCursor,
+} = await getEmDashCollection("posts", {
+	where: whereFor(controls),
+	orderBy: orderByFor(controls.sort),
+	limit: 20,
+	cursor,
+});
+
+if (Astro.cache?.enabled) {
+	Astro.cache.set(categoryTerms.cacheHint);
+	Astro.cache.set(tagTerms.cacheHint);
+	Astro.cache.set(cacheHint);
+}
+
+const isGrid = controls.view === ARCHIVE_VIEW.GRID;
+// A count is only honest on the first page; later pages would show the size of that page alone
+const countLabel = cursor ? undefined : resultLabel(posts.length, !!nextCursor);
+const hrefFor = (next?: string) => archiveHref(BASE_PATH, controls, { cursor: next });
+
+const archiveFields = [
+	{
+		name: "category",
+		label: "Category",
+		options: [
+			{ value: "", label: "All categories" },
+			...categories.map((t) => ({ value: t.slug, label: t.label })),
+		],
+		value: controls.category ?? "",
+		isActive: controls.category !== null,
+	},
+	{
+		name: "tag",
+		label: "Tag",
+		options: [
+			{ value: "", label: "All tags" },
+			...tags.map((t) => ({ value: t.slug, label: t.label })),
+		],
+		value: controls.tag ?? "",
+		isActive: controls.tag !== null,
+	},
+	{
+		name: "sort",
+		label: "Sort",
+		options: Object.values(ARCHIVE_SORT).map((value) => ({
+			value,
+			label: SORT_LABELS[value],
+		})),
+		value: controls.sort,
+		isActive: controls.sort !== DEFAULT_CONTROLS.sort,
+	},
+];
+
+// Single batched query for tags across all posts, instead of one
+// getEntryTerms() call per post (which would be N round-trips).
+// Bylines are already hydrated on entry.data.bylines.
+const tagsByEntry = await getTermsForEntries(
+	"posts",
+	posts.map((p) => p.data.id),
+	"tag",
+);
+
+const postsWithTags = posts.map((post) => ({
+	post,
+	tags: tagsByEntry.get(post.data.id) ?? [],
+}));
+---
+
+<Base title="All Posts" description="Browse all blog posts">
+	<header class="band intro">
+		<div class="frame">
+			<p class="eyebrow">Archive</p>
+			<h1 class="intro__title">All Posts</h1>
+			<p class="intro__lead">Every post, filtered and sorted your way.</p>
+		</div>
+	</header>
+
+	<ArchiveControls
+		basePath={BASE_PATH}
+		fields={archiveFields}
+		view={controls.view}
+		formDefaults={postArchiveFormDefaults()}
+		isCustomised={isCustomised(controls)}
+		hrefFor={(patch) => archiveHref(BASE_PATH, { ...controls, ...patch })}
+		resultLabel={countLabel}
+		ariaLabel="Filter and sort posts"
+	/>
+
+	<section class="band section archive-band">
+		<div class="frame">
+			{
+				posts.length === 0 ? (
+					<div class="empty-state">
+						<h2 class="empty-state__title">
+							{cursor
+								? "No more posts"
+								: isFiltered(controls)
+									? "No posts match"
+									: "No posts yet"}
+						</h2>
+						<p class="empty-state__text">
+							{cursor
+								? "You have reached the end of the archive."
+								: isFiltered(controls)
+									? "Try another category or tag, or clear the filters."
+									: "Published posts will show up here."}
+						</p>
+						{(cursor || isFiltered(controls)) && (
+							<div class="empty-state__actions">
+								<a href={cursor ? hrefFor() : BASE_PATH} class="btn btn--ghost">
+									{cursor ? "First page" : "Clear filters"}
+								</a>
+							</div>
+						)}
+					</div>
+				) : (
+					<>
+						{isGrid ? (
+							<div class="post-grid archive__grid">
+								{postsWithTags.map(({ post, tags }) => (
+									<PostCard post={post} tags={tags} variant="card" headingLevel={2} />
+								))}
+							</div>
+						) : (
+							<ol class="archive__list">
+								{postsWithTags.map(({ post, tags }) => (
+									<li>
+										<PostCard post={post} tags={tags} variant="row" />
+									</li>
+								))}
+							</ol>
+						)}
+						<Pagination
+							basePath={BASE_PATH}
+							cursor={cursor}
+							nextCursor={nextCursor}
+							hrefFor={hrefFor}
+						/>
+					</>
+				)
+			}
+		</div>
+	</section>
+</Base>
+
+<style>
+	/* The band's rule doubles as the first row divider */
+	.archive-band {
+		padding-block-start: 0;
+	}
+
+	/* Cards need room above them; the list's first row brings its own */
+	.archive__grid {
+		padding-block-start: var(--spacing-6);
+	}
+
+	.archive__list {
+		list-style: none;
+	}
+
+	.archive__list > li + li {
+		border-block-start: 1px solid var(--color-border);
+	}
+</style>

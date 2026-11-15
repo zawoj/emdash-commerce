@@ -1,0 +1,99 @@
+---
+import {
+	EmptyState,
+	ListingFilters,
+	ListingIntro,
+	ListingToolbar,
+	ProductCard,
+} from "@emdash-commerce/design-system";
+import Base from "../../layouts/Base.astro";
+import { cardPriority, toCard } from "../../features/catalog/domain/card";
+import { filtersProps, toolbarProps, type ListingContext } from "../../features/catalog/domain/listing";
+import { parseListing } from "../../features/catalog/domain/params";
+import { catalogCopy } from "../../features/catalog/copy";
+import { fetchCatalogProducts } from "../../utils/commerce-fetch";
+import { getSiteLocale } from "../../utils/locale";
+import { resolveLocale } from "../../lib/i18n";
+import { catalogStrings } from "../../lib/strings";
+
+const locale = resolveLocale(getSiteLocale());
+const copy = catalogStrings(locale);
+const plCopy = catalogCopy[locale];
+const state = parseListing(Astro.url.searchParams);
+const origin = Astro.url.origin;
+
+const catalog = await fetchCatalogProducts(origin, {
+	sort: state.sort,
+	brand: state.brand ?? undefined,
+	limit: 200,
+});
+
+let items = catalog?.items ?? [];
+if (state.inStock) {
+	items = items.filter((item) => item.availability.state !== "sold_out");
+}
+if (state.priceMin !== null) items = items.filter((item) => item.price.amount >= state.priceMin!);
+if (state.priceMax !== null) items = items.filter((item) => item.price.amount <= state.priceMax!);
+
+const brands = [...new Map(items.flatMap((item) => (item.brand ? [[item.brand.slug, item.brand]] : []))).values()];
+const ctx: ListingContext = { locale, copy, state, basePath: "/shop", brands };
+const cards = items.map((item) => toCard(item, { locale, copy, hrefOf: (slug) => `/shop/${slug}` }));
+---
+
+<Base title={copy.shop} pageTitle={copy.allProducts} description={copy.allProducts}>
+	<ListingIntro heading={copy.allProducts} headingId="shop-heading" intro={[plCopy.allProducts]} />
+	<ListingToolbar {...toolbarProps(ctx, cards.length)} />
+	<ListingFilters {...filtersProps(ctx)} />
+	<section class="shop-grid" aria-labelledby="shop-heading">
+		{
+			cards.length === 0 ? (
+				<EmptyState
+					title={copy.emptyFilteredTitle}
+					text={copy.emptyFilteredText}
+					headingLevel={2}
+					action={{ href: "/shop", label: copy.clearFilters }}
+				/>
+			) : (
+				<ul class="shop-grid__list">
+					{cards.map((card, index) => (
+						<li>
+							<ProductCard
+								product={card}
+								isEager={cardPriority(index).isEager}
+								isLead={cardPriority(index).isLead}
+							/>
+						</li>
+					))}
+				</ul>
+			)
+		}
+	</section>
+</Base>
+
+<style>
+	.shop-grid {
+		padding-inline: var(--gutter);
+		padding-block-end: var(--space-48);
+	}
+
+	.shop-grid__list {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-16);
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	@media (min-width: 640px) {
+		.shop-grid__list {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 1100px) {
+		.shop-grid__list {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+		}
+	}
+</style>

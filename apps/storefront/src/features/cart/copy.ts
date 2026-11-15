@@ -1,0 +1,51 @@
+const en = {
+	addToCartAdding: "Adding…",
+	addToCartAdded: "Added",
+	chooseVariant: "Choose a variant before adding to cart.",
+	addedNotice: "{title} was added to your cart.",
+	addedNoticeGeneric: "Added to your cart.",
+	viewCart: "View cart",
+	clampedNotice: "Quantity limited to {max}.",
+	addFailedGeneric: "Could not add to cart.",
+	successLabel: "Success",
+	warningLabel: "Warning",
+	errorLabel: "Error",
+	columnProduct: "Product",
+	columnQuantity: "Quantity",
+	columnPrice: "Price",
+	removeLine: "Remove",
+	checkout: "Checkout",
+	cartTitle: "Your cart",
+	cartEmpty: "Your cart is empty",
+	cartEmptyText: "Add something from the shop.",
+	continueShopping: "Continue shopping",
+	subtotal: "Subtotal",
+} as const;
+
+export type CartCopy = { [K in keyof typeof en]: string };
+
+const pl: CartCopy = {
+	addToCartAdding: "Dodawanie…",
+	addToCartAdded: "Dodano",
+	chooseVariant: "Wybierz wariant przed dodaniem do koszyka.",
+	addedNotice: "{title} dodano do koszyka.",
+	addedNoticeGeneric: "Dodano do koszyka.",
+	viewCart: "Zobacz koszyk",
+	clampedNotice: "Ilość ograniczona do {max}.",
+	addFailedGeneric: "Nie udało się dodać do koszyka.",
+	successLabel: "Sukces",
+	warningLabel: "Uwaga",
+	errorLabel: "Błąd",
+	columnProduct: "Produkt",
+	columnQuantity: "Ilość",
+	columnPrice: "Cena",
+	removeLine: "Usuń",
+	checkout: "Przejdź do kasy",
+	cartTitle: "Twój koszyk",
+	cartEmpty: "Koszyk jest pusty",
+	cartEmptyText: "Dodaj coś ze sklepu.",
+	continueShopping: "Kontynuuj zakupy",
+	subtotal: "Suma częściowa",
+};
+
+export const cartCopy = { en, pl };

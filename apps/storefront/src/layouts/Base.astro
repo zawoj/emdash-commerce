@@ -1,0 +1,204 @@
+---
+import { getMenuWithCacheHint, getSiteSettingsWithCacheHint } from "emdash";
+import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+import PageMain from "@emdash-commerce/design-system/components/chrome/page-main/index.astro";
+import SiteFooter from "@emdash-commerce/design-system/components/chrome/site-footer/index.astro";
+import SiteHeader from "@emdash-commerce/design-system/components/chrome/site-header/index.astro";
+import SkipLink from "@emdash-commerce/design-system/components/chrome/skip-link/index.astro";
+import TabBar from "@emdash-commerce/design-system/components/chrome/tab-bar/index.astro";
+import { footerVariants } from "@emdash-commerce/design-system/components/chrome/site-footer/variants.ts";
+import "@emdash-commerce/design-system/reset.css";
+import "@emdash-commerce/design-system/fonts.css";
+import "@emdash-commerce/design-system/tokens.css";
+import "../styles/blog-compat.css";
+
+import MiniCartMount from "../components/MiniCartMount.astro";
+import {
+	shellCopy,
+	resolveShellLocale,
+} from "../features/shell/copy";
+import {
+	emdashMenuToChrome,
+	fallbackMenu,
+	footerNavigateColumn,
+	menuWithShopLink,
+} from "../features/shell/menu";
+import {
+	MINI_CART_ID,
+	tabBarItemsForSite,
+} from "../features/shell/tab-bar";
+import { getSiteLocale } from "../utils/locale";
+import { resolveBlogSiteIdentity } from "../utils/site-identity";
+
+interface Props {
+	title: string;
+	pageTitle?: string | null;
+	description?: string | null;
+	image?: string | null;
+	canonical?: string | null;
+	robots?: string | null;
+	type?: "website" | "article";
+	publishedTime?: string | null;
+	modifiedTime?: string | null;
+	author?: string | null;
+	content?: { collection: string; id: string; slug?: string | null };
+}
+
+const {
+	title,
+	pageTitle,
+	description,
+	image,
+	canonical,
+	robots,
+	type = "website",
+	publishedTime,
+	modifiedTime,
+	author,
+	content,
+} = Astro.props;
+
+const [settingsResult, menuResult] = await Promise.all([
+	getSiteSettingsWithCacheHint(),
+	getMenuWithCacheHint("primary"),
+]);
+if (Astro.cache?.enabled) {
+	Astro.cache.set(settingsResult.cacheHint);
+	Astro.cache.set(menuResult.cacheHint);
+}
+
+const { siteTitle, siteTagline } = resolveBlogSiteIdentity(settingsResult.data);
+const titleIncludesSiteName =
+	title === siteTitle ||
+	title.endsWith(` | ${siteTitle}`) ||
+	title.endsWith(` — ${siteTitle}`);
+const fullTitle = titleIncludesSiteName ? title : `${title} — ${siteTitle}`;
+
+const lang = getSiteLocale() ?? "en";
+const shellLocale = resolveShellLocale(lang);
+const copy = shellCopy[shellLocale];
+
+const TRAILING_SLASH = /\/$/;
+const currentPath =
+	Astro.url.pathname.replace(TRAILING_SLASH, "") || "/";
+
+const menuItems = menuResult.data?.items ?? [];
+const baseMenu =
+	menuItems.length > 0
+		? emdashMenuToChrome(menuItems, currentPath, Astro.url.origin)
+		: fallbackMenu(copy);
+const menu = menuWithShopLink(baseMenu, copy.shop, currentPath, Astro.url.origin);
+
+const pageCtx = createPublicPageContext({
+	Astro,
+	kind: content ? "content" : "custom",
+	pageType: type,
+	title: fullTitle,
+	pageTitle: pageTitle ?? title,
+	description,
+	canonical,
+	image,
+	content,
+	seo: { ogImage: image, robots },
+	articleMeta: { publishedTime, modifiedTime, author },
+	siteName: siteTitle,
+});
+
+const isLoggedIn = !!Astro.locals.user;
+const year = new Date().getFullYear();
+const footerDescription = siteTagline ?? "";
+const footerColumns = [
+	footerNavigateColumn(
+		copy.navigateColumn,
+		menu.map(({ label, href, isNewTab }) => ({
+			label,
+			href,
+			isNewTab,
+		})),
+	),
+];
+const tabItems = tabBarItemsForSite(copy, currentPath);
+---
+
+<!doctype html>
+<html lang={lang} data-surface="light">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{fullTitle}</title>
+		<EmDashHead page={pageCtx} />
+		<link
+			rel="alternate"
+			type="application/rss+xml"
+			title={`${siteTitle} RSS Feed`}
+			href="/rss.xml"
+		/>
+	</head>
+	<body id="top">
+		<EmDashBodyStart page={pageCtx} />
+		<SkipLink href="#main-content" label={copy.skipToContent} />
+		<SiteHeader
+			homeHref="/"
+			siteName={siteTitle}
+			menu={menu}
+			menuLabel={copy.menuLabel}
+			menuToggleLabel={copy.menuToggle}
+			drawer={{
+				label: copy.drawerLabel,
+				closeLabel: copy.drawerClose,
+				backLabel: copy.drawerBack,
+			}}
+			subMenuLabelTemplate={copy.subMenuToggle}
+			isTopbarVisible={false}
+			search={{
+				action: "/search",
+				copy: {
+					label: copy.searchLabel,
+					placeholder: copy.searchPlaceholder,
+					closeLabel: copy.searchClose,
+					emptyHint: copy.searchEmptyHint,
+					noResultsLabel: copy.searchNoResults,
+					allResultsLabel: copy.searchAllResults,
+				},
+			}}
+			cart={{
+				href: "/cart",
+				label: copy.cartLabel,
+				count: 0,
+				countLabelTemplate: copy.cartCountTemplate,
+				miniCartId: MINI_CART_ID,
+			}}
+		>
+			{
+				isLoggedIn && (
+					<a slot="actions" href="/_emdash/admin" class="btn btn--ghost btn--sm">
+						Admin
+					</a>
+				)
+			}
+		</SiteHeader>
+		<MiniCartMount copy={copy} id={MINI_CART_ID} />
+		<PageMain id="main-content">
+			<slot />
+		</PageMain>
+		<SiteFooter
+			siteName={siteTitle}
+			description={footerDescription}
+			columns={footerColumns}
+			legalLinks={[{ label: "RSS", href: "/rss.xml" }]}
+			legalLabel={copy.legalLabel}
+			copyright={`© ${year} ${siteTitle}. Powered by EmDash`}
+			backToTopLabel={copy.backToTop}
+			variant={footerVariants.compact}
+		/>
+		<TabBar label={copy.tabBarLabel} items={tabItems} />
+		<script>
+			import "../features/cart/client/mini-cart.client";
+		</script>
+		<script>
+			import "../dev-tools/editor-bar";
+		</script>
+		<EmDashBodyEnd page={pageCtx} />
+	</body>
+</html>

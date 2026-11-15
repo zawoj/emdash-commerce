@@ -1,0 +1,93 @@
+---
+import Base from "../../layouts/Base.astro";
+import { PLUGIN_ID } from "@emdash-commerce/plugin-stripe";
+import { fetchCheckoutStatus } from "../../utils/commerce-fetch";
+
+const sessionId = Astro.url.searchParams.get("session_id");
+const initialStatus = sessionId
+	? await fetchCheckoutStatus(Astro.url.origin, sessionId)
+	: null;
+const apiBase = `/_emdash/api/plugins/${PLUGIN_ID}`;
+---
+
+<Base title="Thank you" pageTitle="Order received">
+	<section class="band">
+		<div class="frame section checkout-success">
+			<h1>Thank you</h1>
+			{sessionId ? (
+				<div id="checkout-status" data-api={apiBase} data-session-id={sessionId}>
+					{initialStatus ? (
+						<>
+							<p id="checkout-status-line">
+								Status: <strong>{initialStatus.paymentStatus}</strong>
+								{initialStatus.orderNumber ? (
+									<>
+										<br />
+										Order: <strong>{initialStatus.orderNumber}</strong>
+									</>
+								) : null}
+							</p>
+							{initialStatus.maskedEmail ? (
+								<p>
+									Confirmation sent to <strong>{initialStatus.maskedEmail}</strong>
+								</p>
+							) : null}
+						</>
+					) : (
+						<p>Confirming your payment…</p>
+					)}
+				</div>
+			) : (
+				<p>Your payment is being confirmed.</p>
+			)}
+			<p><a href="/shop" class="btn">Back to shop</a></p>
+		</div>
+	</section>
+	{sessionId ? (
+		<script>
+			import type { CheckoutStatusView } from "@emdash-commerce/plugin-stripe/contracts";
+			import { parseApiEnvelope } from "../../utils/commerce-fetch";
+
+			const root = document.getElementById("checkout-status");
+			const api = root?.dataset.api;
+			const sessionId = root?.dataset.sessionId;
+			if (!root || !api || !sessionId) throw new Error("Checkout status missing");
+
+			const POLL_MS = 2000;
+			const MAX_POLLS = 8;
+
+			const render = (status: CheckoutStatusView) => {
+				const lines: string[] = [`Status: <strong>${status.paymentStatus}</strong>`];
+				if (status.orderNumber) lines.push(`Order: <strong>${status.orderNumber}</strong>`);
+				root.innerHTML = `<p id="checkout-status-line">${lines.join("<br />")}</p>${
+					status.maskedEmail
+						? `<p>Confirmation sent to <strong>${status.maskedEmail}</strong></p>`
+						: ""
+				}`;
+			};
+
+			const poll = async (attempt: number) => {
+				const url = new URL(`${api}/checkout/status`, window.location.origin);
+				url.searchParams.set("session_id", sessionId);
+				const res = await fetch(url, { credentials: "include" });
+				const json = await res.json();
+				const { data } = parseApiEnvelope<CheckoutStatusView>(json);
+				if (data) render(data);
+				if (data?.orderNumber || attempt >= MAX_POLLS) return;
+				window.setTimeout(() => void poll(attempt + 1), POLL_MS);
+			};
+
+			if (!document.getElementById("checkout-status-line")?.textContent?.includes("Order:")) {
+				void poll(0);
+			}
+		</script>
+	) : null}
+</Base>
+
+<style>
+	.checkout-success {
+		display: grid;
+		gap: var(--spacing-4);
+		max-width: var(--content-width);
+	}
+</style>

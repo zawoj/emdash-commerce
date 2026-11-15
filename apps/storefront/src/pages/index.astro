@@ -1,0 +1,13 @@
+---
+import Base from "../layouts/Base.astro";
+import HomeView from "../features/home/HomeView.astro";
+import { getSiteSettingsWithCacheHint } from "emdash";
+import { resolveBlogSiteIdentity } from "../utils/site-identity";
+
+const settings = await getSiteSettingsWithCacheHint();
+const { siteTitle, siteTagline } = resolveBlogSiteIdentity(settings.data);
+---
+
+<Base title={siteTitle} pageTitle={siteTitle} description={siteTagline ?? undefined}>
+	<HomeView />
+</Base>

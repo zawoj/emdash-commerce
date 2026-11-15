@@ -1,0 +1,19 @@
+{
+  "name": "storefront",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/storefront/src",
+  "tags": [
+    "type:app"
+  ],
+  "targets": {
+    "dev": {
+      "continuous": true
+    },
+    "build": {
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    }
+  }
+}

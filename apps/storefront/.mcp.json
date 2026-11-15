@@ -1,0 +1,12 @@
+{
+	"mcpServers": {
+		"emdash-docs": {
+			"type": "http",
+			"url": "https://docs.emdashcms.com/mcp"
+		},
+		"emdash-site": {
+			"type": "http",
+			"url": "http://localhost:4360/_emdash/api/mcp"
+		}
+	}
+}

@@ -1,0 +1,178 @@
+---
+import type { ContentEntry, InferCollectionData } from "emdash";
+import { Image } from "emdash/ui";
+import type { ShopCatalogCard } from "../utils/catalog-display";
+
+interface Props {
+	product: ContentEntry<InferCollectionData<"products">>;
+	/** card: grid tile. row: archive list item. */
+	variant?: "card" | "row";
+	headingLevel?: 2 | 3;
+	apiBase: string;
+	catalog?: ShopCatalogCard | null;
+}
+
+const { product, variant = "card", headingLevel = 2, apiBase, catalog } = Astro.props;
+
+const Heading = `h${headingLevel}` as const;
+const href = `/shop/${product.id}`;
+const titleId = `product-${variant}-${product.id}`;
+const title = product.data.title || "Untitled";
+const priceLabel = catalog?.priceLabel ?? "";
+const canAdd = catalog?.isPurchasable === true && Boolean(catalog.priceId);
+
+const sizes = {
+	card: "(min-width: 1080px) 360px, (min-width: 700px) 45vw, 100vw",
+	row: "(min-width: 720px) 240px, 120px",
+}[variant];
+---
+
+<article class:list={["product", `product--${variant}`]}>
+	<a href={href} class="product__media" tabindex="-1" aria-hidden="true">
+		{
+			product.data.image?.src ? (
+				<div class="product__image" {...product.edit.image}>
+					<Image image={product.data.image} sizes={sizes} />
+				</div>
+			) : (
+				<div class="product__placeholder" />
+			)
+		}
+	</a>
+	<div class="product__body">
+		<a href={href} class="product__link" aria-labelledby={titleId}>
+			<Heading class="product__title" id={titleId} {...product.edit.title}>
+				{title}
+			</Heading>
+			{priceLabel ? <p class="product__price">{priceLabel}</p> : null}
+		</a>
+		<button
+			type="button"
+			class="btn btn--sm product__cart"
+			data-add-to-cart
+			data-price-id={catalog?.priceId ?? ""}
+			data-api={apiBase}
+			disabled={!canAdd}
+		>
+			{canAdd ? "Add to cart" : "Unavailable"}
+		</button>
+	</div>
+</article>
+
+<style>
+	.product {
+		display: grid;
+		height: 100%;
+		min-width: 0;
+		border-radius: var(--radius-xl);
+		background: var(--color-surface);
+		box-shadow:
+			inset 0 0 0 1px var(--color-border),
+			var(--shadow-card);
+		overflow: hidden;
+		transition: box-shadow var(--transition-fast);
+	}
+
+	.product:hover {
+		box-shadow:
+			inset 0 0 0 1px var(--color-border-strong),
+			var(--shadow-card-hover);
+	}
+
+	.product--row {
+		grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+		align-items: center;
+		border-radius: 0;
+		background: transparent;
+		box-shadow: none;
+	}
+
+	.product--row:hover {
+		box-shadow: none;
+	}
+
+	.product__media {
+		display: block;
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.product--card .product__media {
+		padding: var(--card-padding) var(--card-padding) 0;
+	}
+
+	.product__image {
+		overflow: hidden;
+		border-radius: var(--radius-lg);
+		aspect-ratio: 4 / 3;
+		background: var(--color-fill);
+	}
+
+	.product--row .product__image {
+		aspect-ratio: 1;
+	}
+
+	.product__placeholder {
+		aspect-ratio: 4 / 3;
+		border-radius: var(--radius-lg);
+		background: var(--color-fill);
+	}
+
+	.product--card .product__body {
+		display: grid;
+		gap: var(--spacing-4);
+		padding: var(--spacing-5) var(--card-padding) var(--card-padding);
+	}
+
+	.product--row .product__body {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-4);
+		padding-block: var(--spacing-5);
+		padding-inline: var(--spacing-5);
+	}
+
+	.product__link {
+		display: grid;
+		gap: var(--spacing-2);
+		min-width: 0;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.product__title {
+		font-size: var(--font-size-lg);
+		line-height: var(--leading-snug);
+	}
+
+	.product--row .product__title {
+		font-size: var(--font-size-base);
+	}
+
+	.product__price {
+		font-size: var(--font-size-sm);
+		font-weight: 500;
+		color: var(--color-text-secondary);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.product__cart {
+		justify-self: start;
+	}
+
+	.product--row .product__cart {
+		flex-shrink: 0;
+	}
+
+	@media (max-width: 720px) {
+		.product--row {
+			grid-template-columns: 120px minmax(0, 1fr);
+		}
+
+		.product--row .product__body {
+			padding-inline: 0 var(--spacing-4);
+		}
+	}
+</style>

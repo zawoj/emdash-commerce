@@ -1,0 +1,88 @@
+/** Chrome strings (header, footer, tab bar, mini-cart shell). `pl` is typed against `en`. */
+
+const en = {
+	skipToContent: "Skip to content",
+	menuLabel: "Main menu",
+	menuToggle: "Open the menu",
+	drawerLabel: "Menu",
+	drawerClose: "Close the menu",
+	drawerBack: "Back",
+	subMenuToggle: "Show {label} subcategories",
+	homeLabel: "Home",
+	shop: "Shop",
+	blog: "Blog",
+	cartLabel: "Cart",
+	tabBarLabel: "Shop navigation",
+	tabHome: "Home",
+	tabCategories: "Shop",
+	tabSearch: "Search",
+	tabCart: "Cart",
+	tabAccount: "Posts",
+	cartCountTemplate: "{count} items in the cart",
+	searchLabel: "Search",
+	searchPlaceholder: "Search",
+	searchClose: "Close search",
+	searchEmptyHint: "Type at least two letters to see suggestions.",
+	searchNoResults: "Nothing matches your search.",
+	searchAllResults: "All results",
+	legalLabel: "Legal",
+	backToTop: "Back to top",
+	navigateColumn: "Navigate",
+	miniCartHeading: "Your cart",
+	miniCartClose: "Close the cart",
+	miniCartSubtotal: "Subtotal",
+	miniCartNote: "Delivery and discount codes are calculated in the next steps.",
+	miniCartCheckout: "Go to checkout",
+	miniCartViewCart: "View the full cart",
+	emptyTitle: "Your cart is empty",
+	emptyText: "Add something you like and it will wait here.",
+	emptyAction: "Continue shopping",
+} as const;
+
+export type ShellCopy = { [K in keyof typeof en]: string };
+
+const pl = {
+	skipToContent: "Przejdź do treści",
+	menuLabel: "Menu główne",
+	menuToggle: "Otwórz menu",
+	drawerLabel: "Menu",
+	drawerClose: "Zamknij menu",
+	drawerBack: "Wstecz",
+	subMenuToggle: "Pokaż podkategorie: {label}",
+	homeLabel: "Strona główna",
+	shop: "Sklep",
+	blog: "Blog",
+	cartLabel: "Koszyk",
+	tabBarLabel: "Nawigacja po sklepie",
+	tabHome: "Start",
+	tabCategories: "Sklep",
+	tabSearch: "Szukaj",
+	tabCart: "Koszyk",
+	tabAccount: "Wpisy",
+	cartCountTemplate: "Liczba produktów w koszyku: {count}",
+	searchLabel: "Szukaj",
+	searchPlaceholder: "Szukaj",
+	searchClose: "Zamknij wyszukiwanie",
+	searchEmptyHint: "Wpisz co najmniej dwie litery, aby zobaczyć podpowiedzi.",
+	searchNoResults: "Nic nie pasuje do wyszukiwania.",
+	searchAllResults: "Wszystkie wyniki",
+	legalLabel: "Informacje prawne",
+	backToTop: "Wróć na górę",
+	navigateColumn: "Nawigacja",
+	miniCartHeading: "Twój koszyk",
+	miniCartClose: "Zamknij koszyk",
+	miniCartSubtotal: "Suma częściowa",
+	miniCartNote: "Dostawa i kody rabatowe są liczone w kolejnych krokach.",
+	miniCartCheckout: "Przejdź do kasy",
+	miniCartViewCart: "Zobacz cały koszyk",
+	emptyTitle: "Koszyk jest pusty",
+	emptyText: "Dodaj coś, co Ci się podoba — poczeka tutaj.",
+	emptyAction: "Kontynuuj zakupy",
+} satisfies ShellCopy;
+
+export const shellCopy = { en, pl } as const;
+
+export type ShellLocale = keyof typeof shellCopy;
+
+export const resolveShellLocale = (lang: string): ShellLocale =>
+	lang.toLowerCase().startsWith("pl") ? "pl" : "en";

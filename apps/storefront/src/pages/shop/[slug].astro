@@ -1,0 +1,166 @@
+---
+import ActionBar from "@emdash-commerce/design-system/components/chrome/action-bar/index.astro";
+import Breadcrumbs from "@emdash-commerce/design-system/components/atoms/breadcrumbs/index.astro";
+import ProductDetails from "@emdash-commerce/design-system/components/parts/product-details/index.astro";
+import ProductGallery from "@emdash-commerce/design-system/components/parts/product-gallery/index.astro";
+import ProductGrid from "@emdash-commerce/design-system/components/blocks/sections/product-grid/index.astro";
+import PromiseList from "@emdash-commerce/design-system/components/molecules/promise-list/index.astro";
+import { buttonVariants } from "@emdash-commerce/design-system";
+import Button from "@emdash-commerce/design-system/components/atoms/button/index.astro";
+import Base from "../../layouts/Base.astro";
+import ProductBuyBox from "../../features/catalog/components/ProductBuyBox.astro";
+import { buildProductView } from "../../features/catalog/domain/product-view";
+import { cardPriority, toCard } from "../../features/catalog/domain/card";
+import { catalogCopy } from "../../features/catalog/copy";
+import { cartCopy } from "../../features/cart/copy";
+import { fetchCatalogProductDetail } from "../../utils/commerce-fetch";
+import { getSiteLocale } from "../../utils/locale";
+import { resolveLocale } from "../../lib/i18n";
+import { catalogStrings, cartStrings } from "../../lib/strings";
+
+const { slug } = Astro.params;
+if (!slug) return Astro.redirect("/shop");
+
+const locale = resolveLocale(getSiteLocale());
+const copy = catalogStrings(locale);
+const cartLocaleCopy = cartStrings(locale);
+const detail = await fetchCatalogProductDetail(Astro.url.origin, slug);
+if (!detail) return Astro.redirect("/shop");
+
+const model = buildProductView({
+	detail,
+	locale,
+	copy,
+	shopHref: "/shop",
+	homeHref: "/",
+});
+const related = detail.related.map((item, index) => ({
+	card: toCard(item, { locale, copy, hrefOf: (s) => `/shop/${s}` }),
+	priority: cardPriority(index),
+}));
+const initialState =
+	model.variantStates.find((state) => state.surrogateId === model.preselectedSurrogateId) ?? model.defaultState;
+---
+
+<Base title={detail.title} pageTitle={detail.title} description={detail.excerpt ?? undefined}>
+	<section class="pdp">
+		<Breadcrumbs items={model.breadcrumbs} backLabel={copy.breadcrumbBack} label={copy.breadcrumbsLabel} />
+		<div class="pdp__layout">
+			<div class="pdp__gallery">
+				<ProductGallery {...model.gallery} data-product-gallery />
+			</div>
+			<div class="pdp__summary">
+				{model.brand ? <p class="pdp__brand">{model.brand.name}</p> : null}
+				<h1 class="pdp__title">{model.title}</h1>
+				<ProductBuyBox model={model} catalogCopy={catalogCopy[locale]} cartCopy={cartCopy[locale]} />
+				{
+					model.subscriptionPriceId ? (
+						<Button href={`/api/cart/subscribe?priceId=${model.subscriptionPriceId}`} variant={buttonVariants.outline}>
+							{copy.subscribe}
+							{model.subscriptionLabel ? ` — ${model.subscriptionLabel}` : ""}
+						</Button>
+					) : null
+				}
+				<PromiseList items={model.promises} />
+			</div>
+		</div>
+		<ProductDetails
+			heading={copy.detailsTitle}
+			headingId="pdp-details"
+			tabLabels={{ description: copy.tabDescription, specification: copy.tabSpecification, manufacturer: copy.tabSpecification }}
+			readMoreLabel={copy.readMore}
+			readLessLabel={copy.readLess}
+			specification={
+				model.specRows.length > 0
+					? {
+							title: copy.specificationTitle,
+							caption: copy.specificationTitle,
+							rows: model.specRows.map((row) => ({ term: row.label, value: row.value })),
+						}
+					: undefined
+			}
+		>
+			{model.descriptionText ? <p>{model.descriptionText}</p> : null}
+		</ProductDetails>
+		{
+			related.length > 0 ? (
+				<ProductGrid
+					heading={copy.relatedTitle}
+					headingId="related"
+					products={related.map((row) => row.card)}
+					eagerCount={0}
+				/>
+			) : null
+		}
+	</section>
+	<ActionBar
+		label={copy.buyBarLabel}
+		value={initialState.price.label}
+		action={{
+			label: model.isSoldOut ? copy.addToCartSoldOut : copy.addToCart,
+			isDisabled: model.isSoldOut,
+		}}
+		watch="[data-product-buy]"
+		proxy="[data-add-to-cart-button]"
+		mirror={{ root: "[data-product-buy]", value: "[data-buy-target] .price", button: "[data-add-to-cart-button]" }}
+	/>
+</Base>
+
+<style>
+	.pdp {
+		padding-inline: var(--page-gutter);
+		padding-block: var(--space-24) var(--space-48);
+		display: grid;
+		gap: var(--space-32);
+	}
+
+	.pdp__layout {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--space-24);
+		align-items: start;
+	}
+
+	@media (min-width: 700px) {
+		.pdp__layout {
+			grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+			gap: var(--space-64);
+		}
+
+		.pdp__summary {
+			position: sticky;
+			top: calc(var(--header-height) + var(--space-24));
+		}
+	}
+
+	@media (max-width: 699px) {
+		.pdp__layout {
+			gap: var(--space-24);
+		}
+	}
+
+	.pdp__summary {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		gap: var(--space-24);
+	}
+
+	.pdp__brand {
+		margin: 0;
+		color: var(--text-secondary);
+		font: var(--type-text-regular-sm);
+		text-transform: uppercase;
+		letter-spacing: var(--tracking-label);
+	}
+
+	.pdp__title {
+		margin: 0;
+		color: var(--text-primary);
+		font: var(--type-display-md);
+		text-transform: var(--text-case);
+		font-stretch: var(--display-stretch);
+		letter-spacing: var(--tracking-display);
+		text-wrap: balance;
+	}
+</style>
