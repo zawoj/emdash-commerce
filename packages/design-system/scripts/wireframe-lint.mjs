@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-// Wireframe lint: the design system is a blue wireframe with no decoration. This fails on anything that
+// Wireframe lint: the design system is a warm ink + orange wireframe with no decoration (the Cloudflare palette).
+// This fails on anything that
 // decorates, in `<style>` blocks of .astro files and in .css files (package and app):
 //   radius (anything but 0 or a --radius-* token), box-shadow / drop-shadow, gradients, blur,
 //   uppercase / capitalize, non-zero letter-spacing, rotate / skew / scale, transform / translate other
 //   than centring, @keyframes / animation / transition / @starting-style, the motion tokens, raw colours
 //   (hex, rgb(), hsl(), named) outside the token file, the removed brand tokens, webfonts, `filter` on a
-//   photo, and (in tokens/index.css) a non-square radius, tracking, a red --hot or a hue outside the ink ramp.
+//   photo, and (in tokens/index.css) a non-square radius, tracking, a --hot that is not the dark orange step, or a
+//   hex colour that is neither grey nor in the warm range (hue 15-45deg: no blue, green, red or purple).
 // A line carrying `wireframe-ignore: <reason>` is skipped (use it, with the reason, for the one-colour
 // logo silhouette). Usage: wireframe-lint <file-or-dir>… ; exits 1 when anything is found.
 import { readFileSync, readdirSync, statSync } from 'node:fs'
@@ -28,8 +30,14 @@ export const RULES = {
   brand: 'removed brand token (volt, shadow-overlay)',
   font: 'no webfont and no font-family other than var(--font-*)',
   photo: 'filter on a photo overrides the global tint',
-  tokens: 'token file value breaks the wireframe',
+  tokens: 'token file value breaks the wireframe (palette: grey or warm hue 15-45deg; --hot is the dark orange)',
 }
+
+// The palette: grey, or a warm hue (ink ramp ~30-35deg, orange ramp ~27-35deg, browns ~23-27deg). A hue under 15 is red,
+// over 45 is yellow/green, anything else blue or purple. `--hot` is one fixed step, the darkest orange that is text on white.
+export const WARM_HUE_MIN = 15
+export const WARM_HUE_MAX = 45
+export const HOT_TOKEN_VALUE = 'var(--orange-700)'
 
 const NAMED_COLOURS = 'white|black|red|green|blue|gray|grey|yellow|orange|purple|pink|brown|navy|teal|lime|silver|gold|cyan|magenta'
 const CENTRING = /^(translate|translateX|translateY)\(\s*-?50%(\s*,\s*-?50%)?\s*\)$|^translate:\s*-50%/
@@ -95,11 +103,11 @@ export const lintText = (file, text) => {
       if (/^--radius-/.test(prop) && value !== '0') add('tokens', `${prop}: ${value}`)
       if (/^--tracking-/.test(prop) && value !== '0') add('tokens', `${prop}: ${value}`)
       if (/^--(text|label)-case$/.test(prop) && value !== 'none') add('tokens', `${prop}: ${value}`)
-      if (prop === '--hot' && value !== 'var(--ink-700)') add('tokens', `${prop}: ${value}`)
+      if (prop === '--hot' && value !== HOT_TOKEN_VALUE) add('tokens', `${prop}: ${value}`)
       if (/^--image-scrim$/.test(prop) && /gradient/.test(value)) add('gradient')
       for (const hex of value.match(/#[0-9a-fA-F]{6}\b/g) ?? []) {
         const hue = hexHue(hex)
-        if (hue !== null && (hue < 205 || hue > 240)) add('tokens', `${hex} has hue ${Math.round(hue)}deg, outside the blue ramp`)
+        if (hue !== null && (hue < WARM_HUE_MIN || hue > WARM_HUE_MAX)) add('tokens', `${hex} has hue ${Math.round(hue)}deg, outside the warm range ${WARM_HUE_MIN}-${WARM_HUE_MAX}deg`)
       }
     }
   }

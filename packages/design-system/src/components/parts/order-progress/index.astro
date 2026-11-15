@@ -52,7 +52,7 @@ const { steps, label } = Astro.props
   }
 
   .order-progress__step--done:not(:last-child)::before {
-    border-top-color: var(--control-solid);
+    border-top-color: var(--control-edge);
   }
 
   .order-progress__step--current:not(:last-child)::before {
@@ -79,7 +79,7 @@ const { steps, label } = Astro.props
   }
 
   .order-progress__step--current .order-progress__marker {
-    border-color: var(--control-solid);
+    border-color: var(--control-edge);
     background: var(--accent);
   }
 

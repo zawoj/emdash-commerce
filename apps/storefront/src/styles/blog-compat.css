@@ -102,7 +102,7 @@
 		border: 0;
 		border-radius: var(--radius-full);
 		background: var(--action-primary);
-		color: var(--on-color);
+		color: var(--on-action-primary);
 		font: var(--type-text-medium-sm);
 		text-decoration: none;
 		cursor: pointer;
