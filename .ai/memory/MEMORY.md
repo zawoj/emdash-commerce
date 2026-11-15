@@ -1,0 +1,15 @@
+# Memory index
+
+Layout, naming and rules: [../README.md](../README.md). Read this index at session start, then the files that match the task in full.
+
+- [EmDash admin stuck on the loading screen](emdash-admin-infinite-loading.md) — apps/storefront admin loads forever in dev (createRoot hydration error) — fixed by pre-bundling React in the Vite config
+- [Admin hangs after `pnpm build` (or the gate) next to a running dev server](emdash-dev-and-build-share-vite-cache.md) — apps/storefront admin stuck on "Loading EmDash..." after a build — `astro build` overwrote the running dev server's Vite cache; dev and build now use separate cache dirs
+- [EmDash editing pill: dev-tools add-on](emdash-editor-bar-dev-tools.md) — how apps/storefront extends the EmDash visual editing pill (X-ray, Inspect, Notes + copy prompt, Audit, Errors, hide/show) and the traps of that pill
+- [Stripe plugin: the admin `carts` collection](emdash-plugin-stripe-admin-carts.md) — the authoritative cart is plugin storage commerce_carts; the carts collection is a best-effort admin mirror found through record_index; cart_status field; the schema reconciler adds it to existing sites
+- [EmDash Stripe plugin — cart identity and cookies](emdash-plugin-stripe-cookies.md) — plugin routes cannot set cookies, so the storefront stores the cart id; the plugin reads it from the x-commerce-cart header or the emdash_commerce_cart cookie
+- [EmDash Stripe plugin — never write `products` content](emdash-plugin-stripe-draft-staging.md) — never write the products collection from the plugin — a collection with revisions stages the write as a draft; Stripe ids live in plugin storage catalog_links and on variants/prices only
+- [Extending the EmDash Stripe plugin: map, seams, invariants, traps](emdash-plugin-stripe-extending.md) — where things live in packages/plugin-stripe (0.2 rewrite + catalog v2: relations, product types, three-axis orders), the extension seams, the invariants to keep and the EmDash/Stripe traps learned — read before changing or extending the plugin
+- [EmDash Stripe plugin — idempotency keys](emdash-plugin-stripe-idempotency.md) — Stripe idempotency keys must come from record ids and versions, never random, and must change with the intent — Stripe replays a key's response for 24 hours
+- [Stripe plugin webhook: traps found with a real sandbox payment (2026-11-12)](emdash-plugin-stripe-webhook-traps.md) — traps hit when real Stripe payments reached the EmDash plugin — error objects are sent as HTTP 200, unindexed filters, routable collections need a slug, record before follow-ups, .env under astro dev; how the 0.2 design answers each
+- [EmDash React field widgets (verified on emdash / @emdash-cms/admin 1.5.0)](emdash-react-field-widgets.md) — custom React field widgets in EmDash 1.5 (how a field selects one, what props it gets, how the entry is bundled) and why a React admin entry disables a plugin's Block Kit panels
+- [EmDash schema is data, not code](emdash-schema-lives-in-the-database.md) — in apps/storefront a collection or field created in the admin, CLI or MCP exists only in data.db — mirror it in seed/seed.json and regenerate the types
