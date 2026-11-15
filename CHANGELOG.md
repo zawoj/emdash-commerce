@@ -12,3 +12,4 @@
 - Plugin ids (`stripe-commerce`, `image-hotspots`) and the widget ref (`image-hotspots:hotspots`) are unchanged: content
   and schema store them.
 - Stripe fixtures in `packages/plugin-stripe` had their object ids replaced with synthetic ones.
+- Home defaults (hero, spotlight, activity images) are Unsplash URLs instead of media keys of one local database.

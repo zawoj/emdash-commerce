@@ -66,7 +66,9 @@ Reset by stopping the server and deleting `apps/storefront/data.db*` and `apps/s
 
 ### Try a purchase
 
-Open <http://localhost:4360/shop>, add a product, check out, and pay with the Stripe test card `4242 4242 4242 4242` (any
+Products reach Stripe when they are published with a key configured. The seed publishes before that, so after setting
+`STRIPE_SECRET_KEY` open **Commerce** in the admin and resync the catalog (or call the `commerce_catalog_resync` MCP tool).
+Then open <http://localhost:4360/shop>, add a product, check out, and pay with the Stripe test card `4242 4242 4242 4242` (any
 future expiry and CVC). With `stripe listen` running the order appears under Commerce in the admin.
 
 ## Commands
