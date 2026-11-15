@@ -150,6 +150,20 @@ export const inventoryContract = (name: string, create: () => InventoryHarness):
 			expect(expired.map((item) => item.id)).toEqual(["old"]);
 		});
 
+		it("purges only released reservations whose hold ended before the cutoff", async () => {
+			const { store } = await stocked([[A, 9]]);
+			const ended = "2026-01-15T12:10:00.000Z";
+			for (const id of ["gone", "recent", "held", "sold"]) await store.reserve({ ...reserveInput(id, [[A, 1]]), expiresAt: ended });
+			await store.reserve({ ...reserveInput("late", [[A, 1]]), expiresAt: "2026-01-15T12:50:00.000Z" });
+			await store.release("gone");
+			await store.release("late");
+			await store.commit("sold");
+			expect(await store.purgeReleasedReservations("2026-01-15T12:20:00.000Z", 10)).toBe(1);
+			expect(await store.getReservation("gone")).toBeNull();
+			for (const id of ["late", "held", "sold"]) expect(await store.getReservation(id)).not.toBeNull();
+			expect(await store.get(A)).toMatchObject({ reserved: 2 });
+		});
+
 		it("tracks the content mirror separately from the level", async () => {
 			const { store } = await stocked([[A, 4]]);
 			await store.setMirroredOnHand(A, 4);

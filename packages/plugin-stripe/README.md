@@ -152,6 +152,7 @@ All optional; the schema is `commerceOptionsSchema` in `src/contracts/options.ts
 | `checkout.automaticTax` | `false` | Turn on only with an active Stripe Tax registration. |
 | `checkout.locale` | `null` | Checkout UI locale (Stripe locale code). |
 | `checkout.sessionMinutes` | `30` | Session lifetime and stock reservation lifetime; Stripe allows 30-1440. |
+| `checkout.abandonedRetentionHours` | `48` | How long after a session ended the maintenance sweep keeps the snapshot, released stock hold and anonymous cart of an unpaid checkout. |
 | `cart.ttlDays` | `30` | Cart lifetime, slid on every change (1-90). |
 | `cart.maxLines` | `50` | Distinct lines per cart (1-100). |
 | `cart.maxQuantityPerLine` | `99` | Quantity per line (1-999). |

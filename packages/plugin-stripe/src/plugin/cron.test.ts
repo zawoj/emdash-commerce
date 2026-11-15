@@ -77,7 +77,7 @@ describe("maintenance steps", () => {
 	it("cover the documented work, in order, with provider-bound ones marked", async () => {
 		const h = createOpsHarness();
 		const steps = buildMaintenanceSteps(h.container(), h.base);
-		expect(steps.map((candidate) => candidate.name)).toEqual(["inbox-retries", "outbox-deliveries", "catalog-sync", "reservation-expiry", "cart-sweep", "reconcile", "purge"]);
+		expect(steps.map((candidate) => candidate.name)).toEqual(["inbox-retries", "outbox-deliveries", "catalog-sync", "reservation-expiry", "cart-sweep", "checkout-sweep", "reconcile", "purge"]);
 		expect(steps.filter((candidate) => candidate.isProviderBound).map((candidate) => candidate.name)).toEqual(["inbox-retries", "catalog-sync", "reconcile"]);
 	});
 });

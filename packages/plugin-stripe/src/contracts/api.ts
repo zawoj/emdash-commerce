@@ -52,6 +52,7 @@ export const ROUTE = {
 	adminWebhooksReplay: "admin/webhooks/replay",
 	adminReconcile: "admin/reconcile",
 	adminOutboxRetry: "admin/outbox/retry",
+	adminCheckoutsSweep: "admin/checkouts/sweep",
 } as const;
 
 export const CART_HEADER = "x-commerce-cart" as const;
@@ -389,5 +390,9 @@ export const adminWebhooksReplayInput = z.object({ eventId: z.string().min(1).ma
 export const adminReconcileInput = z.object({
 	/** Seconds since epoch; defaults to the inbox cursor. */
 	since: z.number().int().optional(),
+});
+export const adminCheckoutsSweepInput = z.object({
+	/** Keeps unpaid checkouts this many hours after their session ended; omit for `checkout.abandonedRetentionHours`. */
+	retentionHours: z.number().int().min(0).max(720).optional(),
 });
 export const adminOutboxRetryInput = z.object({ eventId: z.string().min(1).max(255) });

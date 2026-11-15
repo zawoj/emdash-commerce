@@ -87,6 +87,18 @@ export const createInMemoryCheckoutSnapshotStore = (): CheckoutSnapshotStore => 
 		async put(snapshot) {
 			await rows.set(snapshot.checkoutId, snapshot);
 		},
+		async listCreatedBefore(before, limit, after) {
+			await tick();
+			return rows
+				.all()
+				.map((row) => row.value)
+				.filter((snapshot) => snapshot.createdAt < before && (!after || snapshot.createdAt > after))
+				.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+				.slice(0, limit);
+		},
+		async delete(checkoutId) {
+			await rows.delete(checkoutId);
+		},
 	};
 };
 

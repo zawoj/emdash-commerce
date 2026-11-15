@@ -85,6 +85,9 @@ export const renderAdminPage = (data: AdminPageData): Block[] => {
 				confirm: { title: "Reconcile with Stripe?", text: "Lists recent Stripe events and processes the ones this site missed.", confirm: "Reconcile", deny: "Cancel" },
 			}),
 			button(ACTION.resyncCatalog, "Resync catalog"),
+			button(ACTION.sweepCheckouts, "Clean up abandoned checkouts", {
+				confirm: { title: "Clean up abandoned checkouts?", text: "Expires unpaid checkout sessions and removes their leftover records once the retention period has passed. Paid orders are never touched.", confirm: "Clean up", deny: "Cancel" },
+			}),
 			button(ACTION.refresh, "Refresh"),
 		],
 	});

@@ -19,7 +19,7 @@ export interface StorageCollectionDeclaration {
 export const storageDeclaration = {
 	[STORAGE.catalogLinks]: { indexes: ["providerId", "dueAt", "syncStatus"] },
 	[STORAGE.carts]: { indexes: ["status", "expiresAt", "updatedAt"] },
-	[STORAGE.checkoutSnapshots]: { indexes: ["sessionId"] },
+	[STORAGE.checkoutSnapshots]: { indexes: ["sessionId", "createdAt"] },
 	[STORAGE.inventory]: { indexes: [] },
 	[STORAGE.reservations]: { indexes: [["status", "expiresAt"]] },
 	[STORAGE.recordIndex]: { indexes: [] },

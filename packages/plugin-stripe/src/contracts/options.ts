@@ -74,6 +74,12 @@ export const commerceOptionsSchema = z
 				locale: z.string().nullable().default(null),
 				/** Session lifetime; also how long stock stays reserved. Stripe allows 30–1440. */
 				sessionMinutes: z.number().int().min(30).max(1440).default(30),
+				/**
+				 * How long after a session ended its record is kept before the sweep removes an unpaid checkout (snapshot,
+				 * released stock hold and an anonymous cart). A buyer's async payment can settle after the session ended,
+				 * so the default keeps the records for two days.
+				 */
+				abandonedRetentionHours: z.number().int().min(0).max(720).default(48),
 			})
 			.prefault({}),
 		cart: z

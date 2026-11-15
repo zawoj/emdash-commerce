@@ -73,6 +73,17 @@ export const createCheckoutSnapshotStore = (collection: StorageCollection<Checko
 	async put(snapshot) {
 		await collection.put(snapshot.checkoutId, snapshot);
 	},
+	async listCreatedBefore(before, limit, after) {
+		const page = await collection.query({
+			where: { createdAt: after ? { gt: after, lt: before } : { lt: before } },
+			orderBy: { createdAt: "asc" },
+			limit,
+		});
+		return page.items.map((item) => item.data);
+	},
+	async delete(checkoutId) {
+		await collection.delete(checkoutId);
+	},
 });
 
 export const createRefundStore = (collection: StorageCollection<Refund>): RefundStore => ({

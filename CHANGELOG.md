@@ -21,6 +21,20 @@
   shoppers. It now rewrites to the site's 404 page (`Astro.rewrite("/404")`, status 404), like every other dynamic
   content route. A test scans all dynamic pages so a new one cannot redirect on a miss.
 
+### feat: sweep of abandoned checkouts — Claude Code
+- Verified with a sandbox session expired through the Stripe API: `checkout.session.expired` arrives through
+  `stripe listen`, answers 200, releases the reservation and puts the cart back to `active`. What stayed behind were
+  the records themselves (checkout snapshot, released reservation, a cart nobody returned to), and nothing ever
+  removed a snapshot or a released reservation.
+- New maintenance step `checkout-sweep` (every five minutes, with the existing cron task), plus the admin button
+  "Clean up abandoned checkouts" on the Commerce page and the route/MCP tool `admin/checkouts/sweep` /
+  `commerce_checkouts_sweep` (`retentionHours` override). Once a session ended and
+  `checkout.abandonedRetentionHours` (new option, default 48) passed, with no order for the session, it closes a
+  still-open session, releases a still-held reservation, deletes the snapshot, the released reservation record and an
+  anonymous idle cart (a cart with an email is only reopened). A `complete` session is left to settlement; paid
+  orders and their reservations are never touched. New store methods (`CheckoutSnapshotStore.listCreatedBefore` /
+  `delete`, `InventoryStore.purgeReleasedReservations`) and a `createdAt` index on `checkout_snapshots`.
+
 ## 2026-11-15 (QA fixes)
 
 ### fix: PDP gallery and mini-cart never empty; neutral shop identity — Claude Code

@@ -90,8 +90,9 @@ describe("the Commerce admin page", () => {
 		const h = createOpsHarness();
 		const response = await page(h, loadPage);
 		const buttons = response.blocks.find((block) => block.type === "actions")!.elements as Array<{ action_id: string; label: string; confirm?: unknown }>;
-		expect(buttons.map((button) => button.action_id)).toEqual([ACTION.registerWebhook, ACTION.reconcile, ACTION.resyncCatalog, ACTION.refresh]);
+		expect(buttons.map((button) => button.action_id)).toEqual([ACTION.registerWebhook, ACTION.reconcile, ACTION.resyncCatalog, ACTION.sweepCheckouts, ACTION.refresh]);
 		expect(buttons.find((button) => button.action_id === ACTION.reconcile)!.confirm).toBeDefined();
+		expect(buttons.find((button) => button.action_id === ACTION.sweepCheckouts)!.confirm).toBeDefined();
 	});
 
 	describe("actions", () => {
@@ -120,6 +121,13 @@ describe("the Commerce admin page", () => {
 			const response = await page(h, action(ACTION.resyncCatalog));
 			expectValid(response);
 			expect(response.toast).toMatchObject({ type: "success", message: expect.stringMatching(/queued for sync/) });
+		});
+
+		it("clean up abandoned checkouts reports what it removed", async () => {
+			const h = createOpsHarness();
+			const response = await page(h, action(ACTION.sweepCheckouts));
+			expectValid(response);
+			expect(response.toast).toMatchObject({ type: "success", message: expect.stringContaining("Cleaned up 0 abandoned checkout(s)") });
 		});
 
 		it("replay re-runs the stored event and refreshes the page", async () => {

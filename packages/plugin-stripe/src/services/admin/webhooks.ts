@@ -1,10 +1,11 @@
 import type { z } from "zod";
 
 import { WEBHOOK_EVENT_TYPES } from "../../adapters/stripe/webhook-events.js";
-import type { adminOutboxRetryInput, adminReconcileInput, adminWebhooksListInput, adminWebhooksReplayInput } from "../../contracts/api.js";
+import type { adminCheckoutsSweepInput, adminOutboxRetryInput, adminReconcileInput, adminWebhooksListInput, adminWebhooksReplayInput } from "../../contracts/api.js";
 import { CommerceError } from "../../core/errors.js";
 import type { InboxRecord } from "../../ports/repositories.js";
 import type { CommerceContainer } from "../../plugin/container.js";
+import { sweepCheckouts, type CheckoutSweepResult } from "../checkout-sweep.js";
 import { reconcile, type ReconcileResult } from "../reconcile.js";
 import { replayInboxEvent, type InboxResult } from "../webhook-inbox.js";
 import type { AdminContext } from "./context.js";
@@ -24,6 +25,9 @@ export const replayWebhookEvent = (container: CommerceContainer, input: z.infer<
 
 export const reconcileNow = (container: CommerceContainer, input: z.infer<typeof adminReconcileInput>): Promise<ReconcileResult> =>
 	reconcile(container, input.since === undefined ? {} : { since: input.since });
+
+export const sweepAbandonedCheckouts = (container: CommerceContainer, input: z.infer<typeof adminCheckoutsSweepInput>): Promise<CheckoutSweepResult> =>
+	sweepCheckouts(container, input.retentionHours === undefined ? {} : { retentionMs: input.retentionHours * 60 * 60 * 1000 });
 
 export const retryOutboxEvent = async ({ publisher }: AdminContext, input: z.infer<typeof adminOutboxRetryInput>): Promise<{ eventId: string }> => {
 	await publisher.retry(input.eventId);

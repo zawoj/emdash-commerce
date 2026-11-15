@@ -144,6 +144,9 @@ export interface CheckoutSnapshotStore {
 	get(checkoutId: string): Promise<CheckoutSnapshot | null>;
 	getBySession(sessionId: string): Promise<CheckoutSnapshot | null>;
 	put(snapshot: CheckoutSnapshot): Promise<void>;
+	/** Housekeeping: snapshots created before `before`, after `after` when given (exclusive), oldest first. */
+	listCreatedBefore(before: string, limit: number, after?: string): Promise<CheckoutSnapshot[]>;
+	delete(checkoutId: string): Promise<void>;
 }
 
 // --- Inventory (storage, atomic) ------------------------------------------------------------------
@@ -164,6 +167,12 @@ export interface InventoryStore {
 	release(reservationId: string): Promise<Reservation | null>;
 	getReservation(reservationId: string): Promise<Reservation | null>;
 	listExpiredReservations(now: string, limit: number): Promise<Reservation[]>;
+	/**
+	 * Housekeeping: deletes `released` reservations whose hold ended (`expiresAt`) before `before`, at most `limit`
+	 * per call. Held and committed ones are never purged: a held one is the expiry sweep's, a committed one belongs
+	 * to an order.
+	 */
+	purgeReleasedReservations(before: string, limit: number): Promise<number>;
 	/** Adds `delta` to onHand and available; creates the level when missing. */
 	adjust(sellable: SellableRef, delta: number, reason: string): Promise<StockLevel>;
 	setMirroredOnHand(sellable: SellableRef, onHand: number): Promise<void>;

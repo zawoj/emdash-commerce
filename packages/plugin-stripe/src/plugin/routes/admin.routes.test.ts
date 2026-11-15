@@ -257,6 +257,16 @@ describe("inventory and catalog", () => {
 	});
 });
 
+describe("abandoned checkouts", () => {
+	it("sweeps with the default retention or an explicit one and answers the counts", async () => {
+		const h = createOpsHarness();
+		const defaults = (await h.call(ROUTE.adminCheckoutsSweep, { input: {} })) as any;
+		expect(defaults).toEqual({ snapshots: 0, sessionsExpired: 0, holdsReleased: 0, carts: 0, holdRecords: 0, settledSnapshots: 0 });
+		expect(await h.call(ROUTE.adminCheckoutsSweep, { input: { retentionHours: 0 } })).toMatchObject({ snapshots: 0 });
+		await expect(h.call(ROUTE.adminCheckoutsSweep, { input: { retentionHours: -1 } })).rejects.toBeDefined();
+	});
+});
+
 describe("webhooks, reconcile and outbox", () => {
 	it("creates the endpoint for this site, stores the secret, and never returns it", async () => {
 		const h = createOpsHarness({ settings: { [SETTINGS_KEY.stripeSecretKey]: SECRET_KEY } });

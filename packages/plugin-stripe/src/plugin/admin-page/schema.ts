@@ -17,6 +17,7 @@ export const ACTION = {
 	registerWebhook: "register_webhook",
 	reconcile: "reconcile",
 	resyncCatalog: "resync_catalog",
+	sweepCheckouts: "sweep_checkouts",
 	replayEvent: "replay_event",
 	resyncEntity: "resync_entity",
 } as const;

@@ -168,6 +168,13 @@ Editor stock: saving a variant with a changed `stock` becomes a delta against `m
      released, and the request decides again. Any failure compensates (release, expire) and reopens the cart.
 - **Reservation lifetime = session lifetime** (`checkout.sessionMinutes`). Expiry: `checkout.session.expired` or the
   cron sweep releases the hold and puts the cart back to `active`.
+- **Abandoned checkouts** (`services/checkout-sweep.ts`, cron step `checkout-sweep`, admin "Clean up abandoned
+  checkouts", MCP `commerce_checkouts_sweep`). The release above leaves the records behind, so once a session ended
+  (`sessionMinutes`) and `checkout.abandonedRetentionHours` (default 48, because an async payment can settle after the
+  session ended) passed, the sweep with no order for the session: closes the session if still open (a `complete` one is
+  left to settlement), releases a still-held reservation, deletes the checkout snapshot, the released reservation
+  record and an anonymous (no email) idle cart, or reopens a cart that has an email. Snapshots of paid checkouts are
+  kept 30 days, reservations of orders stay. Bounded per run (100 snapshots per page, five pages).
 - The session carries only ids in metadata (`emdash_cart_id`, `emdash_checkout_id`, `emdash_plugin`, `ext_*` from
   extensions). Amounts, lines and customer are never trusted from the client.
 

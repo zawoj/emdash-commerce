@@ -202,6 +202,14 @@ export const createInventoryStore = (
 			});
 			return page.items.map((item) => toReservation(item.data));
 		},
+		async purgeReleasedReservations(before, limit) {
+			const page = await reservations.query({
+				where: { status: RESERVATION_STATUS.released, expiresAt: { lt: before } },
+				orderBy: { expiresAt: "asc" },
+				limit,
+			});
+			return reservations.deleteMany(page.items.map((item) => item.id));
+		},
 		async adjust(sellable, delta, reason) {
 			for (;;) {
 				const updated = await withSerializationRetry(() =>

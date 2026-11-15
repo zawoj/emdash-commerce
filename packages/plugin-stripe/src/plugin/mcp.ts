@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import {
 	adminCatalogResyncInput,
+	adminCheckoutsSweepInput,
 	adminInventoryAdjustInput,
 	adminInventoryGetInput,
 	adminOrdersActionInput,
@@ -110,6 +111,12 @@ export const MCP_TOOLS = {
 		route: ROUTE.adminCatalogResync,
 		description: "Queues products, variants and prices for synchronisation to Stripe (one product by productId, or the whole catalog when omitted). The maintenance task performs the syncs within minutes. Safe to repeat.",
 		input: adminCatalogResyncInput,
+	},
+	commerce_checkouts_sweep: {
+		route: ROUTE.adminCheckoutsSweep,
+		description:
+			"Removes what checkouts nobody paid leave behind once their Stripe session ended: the checkout snapshot, the released stock hold and an anonymous cart nobody came back to (open sessions are expired and held stock released first). The maintenance task does this on its own every few minutes with checkout.abandonedRetentionHours (default 48); retentionHours overrides it (0 removes everything that already ended - a payment that settles late after that is flagged for review). Never touches paid orders. Safe to repeat.",
+		input: adminCheckoutsSweepInput,
 	},
 	commerce_webhooks_register: {
 		route: ROUTE.adminWebhooksRegister,

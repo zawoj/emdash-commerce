@@ -2,7 +2,7 @@
 import { SETTINGS_KEY } from "../../contracts/options.js";
 import { isCommerceError } from "../../core/errors.js";
 import { ProviderError } from "../../ports/payment-provider.js";
-import { createAdminContext, reconcileNow, registerWebhook, replayWebhookEvent, resyncCatalog } from "../../services/admin/index.js";
+import { createAdminContext, reconcileNow, registerWebhook, replayWebhookEvent, resyncCatalog, sweepAbandonedCheckouts } from "../../services/admin/index.js";
 import { loadAdminPageData, productIdOfEntityKey } from "../../services/admin/page-data.js";
 import type { RouteInvocation } from "../http.js";
 import { renderAdminPage } from "./render.js";
@@ -42,6 +42,10 @@ const runAction = async (invocation: RouteInvocation<BlockInteraction>, interact
 		case ACTION.resyncCatalog: {
 			const { queued } = await resyncCatalog(admin, {});
 			return { type: "success", message: `${queued} catalog entit${queued === 1 ? "y" : "ies"} queued for sync.` };
+		}
+		case ACTION.sweepCheckouts: {
+			const swept = await sweepAbandonedCheckouts(container, {});
+			return { type: "success", message: `Cleaned up ${swept.snapshots} abandoned checkout(s): ${swept.carts} cart(s), ${swept.holdRecords} released stock hold(s) removed, ${swept.holdsReleased} hold(s) released.` };
 		}
 		case ACTION.replayEvent: {
 			const eventId = stringValue(interaction.value);

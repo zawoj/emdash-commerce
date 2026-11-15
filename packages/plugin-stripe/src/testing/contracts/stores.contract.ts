@@ -162,6 +162,31 @@ export const snapshotStoreContract = (name: string, create: () => { store: Check
 			expect((await store.get("co1"))?.sessionId).toBe("cs_1");
 			expect(await store.get("nope")).toBeNull();
 		});
+
+		it("lists snapshots created before a time, oldest first, after a cursor, and deletes by checkout id", async () => {
+			const { store } = create();
+			const snapshot = {
+				cartId: "cart",
+				sessionId: null,
+				mode: "payment" as const,
+				currency: "pln",
+				lines: [],
+				expectedSubtotal: 0,
+				reservationId: null,
+				customerId: null,
+			};
+			for (const [checkoutId, createdAt] of [["c3", "2026-01-15T12:03:00.000Z"], ["c1", "2026-01-15T12:01:00.000Z"], ["c2", "2026-01-15T12:02:00.000Z"], ["c4", "2026-01-15T12:30:00.000Z"]] as const) {
+				await store.put({ ...snapshot, checkoutId, createdAt });
+			}
+			const before = "2026-01-15T12:10:00.000Z";
+			expect((await store.listCreatedBefore(before, 10)).map((item) => item.checkoutId)).toEqual(["c1", "c2", "c3"]);
+			expect((await store.listCreatedBefore(before, 2)).map((item) => item.checkoutId)).toEqual(["c1", "c2"]);
+			expect((await store.listCreatedBefore(before, 10, "2026-01-15T12:01:00.000Z")).map((item) => item.checkoutId)).toEqual(["c2", "c3"]);
+			await store.delete("c2");
+			await store.delete("missing");
+			expect(await store.get("c2")).toBeNull();
+			expect((await store.listCreatedBefore(before, 10)).map((item) => item.checkoutId)).toEqual(["c1", "c3"]);
+		});
 	});
 };
 

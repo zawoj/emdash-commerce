@@ -206,6 +206,7 @@ All `POST`, JSON body (`{}` or no body where there is no input). `read` = `conte
 | `admin/webhooks/register` | manage | none | `{ action: created\|updated, endpointId, url, enabledEventCount, isSecretStored, message }` |
 | `admin/webhooks/replay` | manage | `{ eventId }` | `{ outcome, error?, reason? }`; `NOT_FOUND`, `CONFLICT` (being processed right now) |
 | `admin/reconcile` | manage | `{ since? (epoch seconds) }` | `{ since, scanned, recorded, processed, ignored, failed, isTruncated }` (run again when truncated) |
+| `admin/checkouts/sweep` | manage | `{ retentionHours? (0-720, default `checkout.abandonedRetentionHours`) }` | `{ snapshots, sessionsExpired, holdsReleased, carts, holdRecords, settledSnapshots }`. Removes the leftovers of unpaid checkouts whose session ended (see architecture: Abandoned checkouts). `0` removes everything that already ended; a payment that settles after that is flagged `missing_snapshot`. Paid orders are never touched. The cron task runs it on its own. |
 | `admin/outbox/retry` | manage | `{ eventId }` | `{ eventId }`; undelivered subscribers only |
 
 `OrderSummary` = `{ id, orderNumber, orderStatus, paymentStatus, fulfillmentStatus, email, total, refunded, currency,
@@ -254,6 +255,7 @@ agent. `destructive` makes an MCP client ask first.
 | `commerce_inventory_get` | `admin/inventory/get` | no |
 | `commerce_inventory_adjust` | `admin/inventory/adjust` | **yes** (not idempotent) |
 | `commerce_catalog_resync` | `admin/catalog/resync` | no |
+| `commerce_checkouts_sweep` | `admin/checkouts/sweep` | no |
 | `commerce_webhooks_register` | `admin/webhooks/register` | no |
 | `commerce_webhooks_list` | `admin/webhooks/list` | no |
 | `commerce_webhooks_replay` | `admin/webhooks/replay` | **yes** |

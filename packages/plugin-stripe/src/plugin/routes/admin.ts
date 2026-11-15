@@ -4,6 +4,7 @@ import { z } from "zod";
 import { PLUGIN_ID } from "../../adapters/emdash/constants.js";
 import {
 	adminCatalogResyncInput,
+	adminCheckoutsSweepInput,
 	adminInventoryAdjustInput,
 	adminInventoryGetInput,
 	adminOrdersActionInput,
@@ -33,6 +34,7 @@ import {
 	listWebhookEvents,
 	performOrderAction,
 	reconcileNow,
+	sweepAbandonedCheckouts,
 	refundOrder,
 	registerWebhook,
 	replayWebhookEvent,
@@ -125,6 +127,7 @@ export const adminRoutes: RouteModule = (builder: RouteBuilder) => {
 		}),
 		[ROUTE.adminWebhooksReplay]: manage({ schema: adminWebhooksReplayInput, handler: ({ container, input }) => replayWebhookEvent(container, input) }),
 		[ROUTE.adminReconcile]: manage({ schema: adminReconcileInput, handler: ({ container, input }) => reconcileNow(container, input) }),
+		[ROUTE.adminCheckoutsSweep]: manage({ schema: adminCheckoutsSweepInput, handler: ({ container, input }) => sweepAbandonedCheckouts(container, input) }),
 		[ROUTE.adminOutboxRetry]: manage({ schema: adminOutboxRetryInput, handler: (invocation) => retryOutboxEvent(adminCtx(invocation), invocation.input) }),
 	};
 };

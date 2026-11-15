@@ -2,6 +2,7 @@ import type { PluginContext, PluginDefinition } from "emdash";
 
 import type { CommerceExtensions } from "../contracts/extensions.js";
 import type { CommerceOptions } from "../contracts/options.js";
+import { sweepCheckouts } from "../services/checkout-sweep.js";
 import { createEventPublisher } from "../services/outbox.js";
 import {
 	deliverDueOutbox,
@@ -111,6 +112,7 @@ export const buildMaintenanceSteps = (container: CommerceContainer, ctx: Pick<Pl
 		{ name: "catalog-sync", isProviderBound: true, run: () => syncDueCatalog(container, publisher) },
 		{ name: "reservation-expiry", isProviderBound: false, run: () => releaseExpiredReservations(container, publisher) },
 		{ name: "cart-sweep", isProviderBound: false, run: () => sweepCarts(container, publisher) },
+		{ name: "checkout-sweep", isProviderBound: false, run: () => sweepCheckouts(container) },
 		{ name: "reconcile", isProviderBound: true, run: () => reconcileIfDue(container, ctx.kv) },
 		{ name: "purge", isProviderBound: false, run: () => purgeStale(container) },
 	];
