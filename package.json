@@ -1,7 +1,7 @@
 {
   "name": "emdash-commerce",
   "version": "0.0.1",
-  "description": "Commerce for EmDash: a Stripe plugin, an image-hotspots field widget, a sportswear design system and a demo storefront - one Nx + pnpm monorepo.",
+  "description": "Commerce for EmDash: a Stripe plugin, an image-hotspots field widget, a Cloudflare-orange design system and a mock Cloudflare-merch demo storefront - one Nx + pnpm monorepo.",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -15,10 +15,14 @@
     "typecheck": "nx run-many -t typecheck",
     "test": "nx run-many -t test",
     "check:ai": "node scripts/check-ai-structure.mjs",
-    "seed": "node scripts/seed-demo.mjs"
+    "seed": "node scripts/seed-demo.mjs",
+    "bootstrap": "node scripts/bootstrap.mjs",
+    "doctor": "node scripts/bootstrap.mjs --check",
+    "art": "node scripts/art/index.mjs"
   },
   "devDependencies": {
-    "nx": "22.7.0"
+    "nx": "22.7.0",
+    "sharp": "0.34.5"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
