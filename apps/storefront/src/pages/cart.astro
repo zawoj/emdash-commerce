@@ -19,6 +19,7 @@ const apiBase = `/_emdash/api/plugins/${PLUGIN_ID}`;
 	<script>
 		import { variantDisplayNameOf, type CartView } from "@emdash-commerce/plugin-stripe/contracts";
 		import { buildCartLineBody } from "../utils/add-to-cart";
+		import { CHECKOUT_NOTICE_PARAM, checkoutNoticeMessage } from "../features/cart/checkout-notice";
 		import { dispatchCartUpdated } from "../utils/cart-events";
 		import { parseApiEnvelope, syncCartCookie } from "../utils/commerce-fetch";
 
@@ -204,7 +205,17 @@ const apiBase = `/_emdash/api/plugins/${PLUGIN_ID}`;
 			}
 		});
 
-		load();
+		/** A failed `/api/cart/checkout` redirect lands here with `?checkout=<notice>`; show it once and clean the URL. */
+		const showCheckoutNotice = () => {
+			const url = new URL(window.location.href);
+			const message = checkoutNoticeMessage(url.searchParams.get(CHECKOUT_NOTICE_PARAM));
+			if (!message) return;
+			showAlert(message);
+			url.searchParams.delete(CHECKOUT_NOTICE_PARAM);
+			window.history.replaceState(null, "", url);
+		};
+
+		load().then(showCheckoutNotice);
 	</script>
 	<style>
 		.cart-lines {

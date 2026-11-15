@@ -35,6 +35,13 @@
   orders and their reservations are never touched. New store methods (`CheckoutSnapshotStore.listCreatedBefore` /
   `delete`, `InventoryStore.purgeReleasedReservations`) and a `createdAt` index on `checkout_snapshots`.
 
+### fix: checkout with an empty cart returns to the cart instead of a bare 502 — Claude Code
+- `/api/cart/checkout` answered every failure, including "no cart" (404) and "cart not checkout-ready" (409), with a
+  plain-text 502 "Checkout unavailable". It now redirects (303) to `/cart?checkout=<notice>` for a failure the shopper
+  can act on (empty or missing cart, items changed or out of stock, rate limit) and the cart page shows the message in
+  its alert area and cleans the URL. The notice values are a fixed list, so the query string cannot inject text. A 502
+  stays for a genuine provider or server failure (`PROVIDER_ERROR`, `NOT_CONFIGURED`, `INTERNAL`).
+
 ## 2026-11-15 (QA fixes)
 
 ### fix: PDP gallery and mini-cart never empty; neutral shop identity — Claude Code
