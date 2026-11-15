@@ -1,0 +1,80 @@
+---
+// Figma's first category tile ("Zdrowie", 944:29272): tile-title with the partner credit after the heading,
+// a "row-2" of two large card-articles with an author, then a "row-3" of four small ones.
+// Columns: 2 + 4 → 2 + 2 → 1 as the tile narrows.
+import ArticleCard from '../../../parts/article-card/index.astro'
+import ContentTile from '../../../parts/content-tile/index.astro'
+import PoweredBy from '../../../parts/powered-by/index.astro'
+import { creditPlacements } from '../../../parts/powered-by/variants'
+import type { CategoryFeatureProps } from './types'
+
+type Props = CategoryFeatureProps
+
+const { heading, headingId, more, credit, leadItems, items } = Astro.props
+const hasItems = leadItems.length + items.length > 0
+---
+
+{
+  hasItems && (
+    <ContentTile heading={heading} headingId={headingId} more={more} extrasGap={16}>
+      {credit && <PoweredBy slot="after-heading" credit={credit} placement={creditPlacements.heading} />}
+      {credit && <PoweredBy credit={credit} placement={creditPlacements.row} />}
+      <div class="category-feature">
+        {
+          leadItems.length > 0 && (
+            <div class="category-feature__lead">
+              {leadItems.map((article) => <ArticleCard article={article} isCompactWhenNarrow={false} />)}
+            </div>
+          )
+        }
+        {
+          items.length > 0 && (
+            <div class="category-feature__grid">
+              {items.map((article) => <ArticleCard article={article} />)}
+            </div>
+          )
+        }
+      </div>
+    </ContentTile>
+  )
+}
+
+<style>
+  .category-feature {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+  }
+
+  .category-feature__lead,
+  .category-feature__grid {
+    display: grid;
+    gap: var(--space-32) var(--space-24);
+  }
+
+  .category-feature__lead {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .category-feature__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  @container content-tile (width < 760px) {
+    .category-feature__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @container content-tile (width < 420px) {
+    .category-feature__lead,
+    .category-feature__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* The lower grid turns into compact rows (thumbnail beside title) — rows sit closer. */
+    .category-feature__grid {
+      gap: var(--space-20);
+    }
+  }
+</style>

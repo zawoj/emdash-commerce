@@ -1,0 +1,61 @@
+---
+// Figma "embed-placeholer" (944:33147, variant youtube) — the embedded player in a rounded box at
+// Figma's 668:374.68 ratio. With `src` the player is a lazy iframe; without it the default slot
+// holds a still of the player, stretched and offset by Figma's fill transform (101.61% × 103.66%,
+// -0.59% / -2%).
+interface Props {
+  /** Address of the player to embed. */
+  src?: string
+  /** Accessible name of the player. */
+  title?: string
+}
+
+const { src, title } = Astro.props
+---
+
+<figure class="prose-block prose-embed">
+  {
+    src ? (
+      <iframe
+        src={src}
+        title={title}
+        loading="lazy"
+        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen
+      />
+    ) : (
+      <slot />
+    )
+  }
+</figure>
+
+<style>
+  .prose-embed {
+    margin: 0;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 668 / 374.679;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--ink-1000);
+  }
+
+  .prose-embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .prose-embed :global(img) {
+    position: absolute;
+    top: -2%;
+    left: -0.59%;
+    width: 101.61%;
+    height: 103.66%;
+    max-width: none;
+    object-fit: fill;
+  }
+</style>

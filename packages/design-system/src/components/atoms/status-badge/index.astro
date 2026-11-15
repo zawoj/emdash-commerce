@@ -1,0 +1,89 @@
+---
+// An order, payment, fulfilment or return status: a marker shape plus the status in words.
+import { statusTones } from './variants'
+import type { StatusBadgeProps } from './types'
+
+type Props = StatusBadgeProps
+
+const { label, tone = statusTones.neutral, axis, variant = 'chip' } = Astro.props
+---
+
+<span class:list={['status-badge', `status-badge--${tone}`, variant === 'line' && 'status-badge--line']}>
+  <svg class="status-badge__marker" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+    {tone === statusTones.neutral && <circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5" />}
+    {
+      tone === statusTones.progress && (
+        <>
+          <circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5" />
+          <circle cx="6" cy="6" r="2" fill="currentColor" />
+        </>
+      )
+    }
+    {
+      tone === statusTones.success && (
+        <>
+          <circle cx="6" cy="6" r="5.5" fill="currentColor" />
+          <path d="M3.5 6.2 5.2 7.8 8.5 4.5" fill="none" stroke="var(--surface)" stroke-width="1.4" />
+        </>
+      )
+    }
+    {tone === statusTones.warning && <path d="M6 1.2 11 10.5H1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />}
+    {tone === statusTones.danger && <path d="M6 0.8 11.2 6 6 11.2 0.8 6Z" fill="currentColor" />}
+  </svg>
+  <span class="status-badge__text">
+    {axis && <span class="status-badge__axis">{axis}: </span>}{label}
+  </span>
+</span>
+
+<style>
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-4) var(--space-8);
+    border: var(--stroke-thin) solid transparent;
+    border-radius: var(--radius-chip);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    white-space: nowrap;
+  }
+
+  .status-badge__marker {
+    flex: none;
+  }
+
+  .status-badge__axis {
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+
+  /* Not yet happened: a hairline outline on the page instead of a fill. */
+  .status-badge--neutral {
+    border-color: var(--border);
+    background: var(--surface);
+  }
+
+  /* A status said as a sentence, no chip: for places where the status is the headline of a row or card. */
+  .status-badge--line {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: var(--type-text-medium-md);
+    font-stretch: normal;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: normal;
+  }
+
+  .status-badge--danger {
+    color: var(--hot);
+  }
+
+  .status-badge--danger .status-badge__axis {
+    color: inherit;
+  }
+</style>

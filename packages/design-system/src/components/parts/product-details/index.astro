@@ -1,0 +1,325 @@
+---
+// The "Product details" area under the gallery and the buy box, full content width: a heading, then
+// three tabs (description, specification, manufacturer) and, under them, the delivery and returns
+// facts as a compact block of their own. A tab without content is not rendered; one tab left shows
+// no bar. The description (default slot) can carry a pull-out list of key points and, taller than
+// the collapsed height, fades out with a "Read more" button (a script shows it; without the script
+// the whole text is visible). Without the tabs script all panels are visible, stacked.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import { nonEmptyTabs } from '../../../utils/tabs-core'
+import Tabs from '../../molecules/tabs/index.astro'
+import Prose from '../prose/text.astro'
+import SpecTable from '../spec-table/index.astro'
+import { productDetailsTabs } from './types'
+import type { ProductDetailsPanel, ProductDetailsProps } from './types'
+
+type Props = ProductDetailsProps
+
+const { heading, headingId = 'product-details', tabLabels, highlights = [], highlightsHeading, readMoreLabel, readLessLabel, specification, manufacturer, delivery } = Astro.props
+const hasText = Astro.slots.has('default')
+const hasRows = (panel: ProductDetailsPanel | undefined): panel is ProductDetailsPanel => panel !== undefined && panel.rows.length > 0
+const contentOf = { description: hasText, specification: hasRows(specification), manufacturer: hasRows(manufacturer) }
+const tabs = nonEmptyTabs(
+  Object.values(productDetailsTabs).map((id) => ({ id, label: tabLabels[id] })),
+  (id) => contentOf[id as keyof typeof contentOf],
+)
+const clipId = `${headingId}-text`
+const hasDelivery = hasRows(delivery)
+---
+
+{
+  (tabs.length > 0 || hasDelivery) && (
+    <section class="product-details" aria-labelledby={headingId}>
+      <h2 class="product-details__heading" id={headingId}>{heading}</h2>
+      <Tabs id={`${headingId}-tabs`} tabs={tabs} labelledby={headingId}>
+        <Fragment slot="tab-description">
+          {hasText && (
+            <div class="product-details__description">
+              {highlights.length > 0 && (
+                <div class="product-details__highlights">
+                  {highlightsHeading && <h3 class="product-details__highlights-title">{highlightsHeading}</h3>}
+                  <ul class="product-details__highlights-list">
+                    {highlights.map((item) => (
+                      <li>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div class="product-details__text" data-pd-text>
+                <div class="product-details__clip" id={clipId} data-pd-clip>
+                  <Prose><slot /></Prose>
+                </div>
+                <button type="button" class="product-details__toggle" aria-expanded="false" aria-controls={clipId} data-pd-toggle data-more-label={readMoreLabel} data-less-label={readLessLabel} hidden>
+                  <span data-pd-label>{readMoreLabel}</span>
+                  <span class="product-details__toggle-icon" aria-hidden="true"><Icon name={iconNames.chevronDown} /></span>
+                </button>
+              </div>
+            </div>
+          )}
+        </Fragment>
+        <Fragment slot="tab-specification">
+          {hasRows(specification) && (
+            <div class:list={['product-details__facts', specification.rows.length > 8 && 'product-details__facts--columns']}>
+              <SpecTable caption={specification.caption} rows={specification.rows} />
+              {specification.note && <p class="product-details__note">{specification.note}</p>}
+            </div>
+          )}
+        </Fragment>
+        <Fragment slot="tab-manufacturer">
+          {hasRows(manufacturer) && (
+            <div class="product-details__facts">
+              <SpecTable caption={manufacturer.caption} rows={manufacturer.rows} />
+              {manufacturer.note && <p class="product-details__note">{manufacturer.note}</p>}
+            </div>
+          )}
+        </Fragment>
+      </Tabs>
+      {hasRows(delivery) && (
+        <div class="product-details__delivery">
+          <h3 class="product-details__delivery-title">{delivery.title}</h3>
+          <div class="product-details__facts">
+            <SpecTable caption={delivery.caption} rows={delivery.rows} />
+            {delivery.note && <p class="product-details__note">{delivery.note}</p>}
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
+<style>
+  .product-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+    padding-block: var(--space-64);
+    border-top: 1px solid var(--border);
+  }
+
+  .product-details__heading {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .product-details__description {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+    min-width: 0;
+  }
+
+  /* The key points: a quiet muted panel with volt square markers (volt as a fill only). */
+  .product-details__highlights {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    max-width: 72ch;
+    padding: var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .product-details__highlights-title {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .product-details__highlights-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+  }
+
+  .product-details__highlights-list li {
+    display: flex;
+    gap: var(--space-12);
+    align-items: baseline;
+  }
+
+  .product-details__highlights-list li::before {
+    flex: none;
+    width: var(--space-8);
+    height: var(--space-8);
+    background: var(--accent);
+    content: '';
+  }
+
+  /* The description: running text on a ~72ch measure; its headings are quiet item titles, not a
+     second set of display headlines beside the section's own. */
+  .product-details__text {
+    max-width: 72ch;
+  }
+
+  .product-details__clip {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .product-details__text :global(.prose) > :global(h2),
+  .product-details__text :global(.prose) > :global(h3) {
+    margin-top: var(--space-24);
+    font: var(--type-title-2);
+    font-stretch: normal;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .product-details__text :global(.prose) > :global(h4) {
+    margin-top: var(--space-8);
+    font: var(--type-title-md);
+    font-weight: 700;
+    font-stretch: normal;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .product-details__text :global(.prose) > :global(:first-child) {
+    margin-top: 0;
+  }
+
+  .product-details__text :global(.prose) > :global(p),
+  .product-details__text :global(.prose) > :global(ul),
+  .product-details__text :global(.prose) > :global(ol) {
+    max-width: none;
+  }
+
+  .product-details__text :global(.prose) > :global(img) {
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  /* Collapsed: the script caps the height; the fade is a mask, so it works on any background. */
+  .product-details__text[data-state='collapsed'] .product-details__clip {
+    mask-image: linear-gradient(to bottom, var(--ink-1000) 55%, transparent);
+  }
+
+  .product-details__text[data-state] .product-details__clip {
+    transition: max-height var(--duration-slow) var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product-details__text[data-state] .product-details__clip {
+      transition: none;
+    }
+  }
+
+  .product-details__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8);
+    min-height: 48px; /* token-lint-ignore: touch target */
+    margin-top: var(--space-8);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    cursor: pointer;
+  }
+
+  /* `display` above would otherwise win over the `hidden` attribute of a text that fits. */
+  .product-details__toggle[hidden] {
+    display: none;
+  }
+
+  .product-details__toggle:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .product-details__toggle:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .product-details__toggle-icon {
+    display: inline-flex;
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .product-details__text[data-state='expanded'] .product-details__toggle-icon {
+    transform: rotate(180deg);
+  }
+
+  /* Fact tables: label / value rows between hairlines on a comfortable measure. */
+  .product-details__facts {
+    max-width: 880px; /* token-lint-ignore: reading measure of a fact table */
+  }
+
+  /* A long specification reads as two balanced columns of rows on a wide screen. */
+  @media (min-width: 1100px) {
+    .product-details__facts--columns {
+      max-width: none;
+    }
+
+    .product-details__facts--columns :global(.spec-table tbody) {
+      display: block;
+      column-count: 2;
+      column-gap: var(--space-64);
+    }
+
+    .product-details__facts--columns :global(.spec-table tr) {
+      display: table;
+      width: 100%;
+      break-inside: avoid;
+    }
+
+    .product-details__facts--columns :global(.spec-table tr[hidden]) {
+      display: none;
+    }
+
+    .product-details__facts--columns :global(.spec-table tr:last-child th),
+    .product-details__facts--columns :global(.spec-table tr:last-child td) {
+      border-bottom: 1px solid var(--border);
+    }
+  }
+
+  .product-details__facts :global(.spec-table tr:last-child th),
+  .product-details__facts :global(.spec-table tr:last-child td) {
+    border-bottom: 0;
+  }
+
+  .product-details__note {
+    margin: var(--space-8) 0 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  /* Delivery and returns: not a tab, its own compact block under the tabbed area. */
+  .product-details__delivery {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding-top: var(--space-32);
+    border-top: 1px solid var(--border);
+  }
+
+  .product-details__delivery-title {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-title-2);
+  }
+</style>
+
+<script>
+  import { TABS_SHOWN_EVENT } from '../../../utils/tabs'
+  import { mountProductDetails } from '../../../utils/product-details'
+
+  mountProductDetails(TABS_SHOWN_EVENT)
+</script>

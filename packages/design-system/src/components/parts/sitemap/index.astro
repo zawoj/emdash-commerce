@@ -1,0 +1,75 @@
+---
+// Figma in-article "Sitemap" block ("Frame 190": artykul 944:33213, zawody, partner): the
+// "Sitemap" caption over the plain-text trail "Home > Events > Europe" (Figma draws the
+// separators as " > " text, not chevrons). The frame is 40px tall, 4px more than its two lines.
+import type { LinkContent } from '../../../types/link'
+
+interface Props {
+  label: string
+  /** Unique on the page — labels the nav landmark. */
+  labelId: string
+  crumbs: readonly LinkContent[]
+}
+
+const { label, labelId, crumbs } = Astro.props
+const lastIndex = crumbs.length - 1
+---
+
+<nav class="sitemap" aria-labelledby={labelId}>
+  <p id={labelId} class="sitemap__label">{label}</p>
+  <ol class="sitemap__trail">
+    {
+      crumbs.map((crumb, index) => (
+        <li>
+          {index > 0 && <span aria-hidden="true">{' > '}</span>}
+          <a href={crumb.href} aria-current={index === lastIndex ? 'page' : undefined}>
+            {crumb.label}
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .sitemap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    width: 100%;
+    min-height: 40px; /* token-lint-ignore: Figma frame height 40px, no token */
+  }
+
+  .sitemap__label {
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .sitemap__trail {
+    padding: 0;
+    color: var(--text-body);
+    font: var(--type-text-medium-sm);
+    list-style: none;
+  }
+
+  .sitemap__trail li {
+    display: inline;
+  }
+
+  /* The separator keeps its two spaces; the markup's own whitespace around the crumbs collapses. */
+  .sitemap__trail li > span {
+    white-space: pre-wrap;
+  }
+
+  .sitemap__trail a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .sitemap__trail a:hover {
+    text-decoration: underline;
+  }
+</style>

@@ -1,0 +1,87 @@
+---
+// A price as the shopper reads it. The caller formats it (currency, locale) — the component only
+// sets it; `value` puts the machine-readable amount into <data value>. With `compareAt` the
+// previous price follows, struck through (and spoken with its `prefix`); the `note` slot sits after
+// the prices (the Omnibus "lowest price in the last 30 days" line, "VAT included").
+import { priceSizes, type PriceSize } from './variants'
+import type { PriceCompareAt } from './types'
+
+interface Props {
+  /** The formatted price ("€19.90"). */
+  label: string
+  /** The amount as a number, for <data value>. */
+  value: number
+  size?: PriceSize
+  /** The previous price of a reduction. */
+  compareAt?: PriceCompareAt
+}
+
+const { label, value, size = priceSizes.md, compareAt } = Astro.props
+const hasNote = Astro.slots.has('note')
+---
+
+{
+  compareAt || hasNote ? (
+    <span class="price-group">
+      <span class="price-group__row">
+        <data class:list={['price', `price--${size}`]} value={value}>{label}</data>
+        {
+          compareAt && (
+            <span class="price__compare">
+              {compareAt.prefix && <span class="visually-hidden">{compareAt.prefix} </span>}
+              <del><data value={compareAt.value}>{compareAt.label}</data></del>
+            </span>
+          )
+        }
+      </span>
+      {hasNote && <span class="price-group__note"><slot name="note" /></span>}
+    </span>
+  ) : (
+    <data class:list={['price', `price--${size}`]} value={value}>{label}</data>
+  )
+}
+
+<style>
+  .price {
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .price--md {
+    font: var(--type-price-md);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .price--lg {
+    font: var(--type-price-lg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .price-group {
+    display: inline-flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .price-group__row {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-4) var(--space-8);
+  }
+
+  .price__compare {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .price-group:has(.price__compare) .price {
+    color: var(--hot);
+  }
+
+  .price-group__note {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+  }
+</style>

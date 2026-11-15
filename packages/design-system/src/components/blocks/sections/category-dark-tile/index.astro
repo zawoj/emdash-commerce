@@ -1,0 +1,56 @@
+---
+// Dark category tile: tile-title, two horizontal
+// feature card-articles (photo left, then right — the second photo is drawn 471×280 inside its
+// 468×279 frame, as in Figma), then a row of four small card-articles. All rows are 32px apart.
+// Columns of the small row: 4 → 2 → 1 as the tile narrows.
+import ArticleCard from '../../../parts/article-card/index.astro'
+import { articleCardVariants } from '../../../parts/article-card/variants'
+import ContentTile from '../../../parts/content-tile/index.astro'
+import { tileSurfaces } from '../../../parts/content-tile/variants'
+import type { CategoryDarkTileProps } from './types'
+
+type Props = CategoryDarkTileProps
+
+const { heading, headingId, more, featureItems, items } = Astro.props
+const [firstFeature, secondFeature] = featureItems
+const secondPhotoZoom = 471.01 / 468
+const hasItems = featureItems.length + items.length > 0
+---
+
+{
+  hasItems && (
+    <ContentTile heading={heading} headingId={headingId} more={more} surface={tileSurfaces.dark} gap={32}>
+      {firstFeature && <ArticleCard article={firstFeature} variant={articleCardVariants.feature} />}
+      {secondFeature && <ArticleCard article={secondFeature} variant={articleCardVariants.feature} isReversed photoZoom={secondPhotoZoom} />}
+      {
+        items.length > 0 && (
+          <div class="category-dark-tile__grid">
+            {items.map((article) => <ArticleCard article={article} />)}
+          </div>
+        )
+      }
+    </ContentTile>
+  )
+}
+
+<style>
+  .category-dark-tile__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-32) var(--space-24);
+  }
+
+  @container content-tile (width < 760px) {
+    .category-dark-tile__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* One column of compact rows (thumbnail beside title) — rows sit closer than stacked cards. */
+  @container content-tile (width < 420px) {
+    .category-dark-tile__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-20);
+    }
+  }
+</style>

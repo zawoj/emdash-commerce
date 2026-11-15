@@ -1,0 +1,44 @@
+---
+// The records around a page's own (an organizer's series, a series' races, a race's past
+// editions) as Tag pills in a content tile. Renders nothing without links.
+import Tag from '../../../atoms/tag/index.astro'
+import ContentTile from '../../../parts/content-tile/index.astro'
+import type { RelatedRecordsProps } from './types'
+
+type Props = RelatedRecordsProps
+
+const { heading, headingId, links } = Astro.props
+---
+
+{
+  links.length > 0 && (
+    <ContentTile heading={heading} headingId={headingId}>
+      <ul class="related-records">
+        {links.map((link) => (
+          <li>
+            <a href={link.href}>
+              <Tag>{link.label}</Tag>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </ContentTile>
+  )
+}
+
+<style>
+  .related-records {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .related-records a {
+    display: flex;
+    text-decoration: none;
+  }
+</style>

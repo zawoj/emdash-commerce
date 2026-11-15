@@ -1,0 +1,157 @@
+---
+// Strategic-partners strip (main column): the heading next to a partner-logo row. Figma lays the row out
+// as two identical copies (944:29296, 944:29368) running off the tile's right edge — the seamless
+// marquee pattern of the header/footer tickers, so the track scrolls by one copy. Renders nothing
+// without partners.
+import type { StrategicPartnersProps } from './types'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = StrategicPartnersProps
+
+const { heading, headingId, partners } = Astro.props
+const rowCopies = [false, true] as const
+---
+
+{
+  partners.length > 0 && (
+    <section class="strategic-partners" aria-labelledby={headingId}>
+      <div class="strategic-partners__lead">
+        <h2 id={headingId}>{heading}</h2>
+      </div>
+
+      <div class="strategic-partners__logos">
+        <div class="strategic-partners__viewport">
+          <div class="strategic-partners__track">
+            {rowCopies.map((isDuplicate) => (
+              <ul class="strategic-partners__row" aria-hidden={isDuplicate ? 'true' : undefined}>
+                {partners.map(({ name, logo, href }) => {
+                  const image = { ...logo, alt: isDuplicate ? '' : logo.alt || name }
+                  return (
+                    <li>
+                      {href && !isDuplicate ? (
+                        <a href={href} rel="sponsored noopener">
+                          <Image {...image} />
+                        </a>
+                      ) : (
+                        <Image {...image} />
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .strategic-partners {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-32);
+    padding: var(--space-32) var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--accent);
+    color: var(--on-accent);
+    overflow: hidden;
+  }
+
+  .strategic-partners__lead {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    gap: var(--space-8);
+  }
+
+  /* One word per line. */
+  .strategic-partners__lead h2 {
+    width: min-content;
+    margin: 0;
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    color: var(--on-accent);
+    text-transform: var(--text-case);
+  }
+
+  .strategic-partners__logos {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    /* the logo row runs under the tile's right padding up to its clipped edge */
+    margin-right: calc(-1 * var(--space-24));
+  }
+
+  .strategic-partners__viewport {
+    overflow: hidden;
+  }
+
+  .strategic-partners__track {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-40);
+    width: max-content;
+    animation: strategic-partners-marquee 30s linear infinite;
+  }
+
+  .strategic-partners__row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-40);
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .strategic-partners__row li {
+    flex: none;
+  }
+
+  .strategic-partners__row a {
+    display: block;
+  }
+
+  /* Every logo is a flat black silhouette on the volt band. */
+  .strategic-partners__row :global(img) {
+    display: block;
+    width: auto;
+    max-width: none;
+    height: 24px;
+    object-fit: contain;
+    filter: var(--logo-filter-ink);
+  }
+
+  @keyframes strategic-partners-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(-50% - var(--space-40) / 2));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .strategic-partners__track {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .strategic-partners {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-24);
+    }
+
+    .strategic-partners__logos {
+      flex: none;
+      margin-inline: calc(-1 * var(--space-24));
+    }
+  }
+</style>

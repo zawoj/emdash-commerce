@@ -1,0 +1,61 @@
+---
+// Figma "tagi" / article-bottom (915:28446; article, zawody, partner): the "Tagi" caption over
+// the Tag pills linking to their listings, wrapping inside the text column.
+import type { LinkContent } from '../../../types/link'
+import Tag from '../../atoms/tag/index.astro'
+
+interface Props {
+  label: string
+  /** Unique on the page — labels the nav landmark. */
+  labelId: string
+  tags: readonly LinkContent[]
+}
+
+const { label, labelId, tags } = Astro.props
+---
+
+<nav class="tag-list" aria-labelledby={labelId}>
+  <p id={labelId} class="tag-list__label">{label}</p>
+  <ul class="tag-list__items">
+    {
+      tags.map((tag) => (
+        <li>
+          <a href={tag.href}>
+            <Tag>{tag.label}</Tag>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    width: 100%;
+  }
+
+  .tag-list__label {
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .tag-list__items {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+    padding: 0;
+    list-style: none;
+  }
+
+  .tag-list__items a {
+    display: flex;
+    text-decoration: none;
+  }
+</style>

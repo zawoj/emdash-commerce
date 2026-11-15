@@ -1,0 +1,401 @@
+---
+// The "shopTheLook" section: a lookbook photo with numbered hotspots, and beside it the list of what is
+// in the look — packshot, name, variant, price and a per-item action — a total line, a note on what is
+// not included, and one CTA. A hotspot is a link to its row; the script highlights the row of the active
+// hotspot (and the hotspot of a hovered or focused row). Without JS the hotspot jumps to the row.
+import Button from '../../../atoms/button/index.astro'
+import Image from '../../../atoms/image/index.astro'
+import Price from '../../../atoms/price/index.astro'
+import LookDialog from '../../../parts/look-dialog/index.astro'
+import { buttonVariants } from '../../../atoms/button/variants'
+import type { ShopTheLookProps } from './types'
+
+type Props = ShopTheLookProps
+
+const { heading, headingId, eyebrow, image, listHeading, items, hotspotLabelTemplate, total, note, cta, dialog } = Astro.props
+const idBase = headingId ?? 'shop-the-look'
+const rowId = (index: number) => `${idBase}-item-${index + 1}`
+const labelOf = (title: string, index: number) => hotspotLabelTemplate.replace('{n}', String(index + 1)).replace('{title}', title)
+---
+
+<section class="look" aria-labelledby={headingId} data-shop-the-look>
+  <header class="look__header">
+    {eyebrow && <p class="look__eyebrow">{eyebrow}</p>}
+    <h2 class="look__heading" id={headingId}>{heading}</h2>
+  </header>
+
+  <div class="look__photo">
+    <Image {...image} class="look__img" />
+    {
+      items.map((item, index) => (
+        <a
+          class="look__hotspot"
+          href={`#${rowId(index)}`}
+          style={`--x: ${item.x}%; --y: ${item.y}%`}
+          aria-label={labelOf(item.title, index)}
+          data-look-hotspot={rowId(index)}
+          data-look-open={dialog && item.choiceId !== undefined ? String(item.choiceId) : undefined}
+          data-look-for={dialog && item.choiceId !== undefined ? dialog.id : undefined}
+          aria-haspopup={dialog && item.choiceId !== undefined ? 'dialog' : undefined}
+        >
+          <span aria-hidden="true">{index + 1}</span>
+        </a>
+      ))
+    }
+  </div>
+
+  <div class="look__panel">
+    <h3 class="look__list-heading">{listHeading}</h3>
+    <ol class="look__list">
+      {
+        items.map((item, index) => (
+          <li class="look__row" id={rowId(index)} data-look-row tabindex="-1">
+            <span class="look__number" aria-hidden="true">{index + 1}</span>
+            <a class="look__thumb" href={item.href} tabindex="-1" aria-hidden="true">
+              <Image {...item.image} />
+            </a>
+            <div class="look__info">
+              <a class="look__name" href={item.href}>{item.title}</a>
+              {item.variantLabel && <span class="look__variant">{item.variantLabel}</span>}
+              <Price label={item.price.label} value={item.price.value} compareAt={item.compareAtPrice} />
+            </div>
+            <Button
+              href={item.action.href}
+              variant={buttonVariants.primary}
+              class="look__action"
+              aria-label={`${item.action.label}: ${item.title}`}
+              data-look-open={dialog && item.choiceId !== undefined ? String(item.choiceId) : undefined}
+              data-look-for={dialog && item.choiceId !== undefined ? dialog.id : undefined}
+              aria-haspopup={dialog && item.choiceId !== undefined ? 'dialog' : undefined}
+            >
+              {item.action.label}
+            </Button>
+          </li>
+        ))
+      }
+    </ol>
+    {
+      total && (
+        <p class="look__total">
+          <span>{total.label}</span>
+          <data value={total.price.value}>{total.price.label}</data>
+        </p>
+      )
+    }
+    {note && <p class="look__note">{note}</p>}
+    <Button href={cta.href} variant={buttonVariants.accent} size="lg" class="look__cta" data-look-kit={dialog ? '' : undefined} data-look-for={dialog?.id} aria-haspopup={dialog ? 'dialog' : undefined}>{cta.label}</Button>
+  </div>
+  {dialog && <LookDialog {...dialog} />}
+</section>
+
+<style>
+  .look {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    grid-template-areas:
+      'header header'
+      'photo panel';
+    column-gap: var(--space-48);
+    row-gap: var(--space-24);
+    padding-block: var(--space-24);
+    color: var(--text-primary);
+  }
+
+  .look__header {
+    grid-area: header;
+  }
+
+  .look__eyebrow {
+    margin: 0 0 var(--space-8);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-secondary);
+  }
+
+  .look__heading {
+    margin: 0;
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .look__photo {
+    position: relative;
+    grid-area: photo;
+    align-self: start;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .look__photo :global(.look__img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+
+  /* The hotspot: a white disc with the item's number, centred on its point. */
+  .look__hotspot {
+    position: absolute;
+    top: var(--y);
+    left: var(--x);
+    display: grid;
+    place-items: center;
+    width: var(--space-32);
+    height: var(--space-32);
+    border-radius: var(--radius-full);
+    background: var(--ink-0);
+    color: var(--ink-1000);
+    font: var(--type-label-caps-xs);
+    text-decoration: none;
+    transform: translate(-50%, -50%);
+    transition:
+      background var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out),
+      scale var(--duration-fast) var(--ease-out);
+  }
+
+  /* A larger invisible target for fingers. */
+  .look__hotspot::before {
+    position: absolute;
+    inset: calc(-1 * var(--space-8));
+    content: '';
+  }
+
+  .look__hotspot:hover,
+  .look__hotspot[aria-current='true'] {
+    background: var(--accent);
+    color: var(--on-accent);
+    scale: 1.15; /* token-lint-ignore: a small pop of the active marker */
+  }
+
+  .look__hotspot:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px; /* token-lint-ignore: clears the disc */
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .look__hotspot::after {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: 0 0 0 0 var(--ink-0);
+      content: '';
+      animation: look-ping 2.4s var(--ease-out) infinite; /* token-lint-ignore: a slow idle pulse */
+      pointer-events: none;
+    }
+
+    @keyframes look-ping {
+      0% {
+        box-shadow: 0 0 0 0 rgb(255 255 255 / 0.6); /* token-lint-ignore: the pulse ring */
+      }
+
+      70%,
+      100% {
+        box-shadow: 0 0 0 var(--space-12) rgb(255 255 255 / 0);
+      }
+    }
+  }
+
+  .look__panel {
+    grid-area: panel;
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-24));
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .look__list-heading {
+    margin: 0 0 var(--space-8);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-secondary);
+  }
+
+  .look__list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--stroke-thin) solid var(--border);
+  }
+
+  .look__row {
+    display: grid;
+    grid-template-columns: var(--space-24) var(--space-64) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-16);
+    padding: var(--space-16) var(--space-12);
+    border-bottom: var(--stroke-thin) solid var(--border);
+    scroll-margin-block: var(--space-96);
+    transition: background var(--duration-fast) var(--ease-out);
+  }
+
+  .look__row:focus {
+    outline: none;
+  }
+
+  .look__row[data-active='true'] {
+    background: var(--surface-muted);
+    box-shadow: inset var(--stroke-bar) 0 0 var(--text-primary);
+  }
+
+  .look__number {
+    font: var(--type-label-caps-xs);
+    color: var(--text-secondary);
+  }
+
+  .look__thumb {
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--surface-muted);
+  }
+
+  .look__thumb :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .look__info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .look__name {
+    font: var(--type-title-md);
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .look__name:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .look__variant {
+    font: var(--type-text-regular-xs);
+    color: var(--text-secondary);
+  }
+
+  .look__total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: var(--space-16) 0 0;
+    padding-inline: var(--space-12);
+    font: var(--type-text-medium-md);
+  }
+
+  .look__total data {
+    font: var(--type-price-lg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .look__note {
+    margin: var(--space-8) 0 0;
+    padding-inline: var(--space-12);
+    font: var(--type-text-regular-xs);
+    color: var(--text-secondary);
+  }
+
+  .look__panel :global(.look__cta) {
+    align-self: stretch;
+    margin-top: var(--space-24);
+  }
+
+  @media (max-width: 700px) {
+    .look {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        'header'
+        'photo'
+        'panel';
+      row-gap: var(--space-16);
+    }
+
+    .look__panel {
+      position: static;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .look {
+      column-gap: var(--space-32);
+    }
+
+    .look__row {
+      grid-template-columns: var(--space-64) minmax(0, 1fr) auto;
+    }
+
+    .look__number {
+      display: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .look__row {
+      grid-template-columns: var(--space-64) minmax(0, 1fr);
+      grid-template-areas:
+        'thumb info'
+        'thumb action';
+      align-items: start;
+    }
+
+    .look__thumb {
+      grid-area: thumb;
+    }
+
+    .look__info {
+      grid-area: info;
+    }
+
+    .look__row :global(.look__action) {
+      grid-area: action;
+      justify-self: start;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .look__heading {
+      font: var(--type-display-md);
+      font-stretch: var(--display-stretch);
+    }
+  }
+
+  @media (pointer: coarse) {
+    .look__hotspot {
+      width: 44px; /* token-lint-ignore: touch target */
+      height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+
+  @media (pointer: coarse) {
+    .look__name {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>
+
+<script>
+  import { mountShopTheLook } from '../../../../utils/shop-the-look'
+
+  mountShopTheLook()
+</script>

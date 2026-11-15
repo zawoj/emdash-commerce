@@ -1,0 +1,111 @@
+---
+// The shop's promises (free returns, delivery date, guarantee) as up to three icon + text rows —
+// the same set on the product page, in the cart and in the checkout.
+import Icon from '../../atoms/icon/index.astro'
+import { PROMISE_LIST_LIMIT, promiseListLayouts } from './variants'
+import type { PromiseListProps } from './types'
+
+type Props = PromiseListProps
+
+const { items, layout = promiseListLayouts.row } = Astro.props
+const shown = items.slice(0, PROMISE_LIST_LIMIT)
+---
+
+{
+  shown.length > 0 && (
+    <ul class:list={['promise-list', `promise-list--${layout}`]}>
+      {
+        shown.map((item) => (
+          <li class="promise-list__item">
+            <span class="promise-list__icon" aria-hidden="true"><Icon name={item.icon} size={20} /></span>
+            <span>{item.text}</span>
+          </li>
+        ))
+      }
+    </ul>
+  )
+}
+
+<style>
+  .promise-list {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .promise-list--row {
+    flex-wrap: wrap;
+    gap: var(--space-8) var(--space-24);
+  }
+
+  .promise-list--stack {
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .promise-list__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+  }
+
+  .promise-list__icon {
+    display: inline-flex;
+    flex: none;
+    color: var(--text-primary);
+  }
+
+  .promise-list--strip {
+    border-block: var(--stroke-thin) solid var(--border);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .promise-list--strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .promise-list--strip .promise-list__item {
+    flex: 1 0 auto;
+    justify-content: center;
+    padding: var(--space-16) var(--space-24);
+    font: var(--type-text-medium-sm);
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+
+  .promise-list--strip .promise-list__item + .promise-list__item {
+    border-inline-start: var(--stroke-thin) solid var(--border);
+  }
+
+  @media (max-width: 640px) {
+    .promise-list--row {
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+
+  }
+
+  /* Phones and tablets: three equal cells, the icon above a wrapping line, so no promise is cut
+     mid-word by the scroller's edge. */
+  @media (max-width: 1100px) {
+    .promise-list--strip {
+      overflow-x: visible;
+    }
+
+    .promise-list--strip .promise-list__item {
+      flex: 1 1 0;
+      flex-direction: column;
+      gap: var(--space-4);
+      min-width: 0;
+      padding: var(--space-12) var(--space-8);
+      text-align: center;
+      white-space: normal;
+      text-wrap: balance;
+    }
+  }
+</style>

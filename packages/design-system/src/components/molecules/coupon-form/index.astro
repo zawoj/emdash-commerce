@@ -1,0 +1,167 @@
+---
+// The promo code of the cart: collapsed behind a "Have a code?" row so the field does not compete
+// with the checkout button. Applied codes are listed with a remove button each; a rejected code
+// opens the row and shows an error notice. Plain forms — no script.
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+import FieldInput from '../../atoms/field-input/index.astro'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { CouponFormProps } from './types'
+
+type Props = CouponFormProps
+
+const { id, action, method = 'post', toggleLabel, inputLabel, inputPlaceholder, submitLabel, inputName = 'code', removeName = 'removeCode', applied = [], error, errorLabel } = Astro.props
+const isOpen = Boolean(error)
+---
+
+<div class="coupon-form">
+  {
+    applied.length > 0 && (
+      <ul class="coupon-form__applied">
+        {applied.map((coupon) => (
+          <li class="coupon-form__tag">
+            <span class="coupon-form__mark" aria-hidden="true"><Icon name={iconNames.check} size={14} /></span>
+            <span class="coupon-form__code">{coupon.code}</span>
+            {coupon.description && <span class="coupon-form__description">{coupon.description}</span>}
+            <form action={action} method={method}>
+              <button class="coupon-form__remove" type="submit" name={removeName} value={coupon.code} aria-label={coupon.removeLabel}>
+                <Icon name={iconNames.x} size={14} />
+              </button>
+            </form>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  <details class="coupon-form__details" open={isOpen} data-details-motion>
+    <summary class="coupon-form__toggle">{toggleLabel}</summary>
+    <form class="coupon-form__form" action={action} method={method}>
+      <div class="coupon-form__field">
+        <FieldInput id={`${id}-code`} name={inputName} label={inputLabel} placeholder={inputPlaceholder} error={error} errorLabel={errorLabel} autocomplete="off" autocapitalize="characters" spellcheck={false} />
+      </div>
+      <Button type="submit" variant={buttonVariants.primary} size={buttonSizes.lg}>{submitLabel}</Button>
+    </form>
+  </details>
+</div>
+
+<script>
+  import '../../../utils/details-motion'
+</script>
+
+<style>
+  .coupon-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .coupon-form__applied {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* An applied code: a volt chip (a saving is good news) that says what it took off and can be removed. */
+  .coupon-form__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-12);
+    border-radius: var(--radius-control);
+    background: var(--accent);
+    color: var(--on-accent);
+    font: var(--type-text-medium-sm);
+  }
+
+  .coupon-form__mark {
+    display: inline-flex;
+  }
+
+  .coupon-form__code {
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .coupon-form__description {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .coupon-form__remove {
+    display: inline-flex;
+    width: 32px; /* token-lint-ignore: touch target inside a tag */
+    height: 32px; /* token-lint-ignore: touch target inside a tag */
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: none;
+    color: var(--on-accent);
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-out);
+  }
+
+  .coupon-form__remove:hover {
+    background: var(--accent-hover);
+  }
+
+  .coupon-form__remove:focus-visible {
+    outline: 2px solid var(--focus-ring);
+  }
+
+  .coupon-form__toggle {
+    display: inline-flex;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    color: var(--text-primary);
+    cursor: pointer;
+    font: var(--type-text-medium-sm);
+    list-style: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .coupon-form__toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  @media (hover: hover) {
+    .coupon-form__toggle:hover {
+      text-decoration-thickness: 2px; /* token-lint-ignore: underline weight */
+    }
+  }
+
+  .coupon-form__toggle:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .coupon-form__details[open]:not([data-closing]) .coupon-form__toggle {
+    text-decoration: none;
+  }
+
+  /* The field and "Apply" share one row; the error sits under the field, never between them. */
+  .coupon-form__form {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-8);
+    padding-top: var(--space-4);
+  }
+
+  .coupon-form__field {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .coupon-form__form :global(.button) {
+    flex: none;
+    /* "Apply" lines up with the 48px field, not with its label. */
+    margin-top: 26px; /* token-lint-ignore: label height above the field */
+  }
+</style>

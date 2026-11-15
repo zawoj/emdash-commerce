@@ -1,0 +1,59 @@
+---
+// Stock status as text with a marker whose shape says the state: a filled square when the product
+// can be bought, a triangle when only a few are left (`isLow`, with the "last 3" wording in
+// `label`), an outlined square when it cannot. The caller passes the worded label (it is
+// dictionary copy, per language).
+interface Props {
+  label: string
+  /** True when the product can be ordered now (in stock, pre-order, back-order). */
+  isAvailable?: boolean
+  /** Few items left: the marker becomes a triangle. */
+  isLow?: boolean
+}
+
+const { label, isAvailable = true, isLow = false } = Astro.props
+---
+
+<span class:list={['availability', isAvailable && 'availability--available', isAvailable && isLow && 'availability--low']}>
+  <span class="availability__marker" aria-hidden="true"></span>
+  {label}
+</span>
+
+<style>
+  .availability {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8);
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+  }
+
+  .availability__marker {
+    flex: none;
+    width: var(--space-8);
+    height: var(--space-8);
+    border: 1px solid currentColor;
+    border-radius: var(--radius-full);
+  }
+
+  .availability--available {
+    color: var(--text-body);
+  }
+
+  .availability--available .availability__marker {
+    background: currentColor;
+  }
+
+  .availability--low {
+    color: var(--hot);
+    font-weight: 600;
+  }
+
+  .availability--low .availability__marker {
+    width: 10px; /* token-lint-ignore: triangle marker */
+    height: 9px; /* token-lint-ignore: triangle marker */
+    border: 0;
+    border-radius: 0;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  }
+</style>

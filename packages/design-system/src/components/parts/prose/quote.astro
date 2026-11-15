@@ -1,0 +1,86 @@
+---
+// Figma "Quote" (944:33149) — a dark card: the 96px yellow quotation mark at Figma's absolute
+// spot in the left padding, the quote (display Bold 24px/1.3, full width) and the attribution
+// under it. The quote text is the default slot.
+interface Props {
+  /** Who said it; the line is left out when empty. */
+  cite?: string | null
+}
+
+const { cite } = Astro.props
+---
+
+<figure class="prose-block prose-quote">
+  <span class="prose-quote__mark" aria-hidden="true">“</span>
+  <blockquote>
+    <p><slot /></p>
+  </blockquote>
+  {cite && <figcaption>{cite}</figcaption>}
+</figure>
+
+<style>
+  .prose-quote {
+    margin: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: var(--space-8) 0 var(--space-8) var(--space-64);
+    text-align: start;
+  }
+
+  /* A black block mark hanging in the left gutter, set in the condensed display voice. */
+  .prose-quote__mark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: var(--font-display);
+    font-size: 96px; /* token-lint-ignore: oversized quotation glyph, no token */
+    font-stretch: var(--display-stretch);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--quote-mark);
+  }
+
+  .prose-quote blockquote {
+    margin: 0;
+  }
+
+  .prose-quote p {
+    margin: 0;
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+    color: var(--text-primary);
+  }
+
+  .prose-quote figcaption {
+    padding-top: var(--space-16);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-secondary);
+  }
+
+  @media (min-width: 641px) {
+    .prose-quote p {
+      font: var(--type-display-lg);
+      font-stretch: var(--display-stretch);
+      letter-spacing: var(--tracking-display);
+      text-transform: var(--text-case);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .prose-quote {
+      padding-left: var(--space-48);
+    }
+
+    .prose-quote__mark {
+      font-size: var(--font-size-64);
+    }
+  }
+</style>

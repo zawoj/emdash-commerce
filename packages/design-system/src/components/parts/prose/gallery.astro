@@ -1,0 +1,144 @@
+---
+// Figma "gallery" (944:33156) — the current photo contained on a 450px light stage, then a strip
+// of thumbnails (photos contained in boxes 56px tall); the current thumbnail has a blue frame, the
+// others are dimmed. Without script the first photo stays on and the strip stays hidden; the
+// script (`utils/prose-gallery.ts`) switches the photo when a thumbnail is chosen.
+import type { ProseGalleryImage } from './types'
+import Image from '../../atoms/image/index.astro'
+
+interface Props {
+  /** Accessible name of the whole gallery. */
+  label: string
+  images: readonly ProseGalleryImage[]
+  currentIndex?: number
+  /** Accessible name of a thumbnail button, "{n}" and "{count}" being its place and the total. */
+  thumbLabel: string
+}
+
+const { label, images, currentIndex = 0, thumbLabel } = Astro.props
+const DEFAULT_THUMB_WIDTH = 88
+const hasThumbs = images.length > 1
+const nameOf = (index: number): string => thumbLabel.replace('{n}', String(index + 1)).replace('{count}', String(images.length))
+---
+
+<figure class="prose-block prose-gallery" aria-label={label} data-prose-gallery>
+  <div class="prose-gallery__stage">
+    {
+      images.map(({ image }, index) => (
+        <Image {...image} hidden={index !== currentIndex} data-gallery-photo />
+      ))
+    }
+  </div>
+  {
+    hasThumbs && (
+      <ul class="prose-gallery__thumbs" data-gallery-thumbs hidden>
+        {images.map(({ image, thumbWidth = DEFAULT_THUMB_WIDTH }, index) => {
+          const isCurrent = index === currentIndex
+          return (
+            <li>
+              <button
+                type="button"
+                class:list={['prose-gallery__thumb', isCurrent && 'prose-gallery__thumb--current']}
+                style={`width: ${thumbWidth}px`}
+                aria-label={nameOf(index)}
+                aria-pressed={isCurrent ? 'true' : 'false'}
+                data-gallery-thumb
+              >
+                <img src={image.src} alt="" loading="lazy" />
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    )
+  }
+</figure>
+
+<style>
+  .prose-gallery {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    width: 100%;
+  }
+
+  .prose-gallery__stage {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 450px; /* token-lint-ignore: Figma stage height 450px */
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .prose-gallery__stage :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .prose-gallery__stage :global(img[hidden]) {
+    display: none;
+  }
+
+  .prose-gallery__thumbs {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px; /* token-lint-ignore: Figma thumbnail gap 10px, no token */
+    height: 64px;
+    margin: 0;
+    padding: var(--space-2) 0;
+    overflow-x: auto;
+    list-style: none;
+    scrollbar-width: none;
+  }
+
+  .prose-gallery__thumbs[hidden] {
+    display: none;
+  }
+
+  .prose-gallery__thumbs li {
+    display: flex;
+    flex: none;
+    margin: 0;
+  }
+
+  .prose-gallery__thumb {
+    display: flex;
+    height: 60px;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid transparent;
+    border-radius: var(--radius-card);
+    background: none;
+    opacity: 0.6;
+    cursor: pointer;
+  }
+
+  .prose-gallery__thumb--current {
+    border-color: var(--focus-ring);
+    opacity: 1;
+  }
+
+  .prose-gallery__thumb :global(img) {
+    width: 100%;
+    height: 56px;
+    object-fit: contain;
+  }
+
+  @media (max-width: 640px) {
+    .prose-gallery__stage {
+      height: auto;
+      aspect-ratio: 668 / 450;
+    }
+  }
+</style>
+
+<script>
+  import '@emdash-commerce/design-system/prose-gallery'
+</script>

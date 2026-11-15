@@ -1,0 +1,136 @@
+---
+// Recommended-videos widget (right bar): the tile title, then a list of video cards — a 1280:762
+// thumbnail stretched to the row's height beside a 16px title cut after 2 lines and the author.
+import TileTitle from '../../molecules/tile-title/index.astro'
+import type { VideoListWidgetContent } from './types'
+
+type Props = VideoListWidgetContent
+
+const { heading, headingId, items } = Astro.props
+---
+
+<section class="video-list-widget" aria-labelledby={headingId}>
+  <div class="video-list-widget__header">
+    <div class="video-list-widget__title">
+      <TileTitle heading={heading} headingId={headingId} />
+    </div>
+  </div>
+  <ul class="video-list-widget__list">
+    {
+      items.map((item) => (
+        <li class="video-list-widget__item">
+          <span class="video-list-widget__thumbnail">
+            <img src={item.thumbnail} alt="" loading="lazy" decoding="async" />
+          </span>
+          <div class="video-list-widget__details">
+            <a class="video-list-widget__link" href={item.href} data-balanced-clamp>
+              {item.title}
+            </a>
+            <span class="video-list-widget__author">{item.author}</span>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<script>
+  import '@emdash-commerce/design-system/balanced-clamp'
+</script>
+
+<style>
+  .video-list-widget {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    background: var(--surface);
+  }
+
+  .video-list-widget__header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-20);
+  }
+
+  .video-list-widget__title {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .video-list-widget__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .video-list-widget__item {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--space-16);
+  }
+
+  /* The thumbnail takes the row's height (set by the text); its width is Figma's 1280:762 box at
+     the 56px height of a two-line row (CSS can't derive a flex item's width from a stretched
+     height). */
+  .video-list-widget__thumbnail {
+    position: relative;
+    flex: none;
+    width: 94.07px; /* token-lint-ignore: Figma 56px × 1280/762 thumbnail width */
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .video-list-widget__thumbnail img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .video-list-widget__details {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-self: center;
+    gap: var(--space-6);
+    min-width: 0;
+  }
+
+  .video-list-widget__link {
+    display: -webkit-box;
+    overflow: hidden;
+    font: var(--type-display-2xs);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display-2xs);
+    color: var(--text-primary);
+    text-decoration: none;
+    text-transform: var(--text-case);
+    text-wrap: balance;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  /* The whole row is the link target; the title anchor stays the only focusable element. */
+  .video-list-widget__link::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  .video-list-widget__link:hover {
+    text-decoration: underline;
+  }
+
+  .video-list-widget__author {
+    font: var(--type-text-regular-xs);
+    color: var(--text-secondary);
+  }
+</style>

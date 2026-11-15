@@ -1,0 +1,289 @@
+---
+// The "collectionBento" section: collections as an asymmetric bento — one large tile, one wide and two
+// small, square-cornered on 4px gaps like the brand board. A tile is a photo with a scrim, or one solid
+// volt / black text tile for rhythm. The link is a pill and stretches over the whole tile.
+import ContentTile from '../../../parts/content-tile/index.astro'
+import Button from '../../../atoms/button/index.astro'
+import Icon from '../../../atoms/icon/index.astro'
+import Image from '../../../atoms/image/index.astro'
+import { iconNames } from '../../../atoms/icon/names'
+import { buttonVariants } from '../../../atoms/button/variants'
+import type { CollectionBentoProps } from './types'
+import { COLLECTION_BENTO_SLOTS, collectionTileTones } from './variants'
+
+type Props = CollectionBentoProps
+
+const { heading, headingId, more, tiles } = Astro.props
+const slots = tiles.slice(0, COLLECTION_BENTO_SLOTS.length).map((tile, index) => ({ tile, slot: COLLECTION_BENTO_SLOTS[index] }))
+---
+
+{
+  slots.length > 0 && (
+    <div class="collection-bento-section">
+      <ContentTile heading={heading} headingId={headingId} more={more}>
+        <ul class="collection-bento">
+          {slots.map(({ tile, slot }, index) => {
+            const isText = tile.image === undefined
+            const isVolt = tile.tone === collectionTileTones.volt
+            return (
+              <li
+                class:list={['collection-bento__tile', `collection-bento__tile--${slot}`, isText && 'collection-bento__tile--text', isText && `collection-bento__tile--${tile.tone}`]}
+                data-surface={isText && !isVolt ? 'dark' : undefined}
+              >
+                {tile.image && (
+                  <div class="collection-bento__frame">
+                    <Image {...tile.image} isEager={false} sizes={slot === 'large' ? '(min-width: 760px) 50vw, 100vw' : '(min-width: 760px) 25vw, 50vw'} />
+                  </div>
+                )}
+                <div class="collection-bento__copy">
+                  {tile.eyebrow && <p class="collection-bento__eyebrow">{tile.eyebrow}</p>}
+                  <h3 class="collection-bento__title">{tile.title}</h3>
+                  {tile.meta && <p class="collection-bento__meta">{tile.meta}</p>}
+                  <Button
+                    href={tile.link.href}
+                    size={slot === 'large' ? 'lg' : 'sm'}
+                    variant={isText ? (isVolt ? buttonVariants.primary : buttonVariants.inverse) : buttonVariants.inverse}
+                    class="collection-bento__link"
+                    data-bento-index={index}
+                  >
+                    {tile.link.label}
+                    <Icon name={iconNames.arrowRight} slot="icon" />
+                  </Button>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      </ContentTile>
+    </div>
+  )
+}
+
+<style>
+  .collection-bento-section {
+    padding-block: var(--space-24);
+  }
+
+  .collection-bento-section :global(.tile-title__heading) {
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .collection-bento-section :global(.tile-title__more) {
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .collection-bento {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: var(--grid-gap-tight);
+    aspect-ratio: 2 / 1; /* token-lint-ignore: the bento's proportion: two columns of tile per row of tile */
+    min-height: 480px; /* token-lint-ignore: keeps the small tiles legible on narrow desktops */
+    margin: 0;
+    padding: 0;
+    background: var(--surface-muted);
+    list-style: none;
+  }
+
+  .collection-bento__tile {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+    color: var(--ink-0);
+  }
+
+  .collection-bento__tile > * {
+    grid-area: 1 / 1;
+  }
+
+  .collection-bento__tile--large {
+    grid-column: 1 / span 2;
+    grid-row: 1 / span 2;
+  }
+
+  .collection-bento__tile--wide {
+    grid-column: 3 / span 2;
+  }
+
+  .collection-bento__tile:has(a:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px; /* token-lint-ignore: inset so the neighbouring tile does not clip it */
+  }
+
+  .collection-bento__frame {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .collection-bento__frame::after {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: var(--image-scrim), var(--image-scrim); /* doubled: bright photos still carry the copy */
+    content: '';
+  }
+
+  .collection-bento__frame :global(img) {
+    position: relative;
+    z-index: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .collection-bento__tile--text {
+    background: var(--surface);
+    color: var(--text-primary);
+  }
+
+  .collection-bento__tile--volt {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .collection-bento__tile--dark {
+    background: var(--ink-1000);
+    color: var(--ink-0);
+  }
+
+  .collection-bento__copy {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    align-self: end;
+    gap: var(--space-8);
+    padding: var(--space-24);
+  }
+
+  .collection-bento__tile--text .collection-bento__copy {
+    align-self: stretch;
+    justify-content: flex-end;
+  }
+
+  .collection-bento__eyebrow {
+    margin: 0;
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .collection-bento__title {
+    margin: 0;
+    font: var(--type-display-xl);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .collection-bento__tile--large .collection-bento__title {
+    font: var(--type-display-4xl);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display);
+    max-width: 8ch; /* token-lint-ignore: keeps the huge name in two or three lines */
+  }
+
+  .collection-bento__tile--small .collection-bento__title {
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .collection-bento__tile--text.collection-bento__tile--small .collection-bento__title {
+    font: var(--type-display-xl);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .collection-bento__meta {
+    margin: 0;
+    font: var(--type-text-medium-sm);
+  }
+
+  .collection-bento__tile--text .collection-bento__meta {
+    margin-bottom: var(--space-8);
+  }
+
+  /* Meta text on a photo sits between the name and the pill. */
+  .collection-bento__link {
+    margin-top: var(--space-8);
+  }
+
+  .collection-bento__link::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  .collection-bento__link:focus-visible {
+    outline: none;
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .collection-bento__frame :global(img) {
+      transition: transform var(--duration-slow) var(--ease-out);
+    }
+
+    .collection-bento__tile:hover .collection-bento__frame :global(img) {
+      transform: scale(var(--hover-zoom));
+    }
+  }
+
+  @container content-tile (width < 760px) {
+    .collection-bento {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: none;
+      aspect-ratio: auto;
+      min-height: 0;
+    }
+
+    .collection-bento__tile {
+      aspect-ratio: 4 / 5;
+    }
+
+    .collection-bento__tile--large {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+
+    .collection-bento__tile--wide {
+      grid-column: 1 / -1;
+      aspect-ratio: 4 / 3;
+    }
+
+    .collection-bento__copy {
+      padding: var(--space-16);
+    }
+
+    .collection-bento__tile--large .collection-bento__title {
+      font: var(--type-display-3xl);
+      font-stretch: var(--display-stretch-card);
+      letter-spacing: var(--tracking-display);
+    }
+
+    .collection-bento__tile--wide .collection-bento__title {
+      font: var(--type-display-lg);
+      font-stretch: var(--display-stretch-card);
+      letter-spacing: var(--tracking-display);
+    }
+
+    .collection-bento__tile--small .collection-bento__title,
+    .collection-bento__tile--text.collection-bento__tile--small .collection-bento__title {
+      font: var(--type-display-sm);
+      font-stretch: var(--display-stretch-card);
+      letter-spacing: var(--tracking-display);
+    }
+  }
+</style>

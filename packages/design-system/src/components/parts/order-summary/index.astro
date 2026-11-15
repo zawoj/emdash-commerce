@@ -1,0 +1,213 @@
+---
+// The money of an order, every figure pre-formatted by the caller: item thumbnails, then
+// subtotal, discounts and delivery, the bold total and the VAT lines under it. The `footer` slot
+// takes what follows the numbers (the coupon form, the promises, the place-order button).
+import type { OrderSummaryProps } from './types'
+import Image from '../../atoms/image/index.astro'
+
+type Props = OrderSummaryProps
+
+const { heading, headingLevel = 2, lines = [], linesLabel, rows, total, savings, taxRows = [] } = Astro.props
+const Heading = `h${headingLevel}` as const
+---
+
+<section class="order-summary">
+  <Heading class="order-summary__heading">{heading}</Heading>
+  {
+    lines.length > 0 && (
+      <ul class="order-summary__lines" aria-label={linesLabel}>
+        {lines.map((line) => (
+          <li class="order-summary__line">
+            <span class="order-summary__thumb">{line.image && <Image {...line.image} />}</span>
+            <span class="order-summary__line-text">
+              <span class="order-summary__line-name">{line.name}</span>
+              {line.variantText && <span class="order-summary__line-variant">{line.variantText}</span>}
+              <span class="order-summary__line-variant">{line.quantityLabel}</span>
+            </span>
+            <span class="order-summary__line-price">{line.price}</span>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  <dl class="order-summary__rows">
+    {
+      rows.map((row) => (
+        <div class:list={['order-summary__row', `order-summary__row--${row.kind ?? 'default'}`]}>
+          <dt>
+            {row.label}
+            {row.note && <span class="order-summary__note">{row.note}</span>}
+          </dt>
+          <dd>{row.value}</dd>
+        </div>
+      ))
+    }
+    <div class="order-summary__row order-summary__row--total">
+      <dt>{total.label}</dt>
+      <dd>{total.value}</dd>
+    </div>
+    {
+      savings && (
+        <div class="order-summary__row order-summary__row--savings">
+          <dt>{savings}</dt>
+        </div>
+      )
+    }
+    {
+      taxRows.map((row) => (
+        <div class="order-summary__row order-summary__row--muted">
+          <dt>{row.label}</dt>
+          <dd>{row.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+  <div class="order-summary__footer"><slot /></div>
+</section>
+
+<style>
+  .order-summary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding: var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  /* Folded into the checkout's phone bar the panel sits flush on the muted band. */
+  @media (max-width: 899px) {
+    .order-summary {
+      padding: var(--space-16);
+    }
+  }
+
+  .order-summary__heading {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch-card);
+    text-transform: var(--text-case);
+  }
+
+  .order-summary__lines {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    margin: 0;
+    padding: 0 0 var(--space-16);
+    border-bottom: 1px solid var(--border);
+    list-style: none;
+  }
+
+  .order-summary__line {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto; /* token-lint-ignore: thumbnail column */
+    gap: var(--space-12);
+    align-items: start;
+  }
+
+  .order-summary__thumb {
+    display: block;
+    aspect-ratio: 1;
+    background: var(--surface);
+  }
+
+  .order-summary__thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .order-summary__line-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .order-summary__line-name {
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  .order-summary__line-variant {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+  }
+
+  .order-summary__line-price {
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .order-summary__rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin: 0;
+  }
+
+  .order-summary__row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-16);
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+  }
+
+  .order-summary__row dt {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .order-summary__row dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .order-summary__note {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+  }
+
+  .order-summary__row--discount dd {
+    color: var(--hot);
+    font-weight: 600;
+  }
+
+  .order-summary__row--savings {
+    justify-content: flex-end;
+    color: var(--hot);
+    font: var(--type-text-medium-sm);
+  }
+
+  .order-summary__row--savings dt {
+    flex-direction: row;
+  }
+
+  .order-summary__row--muted {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+  }
+
+  .order-summary__row--total {
+    padding-top: var(--space-12);
+    border-top: var(--stroke-thin) solid var(--border);
+    color: var(--text-primary);
+    font: var(--type-price-lg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .order-summary__footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  .order-summary__footer:empty {
+    display: none;
+  }
+</style>

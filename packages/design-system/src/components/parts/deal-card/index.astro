@@ -1,0 +1,285 @@
+---
+// Figma "card-deal" Default (706:26776; home 944:29580, lista-znizek grid, sidebar 833:44024 —
+// 325 / 360 / 411px wide): a 170px photo frame (radius 12, 3px white inner stroke) with the
+// partner mark centered on it, then partner / uppercase
+// 24px title / description and the accent CTA. The card fills its grid track.
+// `detail` (article 944:33120): the unframed in-article card — a larger photo crop, a 36px title,
+// the "how to redeem" block and the dashed discount-code field beside a
+// "go to the offer" CTA.
+import Button from '../../atoms/button/index.astro'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { DealCardContent } from './types'
+import { dealCardVariants, type DealCardVariant } from './variants'
+
+interface Props {
+  deal: DealCardContent
+  variant?: DealCardVariant
+}
+
+const { deal, variant = dealCardVariants.grid } = Astro.props
+const { partnerMark, howTo } = deal
+const isDetail = variant === dealCardVariants.detail
+---
+
+<article class:list={['deal-card', `deal-card--${variant}`]}>
+  <div class="deal-card__media">
+    {deal.image && <img class="deal-card__photo" src={deal.image} width="506" height="338" alt="" loading="lazy" />}
+    {
+      partnerMark && (
+        <img
+          class="deal-card__mark"
+          src={partnerMark.src}
+          width={partnerMark.width}
+          height={partnerMark.height}
+          alt={partnerMark.alt}
+          style={`--deal-card-mark-half-width: ${partnerMark.width / 2}px`}
+        />
+      )
+    }
+  </div>
+
+  <div class="deal-card__content">
+    <div class="deal-card__text">
+      <p class="deal-card__partner">{deal.partnerName}</p>
+      <h3 class="deal-card__title">
+        {deal.titleLines.map((line, index) => (index === 0 ? line : [<br />, line]))}
+      </h3>
+      <p class="deal-card__description">{deal.description}</p>
+    </div>
+    {
+      isDetail ? (
+        <div class="deal-card__redeem">
+          {howTo && (
+            <div class="deal-card__how-to">
+              <h4>{howTo.heading}</h4>
+              <p>{howTo.body}</p>
+            </div>
+          )}
+          <div class="deal-card__actions">
+            {deal.code && (
+              <div class="deal-card__code">
+                <span>{deal.code}</span>
+                <button type="button" aria-label={howTo?.copyLabel}>
+                  <Icon name={iconNames.copy} />
+                </button>
+              </div>
+            )}
+            {deal.href && (
+              <Button variant="accent" size="lg" href={deal.href}>
+                {deal.ctaLabel}
+                <Icon name={iconNames.arrowUpRight} slot="icon" />
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : (
+        deal.href && (
+          <Button variant="accent" kind="cta" href={deal.href} class="deal-card__cta">
+            {deal.ctaLabel}
+            <Icon name={iconNames.arrowUpRight} slot="icon" />
+          </Button>
+        )
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .deal-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding-bottom: var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .deal-card__media {
+    position: relative;
+    isolation: isolate;
+    flex: none;
+    height: 170px;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  /* Figma places a 506x338 cover-cropped photo at -69,-49 inside the 170px frame; on a card wider
+     than Figma's (single-column layouts) the photo grows with it so it never leaves a gap. */
+  .deal-card__photo {
+    position: absolute;
+    z-index: 0;
+    top: -49px;
+    left: -69px;
+    width: max(506px, calc(100% + 69px));
+    max-width: none;
+    height: auto;
+    aspect-ratio: 506 / 338;
+    object-fit: cover;
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .deal-card__photo {
+      transition: transform var(--duration-slow) var(--ease-out);
+    }
+
+    .deal-card:hover .deal-card__photo {
+      transform: scale(var(--hover-zoom));
+    }
+  }
+
+  /* Figma keeps the mark centered on the frame, 0.83px right of true center. */
+  .deal-card__mark {
+    position: absolute;
+    z-index: 1;
+    top: 61px;
+    left: calc(50% - var(--deal-card-mark-half-width) + 0.83px);
+    max-width: none;
+    pointer-events: none;
+  }
+
+  .deal-card__content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--space-24);
+    padding: var(--space-16) 0 0;
+  }
+
+  .deal-card__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .deal-card__partner {
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-secondary);
+  }
+
+  .deal-card__title {
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch-card);
+    color: var(--text-primary);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .deal-card__description {
+    font: var(--type-text-medium-sm);
+    letter-spacing: var(--tracking-text-medium-sm);
+    color: var(--text-body);
+  }
+
+  /* Figma's CTA fills the card's content width (the atom's `cta` kind defaults to 320px). */
+  .deal-card__content :global(.deal-card__cta.button--cta) {
+    width: 100%;
+    margin-top: auto;
+  }
+
+  /* detail: Figma crops a 774x518 photo at -69,-139. */
+
+  /* Figma moves the 774px crop from x -69 in the 668px card (1440) to x 2 in the 778px card
+     (1200): interpolate between the two frames, clamped so the photo always covers the frame. */
+  .deal-card--detail .deal-card__photo {
+    top: -139px;
+    left: clamp(calc(100% - max(774px, 100%)), calc(-69px + (100% - 668px) * 71 / 110), 0px);
+    width: max(774px, 100%);
+    aspect-ratio: 774 / 518;
+  }
+
+  .deal-card--detail .deal-card__title {
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+  }
+
+  /* Figma's description box is 616px, 4px narrower than the content column. */
+  .deal-card--detail .deal-card__description {
+    max-width: 616px;
+    font: var(--type-text-regular-sm);
+    letter-spacing: normal;
+    color: var(--text-primary);
+  }
+
+  .deal-card__redeem {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  .deal-card__how-to {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .deal-card__how-to h4 {
+    margin: 0;
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-primary);
+  }
+
+  .deal-card__how-to p {
+    margin: 0;
+    font: var(--type-text-regular-sm);
+    color: var(--text-body);
+  }
+
+  .deal-card__actions {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-8);
+  }
+
+  .deal-card__code {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8);
+    min-width: 0;
+    height: 48px;
+    padding: var(--space-12) var(--space-16);
+    border: 1px dashed var(--text-primary);
+    border-radius: var(--radius-field);
+    color: var(--text-primary);
+  }
+
+  /* Figma: body SemiBold 14px on a 21px (1.5) line. */
+  .deal-card__code span {
+    overflow: hidden;
+    font: var(--type-button-sm);
+    line-height: 21px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .deal-card__code button {
+    display: flex;
+    flex: none;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  @media (max-width: 640px) {
+    .deal-card__actions {
+      flex-direction: column;
+    }
+
+    .deal-card__code {
+      flex: none;
+    }
+  }
+</style>

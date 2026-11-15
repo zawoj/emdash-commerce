@@ -1,0 +1,8 @@
+/*
+ * Webfonts — Archivo Variable (SIL OFL, self-hosted through fontsource): weight 100–900 and width
+ * 62–125% in one file per subset, so the condensed headlines, the normal-width body and the
+ * expanded labels cost one download. The `wdth` build carries both axes; each subset (latin,
+ * latin-ext for Polish, vietnamese) is fetched only when the page uses its characters. The family
+ * name is `--font-body` / `--font-display` in index.css.
+ */
+@import '@fontsource-variable/archivo/wdth.css';

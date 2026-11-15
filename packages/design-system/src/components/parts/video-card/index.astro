@@ -1,0 +1,224 @@
+---
+// Figma: the video "Link" card of the tile-youtube modules (home-main 931:31361 — 234px,
+// widget-R 920:27790 — 312px): a 1px gray/100 border around a dark thumbnail with a bottom scrim
+// and the YouTube play glyph, then the channel, the title (cut after 2 lines on the compact card,
+// 3 on the wide one) and the date. Box geometry per size comes straight from Figma (thumbnail box
+// inside the border, scrim frame, play-glyph origin) and is converted to percentages so the card
+// scales with its grid track.
+import { youtubePlayIcon } from '../../../assets/artwork'
+import type { VideoCardContent } from './types'
+import type { VideoCardSize } from './variants'
+
+interface ThumbnailGeometry {
+  readonly width: number
+  readonly height: number
+  readonly scrimTop: number
+  readonly scrimHeight: number
+  readonly playX: number
+  readonly playY: number
+}
+
+// Figma: compact = 931:31362 (232 inside a 234px card), wide = 920:27791 (310 inside 312px).
+const thumbnailGeometry: Record<VideoCardSize, ThumbnailGeometry> = {
+  compact: { width: 232, height: 133.868, scrimTop: 29.674, scrimHeight: 104, playX: 99.5, playY: 51.336 },
+  wide: { width: 310, height: 178.875, scrimTop: 55.723, scrimHeight: 123, playX: 139, playY: 73.438 },
+}
+
+interface Props {
+  video: VideoCardContent
+  size: VideoCardSize
+}
+
+const { video, size } = Astro.props
+const box = thumbnailGeometry[size]
+const percentOfWidth = (value: number) => `${(value / box.width) * 100}%`
+const percentOfHeight = (value: number) => `${(value / box.height) * 100}%`
+
+const thumbStyle = `aspect-ratio: ${box.width} / ${box.height}`
+const scrimStyle = `top: ${percentOfHeight(box.scrimTop)}; height: ${percentOfHeight(box.scrimHeight)}`
+const playStyle = `left: ${percentOfWidth(box.playX)}; top: ${percentOfHeight(box.playY)}`
+const cropStyle = video.crop
+  ? `left: ${percentOfWidth(video.crop.x)}; top: ${percentOfHeight(video.crop.y)}; width: ${percentOfWidth(video.crop.width)}`
+  : undefined
+
+const avatar = video.author.avatar
+// The avatar circle is 20px; the photo's box is given in px inside it.
+const avatarSize = 20
+const avatarStyle = avatar
+  ? `left: ${(avatar.x / avatarSize) * 100}%; top: ${(avatar.y / avatarSize) * 100}%; width: ${(avatar.size / avatarSize) * 100}%`
+  : undefined
+---
+
+<a class:list={['video-card', `video-card--${size}`]} href={video.href}>
+  <div class="video-card__thumb" style={thumbStyle}>
+    <img
+      class:list={['video-card__photo', video.crop && 'video-card__photo--cropped']}
+      src={video.thumbnail}
+      width="1280"
+      height="720"
+      alt=""
+      loading="lazy"
+      decoding="async"
+      style={cropStyle}
+    />
+    <span class="video-card__scrim" style={scrimStyle}></span>
+    <img
+      class="video-card__play"
+      src={youtubePlayIcon.src}
+      width={youtubePlayIcon.width}
+      height={youtubePlayIcon.height}
+      alt=""
+      style={playStyle}
+    />
+  </div>
+  <div class="video-card__body">
+    <div class="video-card__text">
+      <p class="video-card__author">
+        {
+          avatar && (
+            <span class="video-card__avatar">
+              <img src={avatar.src} width="400" height="400" alt="" style={avatarStyle} />
+            </span>
+          )
+        }
+        <span>{video.author.name}</span>
+      </p>
+      <h3 class="video-card__title">{video.title}</h3>
+    </div>
+    {video.date && <p class="video-card__date">{video.date}</p>}
+  </div>
+</a>
+
+<style>
+  /* In a grid row every card fills the row's height and the date sits on the card's bottom edge,
+     so dates line up across the row whatever each title's length. */
+  .video-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: var(--radius-card);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .video-card__thumb {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--ink-1000);
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .video-card__photo {
+      transition: transform var(--duration-slow) var(--ease-out);
+    }
+
+    .video-card:hover .video-card__photo {
+      transform: scale(var(--hover-zoom));
+    }
+  }
+
+  .video-card__photo {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .video-card__photo--cropped {
+    inset: auto;
+    max-width: none;
+    height: auto;
+  }
+
+  .video-card__scrim {
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    /* A flat scrim under the caption keeps it readable over any thumbnail. */
+    background: color-mix(in srgb, var(--ink-1000) 82%, transparent);
+  }
+
+  .video-card__play {
+    position: absolute;
+    z-index: 1;
+    display: block;
+    width: 32px;
+    height: 32px;
+  }
+
+  .video-card__body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--space-12);
+    padding: var(--space-12) 0 0;
+  }
+
+  .video-card__date {
+    margin-top: auto;
+  }
+
+  .video-card__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .video-card__author {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-8);
+    font: var(--type-text-medium-xs);
+    color: var(--text-body);
+  }
+
+  .video-card__avatar {
+    position: relative;
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    background: var(--accent);
+    overflow: hidden;
+  }
+
+  .video-card__avatar img {
+    position: absolute;
+    display: block;
+    max-width: none;
+    height: auto;
+  }
+
+  /* Condensed caps editorial title, cut after 2 / 3 lines. */
+  .video-card__title {
+    display: -webkit-box;
+    overflow: hidden;
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch-card);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+    color: var(--text-primary);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .video-card--compact .video-card__title {
+    -webkit-line-clamp: 2;
+  }
+
+  .video-card__date {
+    font: var(--type-text-regular-xs);
+    color: var(--text-secondary);
+  }
+
+  .video-card:hover .video-card__title {
+    text-decoration: underline;
+  }
+</style>

@@ -1,0 +1,536 @@
+---
+// The page grid every page of the site lays its zones on (Figma "article" 944:33062 / 1019:48460,
+// "zawody" 1017:42067 / 1023:61010, "home" 944:29105, "wpisy z kategorii" 944:39841, "kontakt"
+// 1021:51612, "plain text" 1021:52562): one CSS grid with a gutter column on each side of a
+// 1392px content box, so full-bleed bands and the content column share the same tracks.
+//
+// Slots: `top` (top), `left` (left bar), `main` (middle), `right` (right bar), `bottom` (bottom).
+// A zone or bar without content is switched off with its flag (`hasTop`, `hasLeft`, `hasRight`,
+// `hasBottom`) and renders no element.
+// - feed: the top zone stacks full-width bands and 1392px blocks; below it the main column and the
+//   360px right bar (24px apart) side by side down to 900px.
+// - article: the title (800px) and photo (1034px) of a hero-content block centred above three
+//   columns — left bar 300 | main 732 (32px inside) | right bar 360 — and the bottom zone (1008px)
+//   under them at ≥1280px; at 1100–1279px two columns (main + a 350px column holding both bars from
+//   the photo down); below 1100px one column.
+// - deal (Figma "partner strona" 1022:56090): the banner on top, then three columns scaling as
+//   360 : 672 : 360 — the left bar (offer tile), the text, the right bar; at ≤1100px the two bars
+//   stack in a 360px column beside the text, at ≤900px one column (left bar, text, right bar).
+// - narrow: one centred 778px column for every zone; the bars follow it.
+import './deal.css'
+import { pageGridLeftOrders, pageGridVariants } from './variants'
+import type { PageGridLeftOrder, PageGridVariant } from './variants'
+
+interface Props {
+  hasTop?: boolean
+  hasLeft?: boolean
+  hasRight?: boolean
+  hasBottom?: boolean
+  variant?: PageGridVariant
+  isNarrow?: boolean
+  /** Article variant: the photo keeps the 800px column of the title instead of its own 1034px. */
+  isFigureNarrow?: boolean
+  /** Accessible names of the bars' `<aside>`s. */
+  leftLabel?: string
+  rightLabel?: string
+  leftOrder?: PageGridLeftOrder
+}
+
+const {
+  hasTop = false,
+  hasLeft = false,
+  hasRight = false,
+  hasBottom = false,
+  variant = pageGridVariants.feed,
+  isNarrow = false,
+  isFigureNarrow = false,
+  leftLabel,
+  rightLabel,
+  leftOrder = pageGridLeftOrders.before,
+} = Astro.props
+---
+
+<main
+  id="main-content"
+  class="page-grid"
+  data-variant={variant}
+  data-width={isNarrow ? 'narrow' : 'full'}
+  data-figure={isFigureNarrow ? 'narrow' : undefined}
+  data-left={hasLeft ? '' : undefined}
+  data-right={hasRight ? '' : undefined}
+  data-left-order={leftOrder}
+  data-bottom={hasBottom ? '' : undefined}
+>
+  {
+    hasTop && (
+      <div class="page-grid__top" data-zone="top">
+        <slot name="top" />
+      </div>
+    )
+  }
+  {
+    (hasLeft || hasRight) && (
+      <div class="page-grid__aside">
+        {
+          hasLeft && (
+            <aside class="page-grid__left" aria-label={leftLabel}>
+              <slot name="left" />
+            </aside>
+          )
+        }
+        {
+          hasRight && (
+            <aside class="page-grid__right" aria-label={rightLabel}>
+              <slot name="right" />
+            </aside>
+          )
+        }
+      </div>
+    )
+  }
+  <div class="page-grid__main" data-zone="middle">
+    <slot name="main" />
+  </div>
+  {
+    hasBottom && (
+      <div class="page-grid__bottom" data-zone="bottom">
+        <slot name="bottom" />
+      </div>
+    )
+  }
+</main>
+
+<style>
+  /* Tracks: gutter | rail | gap | main | gap | side | gutter. The content box (rail + gap + main +
+     gap + side) is at most 1392px; the gutters take the rest of the viewport. A page without a bar
+     sets its track to 0. Rows: 1 top / title, 2 photo, 3 left bar before the text (one column),
+     4 main (and both bars on the wide grid), 5 right bar after the text (one column, feed),
+     6 bottom, 7 left bar after the bottom zone, 8 right bar after it (one column, article). */
+  .page-grid {
+    --gutter: var(--space-24);
+    --side-gutter: var(--page-gutter);
+    --content: calc(var(--page-max-width) - 2 * var(--side-gutter));
+    --rail: 0px;
+    --gap-l: 0px;
+    --gap-r: 0px;
+    --side: 0px;
+    --col-left: 4;
+    --col-right: 4;
+    --row-left: 3;
+    --row-right: 5;
+
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns:
+      minmax(var(--side-gutter), 1fr)
+      var(--rail)
+      var(--gap-l)
+      minmax(0, calc(var(--content) - var(--rail) - var(--gap-l) - var(--gap-r) - var(--side)))
+      var(--gap-r)
+      var(--side)
+      minmax(var(--side-gutter), 1fr);
+    align-content: start;
+    background: var(--page-bg);
+  }
+
+  .page-grid[data-width='narrow'] {
+    --content: 778px; /* token-lint-ignore: Figma 778px column, no token */
+  }
+
+  .page-grid[data-left-order='after'] {
+    --row-left: 7;
+  }
+
+  .page-grid[data-variant='article'] {
+    --row-right: 8;
+  }
+
+  .page-grid__top,
+  .page-grid__bottom {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .page-grid__top {
+    grid-row: 1;
+  }
+
+  .page-grid__bottom {
+    grid-row: 6;
+  }
+
+  .page-grid__aside {
+    display: contents;
+  }
+
+  .page-grid__main {
+    grid-column: 4;
+    grid-row: 4;
+    display: flex;
+    flex-direction: column;
+    gap: var(--stack-gap);
+    min-width: 0;
+  }
+
+  .page-grid__left,
+  .page-grid__right {
+    display: flex;
+    flex-direction: column;
+    gap: var(--stack-gap);
+    align-self: start;
+    min-width: 0;
+  }
+
+  .page-grid__left {
+    grid-column: var(--col-left);
+    grid-row: var(--row-left);
+  }
+
+  .page-grid__right {
+    grid-column: var(--col-right);
+    grid-row: var(--row-right);
+  }
+
+  /* A block in the top or bottom zone is a block of the content box, centred in the page; the
+     full-width bands carry their own container. */
+  .page-grid__top > :global(:not(.hero-centered, .partner-hero, .hero-content, .listing-hero)),
+  .page-grid__bottom > :global(:not(.home-newsletter)) {
+    width: min(100% - 2 * var(--side-gutter), var(--content));
+    margin-inline: auto;
+  }
+
+  .page-grid__top > :global(:not(.hero-centered, .partner-hero, .hero-content, .listing-hero)) {
+    margin-top: var(--gutter);
+  }
+
+  .page-grid__top > :global(:not(.hero-centered, .partner-hero, .hero-content, .listing-hero):last-child) {
+    margin-bottom: var(--gutter);
+  }
+
+  .page-grid__top > :global(:is(.hero-centered, .partner-hero, .listing-hero)),
+  .page-grid__bottom > :global(.home-newsletter) {
+    width: 100%;
+  }
+
+  /* ---------------------------------------------------------------- feed */
+
+  .page-grid[data-variant='feed'] > :is(.page-grid__main, .page-grid__aside > .page-grid__left, .page-grid__aside > .page-grid__right) {
+    padding-bottom: var(--gutter);
+  }
+
+  .page-grid[data-variant='feed'][data-right] {
+    --side: 360px; /* token-lint-ignore: Figma 360px right bar */
+    --gap-r: var(--space-24);
+    --col-right: 6;
+    --row-right: 4;
+  }
+
+  .page-grid[data-variant='feed'][data-left] {
+    --rail: 300px; /* token-lint-ignore: Figma 300px left bar */
+    --gap-l: var(--space-24);
+    --col-left: 2;
+    --row-left: 4;
+  }
+
+  /* One column below 900px: the bars follow the main column. */
+  @media (max-width: 900px) {
+    .page-grid.page-grid[data-variant='feed'] {
+      --rail: 0px;
+      --gap-l: 0px;
+      --gap-r: 0px;
+      --side: 0px;
+      --col-left: 4;
+      --col-right: 4;
+      --row-left: 3;
+      --row-right: 5;
+    }
+
+    .page-grid.page-grid[data-variant='feed'][data-left-order='after'] {
+      --row-left: 7;
+    }
+  }
+
+  /* -------------------------------------------------------------- article */
+
+  .page-grid[data-variant='article'] {
+    padding-top: var(--space-40);
+  }
+
+  /* One column: title, photo, left bar, text, bottom zone, bars. */
+  .page-grid[data-variant='article'] .page-grid__top {
+    display: contents;
+  }
+
+  .page-grid[data-variant='article'] :global(.hero-content) {
+    display: contents;
+  }
+
+  .page-grid[data-variant='article'] :global(:is(.hero-content__title, .hero-content__figure)) {
+    grid-column: 4;
+  }
+
+  .page-grid[data-variant='article'] :global(.hero-content__title) {
+    grid-row: 1;
+    margin-bottom: var(--gutter);
+  }
+
+  .page-grid[data-variant='article'] :global(.hero-content__figure) {
+    grid-row: 2;
+    margin-bottom: var(--gutter);
+  }
+
+  .page-grid[data-variant='article'] .page-grid__main {
+    padding-bottom: var(--gutter);
+  }
+
+  .page-grid[data-variant='article'][data-bottom] .page-grid__main {
+    padding-bottom: var(--space-64);
+  }
+
+  .page-grid[data-variant='article'] .page-grid__bottom {
+    grid-column: 4;
+  }
+
+  .page-grid[data-variant='article'] .page-grid__bottom > :global(*) {
+    width: 100%;
+    margin: 0;
+  }
+
+  .page-grid[data-variant='article'] :is(.page-grid__left, .page-grid__right) {
+    margin-top: var(--gutter);
+  }
+
+  .page-grid[data-variant='article'] {
+    padding-bottom: var(--gutter);
+  }
+
+  /* The 1200 frame: main column + a 350px column holding both bars from the photo down. */
+  @media (min-width: 1100px) {
+    .page-grid[data-variant='article'] {
+      --gap-r: var(--space-24);
+      --side: 350px; /* token-lint-ignore: Figma 350px column of the 1200 frame */
+    }
+
+    .page-grid[data-variant='article']:not([data-left], [data-right]) {
+      --gap-r: 0px;
+      --side: 0px;
+    }
+
+    .page-grid[data-variant='article'] .page-grid__aside {
+      display: flex;
+      flex-direction: column;
+      grid-column: 6;
+      grid-row: 2 / 7;
+      gap: var(--gutter);
+      align-self: start;
+      min-width: 0;
+    }
+
+    .page-grid[data-variant='article'] :is(.page-grid__left, .page-grid__right) {
+      grid-column: auto;
+      grid-row: auto;
+      align-self: stretch;
+      margin-top: 0;
+    }
+
+    .page-grid[data-variant='article'] .page-grid__top {
+      display: contents;
+    }
+
+    .page-grid[data-variant='article'] :global(.hero-content__figure figcaption) {
+      display: none;
+    }
+
+    .page-grid[data-variant='article'] .page-grid__main {
+      padding-bottom: var(--gutter);
+    }
+
+    .page-grid[data-variant='article'][data-bottom] .page-grid__main {
+      padding-bottom: var(--space-128);
+    }
+
+    .page-grid[data-variant='article'] .page-grid__bottom {
+      grid-column: 4;
+    }
+
+    .page-grid[data-variant='article'][data-bottom] {
+      padding-bottom: var(--space-64);
+    }
+  }
+
+  /* The 1440 frame: title and photo centred above three columns, the bottom zone under them. */
+  @media (min-width: 1280px) {
+    .page-grid[data-variant='article'] {
+      --rail: 300px; /* token-lint-ignore: Figma 300px left bar */
+      --gap-r: 0px;
+      --side: 360px; /* token-lint-ignore: Figma 360px right bar */
+      --col-left: 2;
+      --col-right: 6;
+      --row-left: 4;
+      --row-right: 4;
+
+      padding-top: 56px; /* token-lint-ignore: Figma section top padding 56px */
+      padding-bottom: var(--space-64);
+    }
+
+    .page-grid[data-variant='article']:not([data-left]) {
+      --rail: 0px;
+    }
+
+    .page-grid[data-variant='article']:not([data-right]) {
+      --side: 0px;
+    }
+
+    .page-grid[data-variant='article'][data-bottom] {
+      padding-bottom: var(--space-96);
+    }
+
+    .page-grid[data-variant='article'] .page-grid__aside {
+      display: contents;
+    }
+
+    .page-grid[data-variant='article'] :global(:is(.hero-content__title, .hero-content__figure)) {
+      grid-column: 2 / 7;
+      justify-self: center;
+    }
+
+    .page-grid[data-variant='article'] :global(.hero-content__title) {
+      width: min(800px, 100%); /* token-lint-ignore: Figma title column 800px */
+      margin-bottom: var(--space-40);
+    }
+
+    .page-grid[data-variant='article'] :global(.hero-content__figure) {
+      width: min(1034px, 100%); /* token-lint-ignore: Figma photo width 1034px */
+      margin-bottom: var(--space-48);
+    }
+
+    .page-grid[data-variant='article'][data-figure='narrow'] :global(.hero-content__figure) {
+      width: min(800px, 100%); /* token-lint-ignore: Figma event photo width 800px */
+    }
+
+    .page-grid[data-variant='article'] :global(.hero-content__figure figcaption) {
+      display: block;
+    }
+
+    .page-grid[data-variant='article'] .page-grid__left {
+      grid-column: var(--col-left);
+      grid-row: var(--row-left);
+      align-self: stretch;
+      margin-top: 0;
+    }
+
+    .page-grid[data-variant='article'] .page-grid__right {
+      grid-column: var(--col-right);
+      grid-row: var(--row-right);
+      margin-top: 0;
+    }
+
+    .page-grid[data-variant='article'][data-left] .page-grid__main {
+      padding-left: var(--space-32);
+    }
+
+    .page-grid[data-variant='article'][data-right] .page-grid__main {
+      padding-right: var(--space-32);
+    }
+
+    .page-grid[data-variant='article'] .page-grid__main {
+      padding-bottom: 0;
+    }
+
+    .page-grid[data-variant='article'][data-bottom] .page-grid__main {
+      padding-bottom: var(--space-64);
+    }
+
+    .page-grid[data-variant='article'] .page-grid__bottom {
+      grid-column: 2 / 7;
+    }
+
+    .page-grid[data-variant='article'] .page-grid__bottom > :global(*) {
+      width: min(1008px, 100%); /* token-lint-ignore: Figma bottom zone column 1008px */
+      margin: var(--gutter) auto 0;
+    }
+  }
+
+  /* -------------------------------------------------------------- narrow */
+
+  .page-grid[data-width='narrow'] {
+    --rail: 0px;
+    --gap-l: 0px;
+    --gap-r: 0px;
+    --side: 0px;
+    --col-left: 4;
+    --col-right: 4;
+    --row-left: 3;
+    --row-right: 5;
+
+    padding-block: var(--gutter) calc(var(--space-64) + var(--space-128));
+  }
+
+  .page-grid[data-width='narrow'] .page-grid__top,
+  .page-grid[data-width='narrow'] .page-grid__bottom {
+    grid-column: 4;
+    gap: var(--gutter);
+  }
+
+  .page-grid[data-width='narrow'] .page-grid__top > :global(*),
+  .page-grid[data-width='narrow'] .page-grid__bottom > :global(*) {
+    width: 100%;
+    margin: 0;
+  }
+
+  .page-grid[data-width='narrow'] .page-grid__top {
+    margin-bottom: var(--gutter);
+  }
+
+  .page-grid[data-width='narrow'] .page-grid__bottom,
+  .page-grid[data-width='narrow'] .page-grid__left,
+  .page-grid[data-width='narrow'] .page-grid__right {
+    margin-top: var(--gutter);
+  }
+
+  .page-grid[data-width='narrow'][data-variant] > .page-grid__main {
+    padding: 0;
+  }
+
+  /* A plain title (no band) sits 16px over its text. */
+  .page-grid[data-width='narrow'] .page-grid__top:has(> .hero-content) {
+    margin-bottom: var(--space-16);
+  }
+
+  /* A plain page's title (Figma "plain text": no band) sits 96px under the header. */
+  .page-grid[data-width='narrow'] :global(.hero-content__title) {
+    margin-top: calc(var(--space-96) - var(--gutter));
+  }
+
+  /* … and keeps its size down to the phone breakpoint. */
+  .page-grid[data-width='narrow'] :global(.hero-content h1) {
+    font: var(--type-display-3xl);
+    font-stretch: var(--display-stretch);
+  }
+
+  @media (max-width: 640px) {
+    .page-grid {
+      --gutter: var(--space-16);
+    }
+
+    .page-grid[data-variant='article'] {
+      padding-top: var(--space-32);
+    }
+
+    .page-grid[data-width='narrow'] {
+      padding-bottom: var(--space-80);
+    }
+
+    .page-grid[data-width='narrow'] :global(.hero-content__title) {
+      margin-top: calc(var(--space-40) - var(--gutter));
+    }
+
+    .page-grid[data-width='narrow'] :global(.hero-content h1) {
+      font: var(--type-display-lg);
+      font-stretch: var(--display-stretch);
+    }
+  }
+</style>

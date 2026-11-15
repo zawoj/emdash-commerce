@@ -1,0 +1,144 @@
+---
+// Figma "tile-featured-articles" multiple (1017:38479): a tile-title row over four numbered
+// article cards (8px apart).
+import CategoryLabel from '../../../atoms/category-label/index.astro'
+import TileTitle from '../../../molecules/tile-title/index.astro'
+import type { TagPostsProps } from './types'
+
+type Props = TagPostsProps
+
+const { heading, headingId, more, items } = Astro.props
+const hasItems = items.length > 0
+/** Figma numbers the cards "01", "02", … */
+const numberOf = (index: number): string => String(index + 1).padStart(2, '0')
+---
+
+{
+  hasItems && (
+    <section class="tag-posts" data-surface="dark" aria-labelledby={headingId}>
+      <div class="tag-posts__title">
+        <TileTitle heading={heading} headingId={headingId} more={more} />
+      </div>
+
+      <div class="tag-posts__grid">
+        {items.map((article, index) => (
+          <a class="tag-posts__card" href={article.href}>
+            <div class="tag-posts__card-top">
+              <div class="tag-posts__card-meta">
+                {article.category ? <CategoryLabel category={article.category.key} color={article.category.color}>{article.category.label}</CategoryLabel> : <span />}
+                <span class="tag-posts__number">{numberOf(index)}</span>
+              </div>
+              <h3 class="tag-posts__card-title">{article.title}</h3>
+            </div>
+            <div class="tag-posts__details">
+              {article.author && <span class="tag-posts__author">{article.author}</span>}
+              {article.date && <time class="tag-posts__date" datetime={article.date.iso}>{article.date.label}</time>}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .tag-posts {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+    overflow: hidden;
+    padding: var(--space-48) var(--space-32);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .tag-posts__title {
+    position: relative;
+  }
+
+  .tag-posts__grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-8);
+  }
+
+  /* Each card is at least 192px tall and spreads its two blocks apart (space-between). */
+  .tag-posts__card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-16);
+    min-height: 192px;
+    padding: var(--space-20);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+    text-decoration: none;
+  }
+
+  .tag-posts__card-top {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  .tag-posts__card-meta {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8);
+  }
+
+  .tag-posts__number {
+    font: var(--type-title-2);
+    color: var(--accent);
+  }
+
+  .tag-posts__card-title {
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch-card);
+    color: var(--text-primary);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .tag-posts__card:hover .tag-posts__card-title {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .tag-posts__details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .tag-posts__author {
+    font: var(--type-label-medium-sm);
+    color: var(--text-muted);
+  }
+
+  .tag-posts__date {
+    font: var(--type-label-regular-xs);
+    color: var(--text-subtle);
+  }
+
+  @media (max-width: 1100px) {
+    .tag-posts__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .tag-posts__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .tag-posts__card {
+      min-height: 0;
+      gap: var(--space-16);
+    }
+  }
+</style>

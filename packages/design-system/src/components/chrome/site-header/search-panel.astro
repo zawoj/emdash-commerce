@@ -1,0 +1,344 @@
+---
+// Figma "navbar search" tile (706:30418 empty, 706:30371 with results): the white panel the
+// header's search button opens — an input row, then either the "type a phrase" hint or the result
+// rows with a "see all results" link. The panel carries `data-state` (`empty` | `results` |
+// `none`); the header's script flips it as the visitor types and, when the search has an
+// endpoint, fills the rows from it. All bodies are always rendered.
+import Icon from '../../atoms/icon/index.astro'
+import Image from '../../atoms/image/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { SiteSearch } from '../types'
+
+interface Props {
+  search: SiteSearch
+  inputId: string
+  /** Pre-filled query — renders the results state. */
+  query?: string
+  /** Load the result thumbnails up front (a static panel); the header's dialog loads them lazily. */
+  isEager?: boolean
+}
+
+const { search, inputId, query = '', isEager = false } = Astro.props
+const { copy, action, endpoint, minLength = 2, limit = 4, exampleResults = [] } = search
+const hasQuery = query.trim().length > 0
+const allResultsHref = hasQuery ? `${action}?q=${encodeURIComponent(query.trim())}` : action
+---
+
+<form
+  class="search-panel"
+  method="get"
+  action={action}
+  role="search"
+  data-state={hasQuery ? 'results' : 'empty'}
+  data-search-panel
+  data-endpoint={endpoint}
+  data-action={action}
+  data-min-length={minLength}
+  data-limit={limit}
+>
+  <div class="search-panel__field">
+    <label class="search-panel__icon" for={inputId}>
+      <Icon name={iconNames.search} />
+      <span class="search-panel__label">{copy.label}</span>
+    </label>
+    <input
+      id={inputId}
+      class="search-panel__input"
+      type="search"
+      name="q"
+      placeholder={copy.placeholder}
+      value={query || undefined}
+      autocomplete="off"
+      data-search-input
+    />
+    <button type="button" class="search-panel__close" aria-label={copy.closeLabel} data-search-close>
+      <Icon name={iconNames.x} />
+    </button>
+  </div>
+
+  <p class="search-panel__hint" data-search-hint>{copy.emptyHint}</p>
+  <p class="search-panel__none" data-search-none>{copy.noResultsLabel}</p>
+
+  <div class="search-panel__results" data-search-results>
+    <ul class="search-panel__list" data-search-list>
+      {
+        exampleResults.map((result) => (
+          <li>
+            <a class="search-panel__result" href={result.href}>
+              <span class="search-panel__thumb">
+                {result.image && <Image src={result.image} width={104} height={62} alt="" isEager={isEager} />}
+              </span>
+              <span class="search-panel__details">
+                <span class="search-panel__type">{result.type}</span>
+                <span class="search-panel__title">{result.title}</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <template data-search-row>
+      <li>
+        <a class="search-panel__result" href="#">
+          <span class="search-panel__thumb" data-row-thumb></span>
+          <span class="search-panel__details">
+            <span class="search-panel__type" data-row-type></span>
+            <span class="search-panel__title" data-row-title></span>
+          </span>
+        </a>
+      </li>
+    </template>
+    <a class="search-panel__all" href={allResultsHref} data-search-all>
+      {copy.allResultsLabel}
+      <Icon name={iconNames.lucideArrowRight} />
+    </a>
+  </div>
+</form>
+
+<script>
+  interface LiveResult {
+    title: string
+    href: string
+    typeLabel: string
+    image?: string | null
+  }
+
+  /** Long enough that a fast typist sends one request, short enough to feel instant. */
+  const DEBOUNCE_MS = 180
+
+  const createThumb = (src: string): HTMLImageElement => {
+    const image = document.createElement('img')
+    image.width = 104
+    image.height = 62
+    image.src = src
+    image.alt = ''
+    image.loading = 'lazy'
+    image.decoding = 'async'
+    return image
+  }
+
+  const fillRow = (template: HTMLTemplateElement, result: LiveResult): DocumentFragment => {
+    const row = template.content.cloneNode(true) as DocumentFragment
+    const link = row.querySelector<HTMLAnchorElement>('a')
+    const thumb = row.querySelector<HTMLElement>('[data-row-thumb]')
+    const type = row.querySelector<HTMLElement>('[data-row-type]')
+    const title = row.querySelector<HTMLElement>('[data-row-title]')
+    if (link) link.href = result.href
+    if (type) type.textContent = result.typeLabel
+    if (title) title.textContent = result.title
+    if (thumb && result.image) thumb.append(createThumb(result.image))
+    return row
+  }
+
+  const mountSearchPanel = (panel: HTMLFormElement): void => {
+    const input = panel.querySelector<HTMLInputElement>('[data-search-input]')
+    const list = panel.querySelector<HTMLElement>('[data-search-list]')
+    const all = panel.querySelector<HTMLAnchorElement>('[data-search-all]')
+    const template = panel.querySelector<HTMLTemplateElement>('[data-search-row]')
+    if (!input || !list || !all || !template) return
+
+    const action = panel.dataset.action ?? ''
+    const endpoint = panel.dataset.endpoint
+    const minLength = Number(panel.dataset.minLength ?? '2')
+    const limit = panel.dataset.limit ?? '4'
+    let timer: number | undefined
+    let latest = 0
+
+    const show = (state: 'empty' | 'results' | 'none'): void => {
+      panel.dataset.state = state
+    }
+
+    const run = async (query: string): Promise<void> => {
+      const request = ++latest
+      try {
+        const response = await fetch(`${endpoint}?q=${encodeURIComponent(query)}&limit=${limit}`)
+        if (!response.ok || request !== latest) return
+        const { results } = (await response.json()) as { results: LiveResult[] }
+        if (request !== latest) return
+        list.replaceChildren(...results.map((result) => fillRow(template, result)))
+        all.href = `${action}?q=${encodeURIComponent(query)}`
+        show(results.length > 0 ? 'results' : 'none')
+      } catch {
+        show('empty')
+      }
+    }
+
+    input.addEventListener('input', () => {
+      window.clearTimeout(timer)
+      const query = input.value.trim()
+      if (!endpoint || query.length < minLength) return show('empty')
+      timer = window.setTimeout(() => void run(query), DEBOUNCE_MS)
+    })
+  }
+
+  document.querySelectorAll<HTMLFormElement>('[data-search-panel]').forEach(mountSearchPanel)
+</script>
+
+<style>
+  .search-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border-radius: var(--radius-panel);
+    background: var(--surface);
+    box-shadow: var(--shadow-overlay);
+    overflow: hidden;
+  }
+
+  .search-panel[data-state='empty'] .search-panel__results,
+  .search-panel[data-state='empty'] .search-panel__none,
+  .search-panel[data-state='results'] .search-panel__hint,
+  .search-panel[data-state='results'] .search-panel__none,
+  .search-panel[data-state='none'] .search-panel__results,
+  .search-panel[data-state='none'] .search-panel__hint {
+    display: none;
+  }
+
+  /* 706:30373 — 16px padding, 8px gaps, a 1px divider under the row. */
+  .search-panel__field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+    padding: var(--space-20) var(--space-24);
+    border-bottom: var(--stroke-thin) solid var(--border);
+  }
+
+  .search-panel__icon,
+  .search-panel__close {
+    display: flex;
+    flex: none;
+    color: var(--text-primary);
+  }
+
+  .search-panel__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Figma sets the query at 14px on a 14px line (leading-none) inside the 16px icon row. */
+  .search-panel__input {
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: none;
+    font: var(--type-text-regular-md);
+    color: var(--text-primary);
+    appearance: none;
+  }
+
+  .search-panel__input::placeholder {
+    color: var(--text-secondary);
+  }
+
+  .search-panel__input:focus {
+    outline: none;
+  }
+
+  .search-panel__input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .search-panel__close {
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
+
+  .search-panel__close:hover {
+    color: var(--text-secondary);
+  }
+
+  .search-panel__hint,
+  .search-panel__none {
+    padding: var(--space-24) 0;
+    font: var(--type-text-regular-sm);
+    color: var(--text-secondary);
+    text-align: center;
+  }
+
+  .search-panel__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    margin: 0;
+    padding: var(--space-24);
+    list-style: none;
+  }
+
+  /* 706:30382 — card-article "search result": 104×62 thumbnail beside type + title. */
+  .search-panel__result {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .search-panel__thumb {
+    flex: none;
+    width: 104px;
+    height: 62px;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+  }
+
+  .search-panel__thumb :global(img) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1280 / 762;
+    height: auto;
+    object-fit: cover;
+  }
+
+  .search-panel__details {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-6);
+    min-width: 0;
+  }
+
+  .search-panel__type {
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    text-transform: var(--label-case);
+    letter-spacing: var(--tracking-label);
+    color: var(--text-secondary);
+  }
+
+  .search-panel__title {
+    font: var(--type-title-md);
+    text-wrap: balance;
+    color: var(--text-primary);
+  }
+
+  .search-panel__result:hover .search-panel__title {
+    text-decoration: underline;
+  }
+
+  /* 706:30386 — centered link under a 1px divider. */
+  .search-panel__all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    padding: var(--space-16) 0;
+    border-top: var(--stroke-thin) solid var(--border);
+    font: var(--type-button-sm);
+    text-transform: var(--button-case);
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .search-panel__all:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

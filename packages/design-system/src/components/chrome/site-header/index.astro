@@ -1,0 +1,492 @@
+---
+// Figma "header-nav" (661:5510; the home instance 944:29107): the slim utility bar, the 64px main bar
+// (logo, primary nav, search button, account, cart, menu button) and the 42px partner strip.
+// From 1101px the primary nav is a mega menu: a full-width white panel under the bar with centred text
+// columns and optional photo tiles (primary-nav, mega-panel); below it the menu button opens a
+// full-screen drawer with drill-down levels (mobile-drawer). The search button opens Figma's "navbar
+// search" panel (706:30430) in a modal <dialog> (search-dialog). An app with its own search control (the
+// starters' combobox) leaves `search` out and puts its controls into the `actions` slot, next to the
+// menu button; `isTopbarVisible={false}` drops the top bar for a site without top links.
+// A shop adds `cart` (a link with a live count badge that opens the mini-cart), `account` (a link)
+// and `categoryBar` (the main categories as a scrollable row under the bar, below 1100px).
+// `isMinimal` is the checkout's header: the logo and the `actions` slot only.
+// Up to 767px the search, account, cart and menu buttons are hidden: the page's bottom tab bar (`tab-bar`) holds
+// those four and reuses these buttons' attributes to open the drawer, the search overlay and the mini-cart.
+import Button from '../../atoms/button/index.astro'
+import SiteWordmark from '../../atoms/site-wordmark/index.astro'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import PartnerStrip from '../partner-strip/index.astro'
+import { partnerStripPlacements } from '../partner-strip/variants'
+import CountBadge from '../../atoms/count-badge/index.astro'
+import type { ChromeLink, ChromeMenuItem, HeaderAccount, HeaderCart, HeaderCategoryBar, HeaderDrawerCopy, PartnerLogo, SiteSearch } from '../types'
+import CategoryBar from './category-bar.astro'
+import { drawerIdOf, SEARCH_DIALOG_ID, SITE_ID_PREFIX } from './ids'
+import MobileDrawer from './mobile-drawer.astro'
+import PrimaryNav from './primary-nav.astro'
+import SearchDialog from './search-dialog.astro'
+
+interface Props {
+  homeHref: string
+  /** The site name: the accessible name of the logo link. */
+  siteName: string
+  /** The links of the top bar. */
+  topLinks?: readonly ChromeLink[]
+  /** Names the top links' nav; needed only with the top bar. */
+  topLinksLabel?: string
+  /** The main menu: top items, each with optional columns, a "shop all" label and photo tiles (see `ChromeMenuItem`). */
+  menu: readonly ChromeMenuItem[]
+  menuLabel: string
+  menuToggleLabel: string
+  /** The words of the phone drawer; absent = the menu's own labels. */
+  drawer?: HeaderDrawerCopy
+  /** Name of a sub-menu disclosure button with `{label}` ("Show {label} submenu"). */
+  subMenuLabelTemplate?: string
+  /** The date shown in the top bar; empty = the header's script writes today's date on load. */
+  dateLabel?: string
+  /** The header search dialog; none = no search button (an app may slot its own control into `actions`). */
+  search?: SiteSearch
+  /** Logos of the partner ticker under the bar; none = no strip. */
+  partners?: readonly PartnerLogo[]
+  /** A "sign in" button (not part of the site today). */
+  login?: ChromeLink
+  /** Figma's 146.95px header (the Sylwetki listing): a 36px partner strip at every width. */
+  isStripShort?: boolean
+  /** The 38px bar above the main bar (top links and today's date). */
+  isTopbarVisible?: boolean
+  /** The cart link with its count badge. */
+  cart?: HeaderCart
+  /** The account link. */
+  account?: HeaderAccount
+  /** The main categories as a link bar under the header on a phone. */
+  categoryBar?: HeaderCategoryBar
+  /** Checkout chrome: only the logo and the `actions` slot (no menu, search, top bar, partners). */
+  isMinimal?: boolean
+  /** Gallery only: renders this top item's mega-menu panel open (its index) — a static specimen of the open state. */
+  openMenuIndex?: number
+  /** Prefix of the ids the header generates (drawer, panels); only a page with two headers (the gallery) changes it. */
+  idPrefix?: string
+}
+
+const {
+  homeHref,
+  siteName,
+  topLinks = [],
+  topLinksLabel = '',
+  menu,
+  menuLabel,
+  menuToggleLabel,
+  drawer,
+  subMenuLabelTemplate,
+  dateLabel = '',
+  search,
+  partners = [],
+  login,
+  isStripShort = false,
+  isTopbarVisible = true,
+  cart,
+  account,
+  categoryBar,
+  isMinimal = false,
+  openMenuIndex,
+  idPrefix = SITE_ID_PREFIX,
+} = Astro.props
+const hasTopbar = isTopbarVisible && !isMinimal
+const hasSearch = Boolean(search) && !isMinimal
+const searchDialogId = SEARCH_DIALOG_ID
+const drawerId = drawerIdOf(idPrefix)
+const drawerCopy: HeaderDrawerCopy = drawer ?? { label: menuLabel, closeLabel: menuToggleLabel, backLabel: menuLabel }
+const linkRel = (link: ChromeLink): string | undefined => (link.isNewTab ? 'noopener' : undefined)
+const linkTarget = (link: ChromeLink): string | undefined => (link.isNewTab ? '_blank' : undefined)
+---
+
+<header class:list={['site-header', isMinimal && 'site-header--minimal']} data-surface="light" data-mega-open={openMenuIndex !== undefined ? '' : undefined} data-mega-static={openMenuIndex !== undefined ? '' : undefined}>
+  {
+    hasTopbar && (
+      <div class="site-header__topbar">
+        <div class="site-header__topbar-inner">
+          <nav aria-label={topLinksLabel}>
+            <ul>
+              {
+                topLinks.map((link) => (
+                  <li>
+                    <a href={link.href} target={linkTarget(link)} rel={linkRel(link)}>{link.label}</a>
+                  </li>
+                ))
+              }
+            </ul>
+          </nav>
+          <span class="site-header__date" data-site-date>{dateLabel}</span>
+        </div>
+      </div>
+    )
+  }
+
+  <div class="site-header__mainbar">
+    <div class="site-header__mainbar-inner">
+      <div class="site-header__brand">
+        <a href={homeHref} aria-label={siteName}>
+          <SiteWordmark siteName={siteName} variant="header" />
+        </a>
+      </div>
+
+      {!isMinimal && <PrimaryNav menu={menu} label={menuLabel} subMenuLabelTemplate={subMenuLabelTemplate} openIndex={openMenuIndex} idPrefix={idPrefix} />}
+
+      <div class="site-header__actions">
+        <slot name="actions" />
+        {hasSearch && search && (
+          <button
+            type="button"
+            class="site-header__search"
+            aria-label={search.copy.label}
+            aria-haspopup="dialog"
+            aria-controls={searchDialogId}
+            data-site-search-open
+          >
+            <Icon name={iconNames.magnifyingGlass} />
+          </button>
+        )}
+        {
+          account && !isMinimal && (
+            <a class="site-header__icon-link" href={account.href}>
+              <Icon name={iconNames.user} size={24} />
+              <span class="visually-hidden">{account.label}</span>
+            </a>
+          )
+        }
+        {
+          cart && (
+            <a class="site-header__icon-link" href={cart.href} data-mini-cart-open={cart.miniCartId}>
+              <Icon name={iconNames.shoppingBag} size={24} />
+              <span class="visually-hidden">{cart.label}</span>
+              <span class="site-header__cart-count"><CountBadge count={cart.count} labelTemplate={cart.countLabelTemplate} /></span>
+            </a>
+          )
+        }
+        {!isMinimal && login && <Button variant="primary" size="sm" href={login.href} class="site-header__login">{login.label}</Button>}
+        {!isMinimal && (
+          <button type="button" class="site-header__nav-toggle" aria-label={menuToggleLabel} aria-haspopup="dialog" aria-controls={drawerId} data-site-drawer-open>
+            <Icon name={iconNames.menu} size={24} />
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+
+  {categoryBar && !isMinimal && categoryBar.links.length > 0 && <CategoryBar categoryBar={categoryBar} />}
+
+  {partners.length > 0 && !isMinimal && <PartnerStrip logos={partners} placement={partnerStripPlacements.header} isShort={isStripShort} />}
+
+  {!isMinimal && <div class="site-header__scrim" data-site-mega-scrim aria-hidden="true"></div>}
+
+  {hasSearch && search && <SearchDialog search={search} id={searchDialogId} />}
+
+  {!isMinimal && <MobileDrawer id={drawerId} menu={menu} copy={drawerCopy} topLinks={topLinks} account={account} login={login} />}
+</header>
+
+<script>
+  // The date is written on the visitor's side, so the cached page stays valid for every day — in
+  // the page's own language (`<html lang>`), the browser's when the page names none.
+  const dateSlot = document.querySelector<HTMLElement>('[data-site-date]')
+  if (dateSlot && !dateSlot.textContent?.trim()) {
+    const now = new Date()
+    const dateLocale = document.documentElement.lang || undefined
+    const day = new Intl.DateTimeFormat(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' }).format(now)
+    const weekday = new Intl.DateTimeFormat(dateLocale, { weekday: 'long' }).format(now)
+    dateSlot.textContent = `${day}, ${weekday}`
+  }
+</script>
+
+<style>
+  /* The header is its own stacking context: the mega-menu scrim (z 0) sits under the bars (z 1) and over the page. */
+  .site-header {
+    position: relative;
+    z-index: 40;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    color: var(--text-primary);
+  }
+
+  /* The slim utility bar: small links, right-aligned, on a quiet grey band. */
+  .site-header__topbar {
+    position: relative;
+    z-index: 1;
+    background: var(--surface-muted);
+  }
+
+  .site-header__topbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-24);
+    max-width: var(--page-max-width);
+    min-height: var(--utility-bar-height);
+    margin: 0 auto;
+    padding: 0 var(--page-gutter);
+    font: var(--type-text-medium-xs);
+  }
+
+  .site-header__topbar nav {
+    order: 2;
+  }
+
+  .site-header__topbar ul {
+    display: flex;
+    list-style: none;
+    gap: var(--space-20);
+    margin: 0;
+    padding: 0;
+  }
+
+  /* The news-site date has no place in a store's utility bar. */
+  .site-header__date {
+    display: none;
+  }
+
+  .site-header__topbar a,
+  .site-header__date {
+    color: var(--text-primary);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .site-header__topbar a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .site-header__topbar a:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* The mega-menu panel is positioned against this bar: edge to edge, right under it. */
+  .site-header__mainbar {
+    position: relative;
+    z-index: 1;
+    background: var(--surface);
+    border-bottom: var(--stroke-thin) solid var(--border);
+  }
+
+  /* Brand left, menu centred, icons right: three tracks, the outer two equal. */
+  .site-header__mainbar-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-24);
+    max-width: var(--page-max-width);
+    min-height: var(--header-height);
+    margin: 0 auto;
+    padding: 0 var(--page-gutter);
+  }
+
+  .site-header--minimal .site-header__mainbar-inner {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .site-header__brand {
+    display: flex;
+    align-items: center;
+  }
+
+  .site-header__brand :global(img) {
+    display: block;
+  }
+
+  .site-header__mainbar a:not(.button) {
+    color: var(--text-primary);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-4);
+  }
+
+  .site-header__search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px; /* token-lint-ignore: touch target */
+    height: 44px; /* token-lint-ignore: touch target */
+    padding: 0;
+    appearance: none;
+    color: var(--text-primary);
+    background: none;
+    border: none;
+    border-radius: var(--radius-control);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .site-header__search:hover,
+  .site-header__mainbar .site-header__icon-link:hover {
+    background: var(--surface-hover);
+  }
+
+  /* The cart and account links: a 24px glyph in a 44px target; the count badge sits on the glyph. */
+  .site-header__icon-link {
+    position: relative;
+    display: inline-flex;
+    width: 44px; /* token-lint-ignore: touch target */
+    height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-control);
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .site-header__search:focus-visible,
+  .site-header__icon-link:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* The count badge (volt fill, black text) sits on the glyph's corner. */
+  .site-header__cart-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
+  .site-header__actions :global(.site-header__login) {
+    margin-left: var(--space-8);
+  }
+
+  /* The menu button opens the phone drawer; where the mega menu is inline it has nothing to do. */
+  .site-header__nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px; /* token-lint-ignore: touch target */
+    height: 44px; /* token-lint-ignore: touch target */
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-control);
+    background: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .site-header__nav-toggle:hover {
+    background: var(--surface-hover);
+  }
+
+  .site-header__nav-toggle:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* The page scrim under the open mega-menu panel: dims the page, a click on it closes the panel. */
+  .site-header__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    visibility: hidden;
+    opacity: 0;
+    background: color-mix(in srgb, var(--ink-1000) 45%, transparent);
+  }
+
+  /* Where the browser can blur what is behind, the page is dimmed less and softened instead. */
+  @supports (backdrop-filter: blur(1px)) {
+    .site-header__scrim {
+      background: color-mix(in srgb, var(--ink-1000) 32%, transparent);
+      backdrop-filter: blur(6px); /* token-lint-ignore: scrim blur */
+    }
+  }
+
+  .site-header[data-mega-open] .site-header__scrim {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* A gallery specimen of the open panel does not dim the gallery. */
+  .site-header[data-mega-static] .site-header__scrim {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .site-header__scrim {
+      transition:
+        opacity 220ms var(--ease-out), /* token-lint-ignore: panel motion, matches the sheet */
+        visibility 0s linear 220ms; /* token-lint-ignore: panel motion */
+    }
+
+    .site-header[data-mega-open] .site-header__scrim {
+      transition-delay: 0s;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .site-header__topbar {
+      display: none;
+    }
+
+    .site-header__mainbar-inner {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .site-header__nav-toggle {
+      display: flex;
+    }
+
+    .site-header__scrim {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .site-header__mainbar-inner {
+      gap: var(--space-12);
+    }
+
+  }
+
+  .site-header__brand {
+    flex: none;
+  }
+
+  /* Small phones: wordmark, language, search, cart and menu fit one row (the account link lives in the drawer). */
+  @media (max-width: 480px) {
+    .site-header__mainbar .site-header__icon-link:not([data-mini-cart-open]) {
+      display: none;
+    }
+  }
+
+  .site-header__brand a {
+    display: flex;
+    align-items: center;
+    min-height: 44px; /* token-lint-ignore: touch target */
+  }
+
+  /* Phone: the bottom tab bar carries search, cart, account and the menu, so the bar keeps the centred
+     logo (and the language switcher, when the shop has more than one language, at the right edge). */
+  @media (max-width: 767px) {
+    .site-header__mainbar-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    }
+
+    .site-header__brand {
+      grid-column: 2;
+    }
+
+    .site-header__actions {
+      grid-column: 3;
+    }
+
+    .site-header__actions .site-header__search,
+    .site-header__actions .site-header__icon-link,
+    .site-header__actions .site-header__nav-toggle {
+      display: none;
+    }
+  }
+</style>

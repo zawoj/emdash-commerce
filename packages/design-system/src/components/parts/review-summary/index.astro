@@ -1,0 +1,165 @@
+---
+// The rating overview of a product: the average with its stars, the number of reviews and one bar
+// per star level. A level with reviews is a link that filters the list to it (the active one is
+// marked); the bars carry their count as text, so nothing depends on their length.
+import RatingStars from '../../atoms/rating-stars/index.astro'
+import { ratingStarsSizes } from '../../atoms/rating-stars/variants'
+import type { ReviewSummaryProps } from './types'
+
+type Props = ReviewSummaryProps
+
+const { average, averageValue, averageLabel, countLabel, histogramLabel, rows, clearFilter, emptyText, currentLabel } = Astro.props
+const hasReviews = rows.some((row) => row.count > 0)
+---
+
+<div class="review-summary">
+  <div class="review-summary__score">
+    {hasReviews && <p class="review-summary__average">{average}</p>}
+    {hasReviews && <RatingStars value={averageValue} label={averageLabel} size={ratingStarsSizes.lg} />}
+    <p class="review-summary__count">{countLabel}</p>
+  </div>
+  {
+    hasReviews ? (
+      <div class="review-summary__histogram">
+        <ul aria-label={histogramLabel}>
+          {rows.map((row) => (
+            <li>
+              {row.count > 0 && row.href ? (
+                <a class="review-summary__row" href={row.href} rel="nofollow" aria-current={row.isCurrent ? 'true' : undefined}>
+                  <span class="review-summary__stars">{row.label}{row.isCurrent && currentLabel ? <span class="visually-hidden"> ({currentLabel})</span> : null}</span>
+                  <span class="review-summary__bar" aria-hidden="true"><span style={`--share: ${Math.round(Math.min(Math.max(row.share, 0), 1) * 100)}%`}></span></span>
+                  <span class="review-summary__n">{row.countLabel}</span>
+                </a>
+              ) : (
+                <span class="review-summary__row review-summary__row--static">
+                  <span class="review-summary__stars">{row.label}</span>
+                  <span class="review-summary__bar" aria-hidden="true"><span style={`--share: ${Math.round(Math.min(Math.max(row.share, 0), 1) * 100)}%`}></span></span>
+                  <span class="review-summary__n">{row.countLabel}</span>
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+        {clearFilter && <a class="review-summary__clear" href={clearFilter.href} rel="nofollow">{clearFilter.label}</a>}
+      </div>
+    ) : (
+      emptyText && <p class="review-summary__empty">{emptyText}</p>
+    )
+  }
+</div>
+
+<style>
+  .review-summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-24) var(--space-48);
+    align-items: center;
+  }
+
+  .review-summary__score {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-8);
+  }
+
+  .review-summary__average {
+    margin: 0;
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .review-summary__count,
+  .review-summary__empty {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .review-summary__histogram {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    max-width: 480px; /* token-lint-ignore: histogram column */
+  }
+
+  .review-summary__histogram ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .review-summary__row {
+    display: grid;
+    grid-template-columns: 5.5em minmax(0, 1fr) 4.5em;
+    gap: var(--space-12);
+    align-items: center;
+    min-height: 32px; /* token-lint-ignore: touch target */
+    padding: 0 var(--space-4);
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+    text-decoration: none;
+  }
+
+  .review-summary__row--static {
+    color: var(--text-secondary);
+  }
+
+  a.review-summary__row[aria-current='true'] {
+    background: var(--surface-muted);
+    font-weight: 600;
+  }
+
+  a.review-summary__row:focus-visible,
+  .review-summary__clear:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    a.review-summary__row:hover {
+      background: var(--surface-muted);
+    }
+  }
+
+  .review-summary__bar {
+    display: block;
+    height: 6px; /* token-lint-ignore: bar thickness */
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    background: var(--surface-hover);
+  }
+
+  .review-summary__bar span {
+    display: block;
+    width: var(--share);
+    height: 100%;
+    background: var(--ink-1000);
+  }
+
+  .review-summary__n {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .review-summary__clear {
+    align-self: flex-start;
+    color: var(--link);
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 640px) {
+    .review-summary {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

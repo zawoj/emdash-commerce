@@ -1,0 +1,81 @@
+---
+// A call to action inside a text (no Figma frame): a dark tile with a display title, a short
+// description and one primary button — the same dark surface as the quote.
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+
+interface Props {
+  title: string
+  description?: string | null
+  label: string
+  href: string
+  isExternal?: boolean
+}
+
+const { title, description, label, href, isExternal = false } = Astro.props
+---
+
+<aside class="prose-block prose-cta" data-surface="dark">
+  <div class="prose-cta__copy">
+    <h3 class="prose-cta__title">{title}</h3>
+    {description && <p class="prose-cta__description">{description}</p>}
+  </div>
+  <Button
+    variant={buttonVariants.accent}
+    size={buttonSizes.lg}
+    href={href}
+    target={isExternal ? '_blank' : undefined}
+    rel={isExternal ? 'noopener noreferrer' : undefined}
+  >
+    {label}
+  </Button>
+</aside>
+
+<style>
+  .prose-cta {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-24);
+    width: 100%;
+    padding: var(--space-32);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    text-align: start;
+  }
+
+  .prose-cta__copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+
+  .prose-cta__title {
+    margin: 0;
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch);
+    text-transform: var(--text-case);
+    letter-spacing: var(--tracking-display);
+    color: var(--text-primary);
+  }
+
+  .prose-cta__description {
+    margin: 0;
+    font: var(--type-text-regular-md);
+    color: var(--text-body);
+  }
+
+  .prose-cta :global(.button) {
+    flex: none;
+  }
+
+  @media (max-width: 640px) {
+    .prose-cta {
+      flex-direction: column;
+      align-items: stretch;
+      padding: var(--space-24) var(--space-20);
+    }
+  }
+</style>

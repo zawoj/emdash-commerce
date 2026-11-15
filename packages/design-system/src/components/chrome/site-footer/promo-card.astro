@@ -1,0 +1,97 @@
+---
+// Footer card of one of the site owner's other projects: a 144px card with the eyebrow and an
+// arrow on top, the project name and a line of copy at the bottom. A project that is not open yet
+// has no arrow and shows the "coming soon" label instead.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { FooterProject } from '../types'
+
+interface Props {
+  promo: FooterProject
+  comingSoonLabel: string
+}
+
+const { promo, comingSoonLabel } = Astro.props
+---
+
+<a class:list={['promo-card', promo.isComingSoon && 'promo-card--soon']} href={promo.href} aria-label={promo.linkLabel}>
+  <span class="promo-card__head">
+    <span class="promo-card__eyebrow">{promo.eyebrow}</span>
+    {promo.isComingSoon ? <span class="promo-card__soon">{comingSoonLabel}</span> : <Icon name={iconNames.arrowUpRight} size={14} />}
+  </span>
+  <span class="promo-card__text">
+    <span class="promo-card__name">{promo.name}</span>
+    <span class="promo-card__description">{promo.description}</span>
+  </span>
+</a>
+
+<style>
+  /* The brand-board look: a volt panel with black copy; the "coming soon" card is a quiet dark one. */
+  .promo-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 160px; /* token-lint-ignore: promo card height */
+    padding: var(--space-20);
+    border-radius: var(--radius-card);
+    background: var(--accent);
+    color: var(--on-accent);
+    text-decoration: none;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .promo-card:hover {
+    background: var(--accent-hover);
+  }
+
+  .promo-card--soon,
+  .promo-card--soon:hover {
+    background: var(--surface-muted);
+    color: var(--text-primary);
+  }
+
+  .promo-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8);
+  }
+
+  .promo-card__eyebrow,
+  .promo-card__soon {
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    text-transform: var(--label-case);
+    letter-spacing: var(--tracking-label);
+  }
+
+  .promo-card__soon {
+    padding: var(--space-4) var(--space-8);
+    border-radius: var(--radius-chip);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .promo-card__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .promo-card__name {
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch-card);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .promo-card__description {
+    font: var(--type-text-medium-xs);
+    opacity: 0.8;
+  }
+
+  .promo-card:hover .promo-card__name {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

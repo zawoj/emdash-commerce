@@ -1,0 +1,86 @@
+---
+// The account's quick links as a hairline list: icon, name, one quiet line, chevron. Rows, not boxes.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { AccountLinksProps } from './types'
+
+type Props = AccountLinksProps
+
+const { links, label } = Astro.props
+---
+
+<ul class="account-links" aria-label={label}>
+  {
+    links.map((link) => (
+      <li class="account-links__item">
+        <a class="account-links__link" href={link.href}>
+          <span class="account-links__icon" aria-hidden="true"><Icon name={link.icon} size={24} /></span>
+          <span class="account-links__text">
+            <span class="account-links__label">{link.label}</span>
+            <span class="account-links__description">{link.description}</span>
+          </span>
+          <span class="account-links__arrow" aria-hidden="true"><Icon name={iconNames.chevronRight} size={20} /></span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .account-links {
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--border);
+    list-style: none;
+  }
+
+  .account-links__item {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .account-links__link {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--space-16);
+    align-items: center;
+    padding: var(--space-16) 0;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .account-links__link:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .account-links__text {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .account-links__label {
+    font: var(--type-text-medium-md);
+  }
+
+  .account-links__description {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .account-links__arrow {
+    display: inline-flex;
+    color: var(--text-secondary);
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  @media (hover: hover) {
+    .account-links__link:hover .account-links__arrow {
+      color: var(--text-primary);
+      transform: translateX(var(--space-4));
+    }
+  }
+</style>

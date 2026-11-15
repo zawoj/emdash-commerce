@@ -1,0 +1,30 @@
+/* The phone's bottom bars (tab bar, action bar): what a page reserves under its content while one is
+   up, which bar yields to which, and the keyboard rule. Phones only (<= 767px); tablets and desktop
+   have neither bar. Imported by both components (global CSS: it styles <body> and reaches both). */
+@media (max-width: 767px) {
+  /* The tab bar is the default; a visible action bar (a page's one primary action) replaces it. */
+  body:has([data-tab-bar]) {
+    --bottom-bar-offset: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  body:has([data-action-bar][data-state='shown']) {
+    --bottom-bar-offset: calc(var(--action-bar-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  body:has([data-action-bar][data-state='shown']) [data-tab-bar],
+  body:has(details[data-listing-filters][open]:not([data-closing])) [data-tab-bar] {
+    visibility: hidden;
+    transform: translateY(100%);
+  }
+
+  /* A focused text field means the on-screen keyboard is up: the bars step aside instead of covering
+     the field (and the keyboard hides them on iOS anyway). Focus scrolling keeps clear of a bar that is up. */
+  body:has(:is(input:not([type='checkbox'], [type='radio'], [type='button'], [type='submit'], [type='hidden']), textarea, select):focus) :is([data-tab-bar], [data-action-bar]) {
+    visibility: hidden;
+    transform: translateY(100%);
+  }
+
+  html {
+    scroll-padding-bottom: calc(var(--action-bar-height) + env(safe-area-inset-bottom, 0px) + var(--space-16));
+  }
+}

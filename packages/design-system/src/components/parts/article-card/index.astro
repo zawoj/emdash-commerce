@@ -1,0 +1,379 @@
+---
+// Figma "card-article" (Components 625:4400), one variant per layout:
+// - `stacked` ("1-2" 625:4399 / "3+" 625:4464): photo (304.5:181.27) with an optional Category
+//   Label over its bottom-left corner, a 20px title cut after 3 lines, author (when given) + date.
+// - `feature` ("1 (horizontal)" 625:4485): photo beside a 36px title, a 2-line excerpt and meta,
+//   vertically centered; `isReversed` puts the photo on the right.
+// - `row` ("XS with Image" 706:31662): 104×62 thumbnail beside a 16px title cut after 2 lines
+//   and the date.
+// - `search` ("search result" 706:29152): the row layout with the content kind ("Article") above
+//   the title instead of a date below it.
+// - `text` ("XS no image" 625:5544): the 16px title and date without a photo.
+// Colors come from surface tokens, so the same card renders on a dark tile. Layout breakpoints
+// are container queries on the enclosing `content-tile` container. On a phone-width tile, grid
+// cards (`isCompactWhenNarrow`) switch to the thumbnail row instead of stacking a full-width
+// photo per card.
+// The image comes in as ready <img> attributes (srcset + sizes chosen by the caller for the place
+// the card renders in); a photo variant without an image keeps its frame, filled with the muted
+// surface. The date renders as <time datetime>.
+import CategoryLabel from '../../atoms/category-label/index.astro'
+import type { ArticleCardContent } from './types'
+import { articleCardSizes, articleCardVariants, type ArticleCardSize, type ArticleCardVariant } from './variants'
+import Image from '../../atoms/image/index.astro'
+
+interface Props {
+  article: ArticleCardContent
+  variant?: ArticleCardVariant
+  /** `stacked` title: `l` = Figma's 20px display-xs (default), `m` = 16px display-2xs. */
+  size?: ArticleCardSize
+  isReversed?: boolean
+  /** Photo drawn larger than its frame and clipped from the top-left (Figma 944:29459: 471×280 in 468×279). */
+  photoZoom?: number
+  isCompactWhenNarrow?: boolean
+  /** `row` only: the card fills a grid cell whose rows line up with a sibling list (thumbnail and
+   * title top-aligned, date on the cell's bottom edge) instead of Figma's vertically centered row. */
+  isStretched?: boolean
+}
+
+const {
+  article,
+  variant = articleCardVariants.stacked,
+  size = articleCardSizes.l,
+  isReversed = false,
+  photoZoom = 1,
+  isCompactWhenNarrow = variant === articleCardVariants.stacked,
+  isStretched = false,
+} = Astro.props
+const { image } = article
+const hasPhoto = variant !== articleCardVariants.text
+const isSearch = variant === articleCardVariants.search
+const hasLabel = Boolean(article.category) && (variant === articleCardVariants.stacked || variant === articleCardVariants.feature)
+const isFeature = variant === articleCardVariants.feature
+---
+
+<article
+  class:list={[
+    'article-card',
+    `article-card--${variant}`,
+    `article-card--${size}`,
+    isReversed && 'article-card--reversed',
+    isCompactWhenNarrow && 'article-card--compact-when-narrow',
+    isStretched && 'article-card--stretched',
+  ]}
+  style={`--article-card-photo-zoom: ${photoZoom}`}
+>
+  {
+    hasPhoto && (
+      <div class:list={['article-card__media', !image && 'article-card__media--empty']}>
+        {image && (
+          <Image {...image} />
+        )}
+        {hasLabel && article.category && (
+          <div class="article-card__label">
+            <CategoryLabel category={article.category.key} color={article.category.color}>{article.category.label}</CategoryLabel>
+          </div>
+        )}
+      </div>
+    )
+  }
+  <div class="article-card__details">
+    {isSearch && article.kind && <span class="article-card__kind">{article.kind}</span>}
+    <div class="article-card__text">
+      <h3 class="article-card__title" data-balanced-clamp={isFeature ? undefined : ''}>
+        <a href={article.href}>{article.title}</a>
+      </h3>
+      {article.excerpt && <p class="article-card__excerpt">{article.excerpt}</p>}
+    </div>
+    {
+      !isSearch && (
+        <div class="article-card__meta">
+          {article.author && <span class="article-card__author">{article.author}</span>}
+          {article.date && <time class="article-card__date" datetime={article.date.iso}>{article.date.label}</time>}
+        </div>
+      )
+    }
+  </div>
+</article>
+
+<script>
+  import '../../../utils/balanced-clamp'
+</script>
+
+<style>
+  .article-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    min-width: 0;
+  }
+
+  .article-card__media {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+    aspect-ratio: 304.5 / 181.2727;
+  }
+
+  .article-card__media :global(img) {
+    position: relative;
+    z-index: 0;
+    width: calc(100% * var(--article-card-photo-zoom));
+    max-width: none;
+    height: calc(100% * var(--article-card-photo-zoom));
+    object-fit: cover;
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .article-card__media :global(img) {
+      transition: transform var(--duration-slow) var(--ease-out);
+    }
+
+    .article-card:hover .article-card__media :global(img) {
+      transform: scale(var(--hover-zoom));
+    }
+  }
+
+  .article-card__label {
+    position: absolute;
+    z-index: 1;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-8);
+  }
+
+  .article-card__details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    min-width: 0;
+  }
+
+  /* In a grid row a stacked card fills the row's height and its meta row sits on the card's bottom
+     edge, so author and date line up across the row whatever each title's length. */
+  .article-card--stacked {
+    height: 100%;
+  }
+
+  .article-card--stacked .article-card__details {
+    flex: 1 1 auto;
+  }
+
+  .article-card--stacked .article-card__meta {
+    margin-top: auto;
+  }
+
+  .article-card__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  /* Card titles: display face, uppercase, balanced, cut with an ellipsis after
+     --article-card-title-lines lines (Figma's fixed text box). */
+  .article-card__title {
+    --article-card-title-lines: 3;
+
+    display: -webkit-box;
+    overflow: hidden;
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch-card);
+    color: var(--text-primary);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--article-card-title-lines);
+  }
+
+  .article-card--m .article-card__title {
+    font: var(--type-display-2xs);
+    font-stretch: var(--display-stretch-card);
+  }
+
+  .article-card__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Whole card is the link target; the title anchor stays the only focusable element. */
+  .article-card__title a::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  .article-card__title a:hover {
+    text-decoration: underline;
+  }
+
+  .article-card__excerpt {
+    display: -webkit-box;
+    overflow: hidden;
+    font: var(--type-text-regular-sm);
+    color: var(--text-secondary);
+    white-space: pre-line;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .article-card__meta {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .article-card__author {
+    font: var(--type-text-medium-xs);
+    color: var(--text-body);
+  }
+
+  .article-card__date {
+    font: var(--type-text-regular-xs);
+    color: var(--text-secondary);
+  }
+
+  .article-card__kind {
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-secondary);
+  }
+
+  /* feature: photo and text side by side, equal halves. */
+  .article-card--feature {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-24);
+  }
+
+  .article-card--reversed {
+    flex-direction: row-reverse;
+  }
+
+  .article-card--feature > * {
+    flex: 1 1 0;
+  }
+
+  .article-card--feature .article-card__details {
+    gap: var(--space-16);
+  }
+
+  .article-card--feature .article-card__title {
+    display: block;
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-wrap: wrap;
+  }
+
+  /* row / search / text: 16px titles cut after 2 lines. */
+  .article-card--row,
+  .article-card--search,
+  .article-card--text {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-12);
+  }
+
+  .article-card--text {
+    gap: var(--space-24);
+  }
+
+  .article-card--row .article-card__title,
+  .article-card--search .article-card__title,
+  .article-card--text .article-card__title {
+    --article-card-title-lines: 2;
+
+    font: var(--type-display-2xs);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display-2xs);
+  }
+
+  /* Stretched row: thumbnail and title share a top edge and the date sits on the cell's bottom
+     edge, so in a list whose rows line up with a sibling list every part of a row lines up. */
+  .article-card--row.article-card--stretched {
+    height: 100%;
+    align-items: flex-start;
+  }
+
+  .article-card--row .article-card__media,
+  .article-card--search .article-card__media {
+    flex: none;
+    width: 104px;
+    aspect-ratio: 104 / 62;
+  }
+
+  .article-card--row .article-card__details,
+  .article-card--search .article-card__details {
+    flex: 1 1 0;
+    gap: var(--space-6);
+  }
+
+  .article-card--text .article-card__details {
+    flex: 1 1 0;
+    gap: var(--space-8);
+  }
+
+  /* Inset by Figma's centering of a two-line row (62px thumbnail − 56px text) / 2, so a two-line
+     title and its date sit exactly where Figma centers them. */
+  .article-card--stretched .article-card__details {
+    align-self: stretch;
+    padding-block: 3px; /* token-lint-ignore: (62 − 56) / 2, Figma's centering offset */
+  }
+
+  .article-card--row.article-card--stretched .article-card__meta {
+    margin-top: auto;
+  }
+
+  @container content-tile (width < 760px) {
+    .article-card--feature,
+    .article-card--reversed {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .article-card--feature > * {
+      flex: none;
+    }
+  }
+
+  @container content-tile (width < 420px) {
+    .article-card--feature .article-card__title {
+      font: var(--type-display-sm);
+      font-stretch: var(--display-stretch);
+    }
+
+    .article-card--compact-when-narrow {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: var(--space-12);
+    }
+
+    .article-card--compact-when-narrow .article-card__media {
+      flex: none;
+      width: 120px;
+    }
+
+    .article-card--compact-when-narrow .article-card__label {
+      padding: var(--space-4);
+    }
+
+    .article-card--compact-when-narrow .article-card__details {
+      flex: 1 1 0;
+      gap: var(--space-8);
+    }
+
+    .article-card--compact-when-narrow .article-card__title {
+      font: var(--type-display-2xs);
+      font-stretch: var(--display-stretch-card);
+      letter-spacing: var(--tracking-display-2xs);
+    }
+  }
+</style>

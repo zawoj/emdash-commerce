@@ -1,0 +1,107 @@
+---
+// Figma "kalendarz" col-main (1023:58387): the design-system SearchBar (zawody / empty) in a search
+// form, the events table tile (1023:60269: the shared events table, boxed, in a white tile) and the
+// pagination. A section may carry a tile title above its table (the archive). Without events the
+// tile shows `emptyLabel`.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import SearchBar from '../../molecules/search-bar/index.astro'
+import { searchBarSizes } from '../../molecules/search-bar/variants'
+import TileTitle from '../../molecules/tile-title/index.astro'
+import EventTable from '../event-table/index.astro'
+import { eventTableVariants } from '../event-table/variants'
+import PaginationBar from '../pagination-bar/index.astro'
+import type { CalendarListingProps } from './types'
+
+type Props = CalendarListingProps
+
+const { action, search, filterLabel, filters, sortLabel, sort, columns, sections, label, emptyLabel, pagination } = Astro.props
+const hasEvents = sections.some((section) => section.events.length > 0)
+---
+
+<div class="calendar-listing">
+  <form role="search" action={action} method="get">
+    <SearchBar
+      search={search}
+      filterLabel={filterLabel}
+      filters={filters}
+      sortLabel={sortLabel}
+      sort={sort}
+      size={searchBarSizes.m}
+    >
+      <Icon name={iconNames.search} slot="search-icon" />
+      <Icon name={iconNames.funnel} slot="filter-icon" />
+      <Icon name={iconNames.arrowDownAZ} slot="sort-icon" />
+      <Icon name={iconNames.chevronDown} slot="select-icon" />
+    </SearchBar>
+  </form>
+
+  <section class="calendar-listing__events" aria-label={label}>
+    {
+      hasEvents ? (
+        sections.map(
+          (section) =>
+            section.events.length > 0 && (
+              <div class="calendar-listing__section">
+                {section.heading && <TileTitle heading={section.heading} headingId={section.headingId} />}
+                <EventTable variant={eventTableVariants.boxed} columns={columns} events={section.events} />
+              </div>
+            ),
+        )
+      ) : (
+        <p class="calendar-listing__empty">{emptyLabel}</p>
+      )
+    }
+  </section>
+
+  {pagination && <PaginationBar {...pagination} />}
+</div>
+
+<!-- A select has no way to submit its form without a script; the query field submits with Enter. -->
+<script>
+  document.querySelectorAll<HTMLSelectElement>('.calendar-listing form select').forEach((select) => {
+    select.addEventListener('change', () => select.form?.requestSubmit())
+  })
+</script>
+
+<style>
+  /* Figma 1023:58385: col-main gap 24. */
+  .calendar-listing {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    min-width: 0;
+  }
+
+  .calendar-listing form {
+    margin: 0;
+  }
+
+  .calendar-listing__events {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .calendar-listing__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    min-width: 0;
+  }
+
+  .calendar-listing__empty {
+    margin: 0;
+    font: var(--type-text-regular-md);
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .calendar-listing {
+      gap: var(--space-16);
+    }
+
+  }
+</style>

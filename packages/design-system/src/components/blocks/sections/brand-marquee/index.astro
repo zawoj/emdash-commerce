@@ -1,0 +1,111 @@
+---
+// The brand marquee (from the brand board): a full-bleed band with a condensed caps line that
+// scrolls slowly and loops. The line is read once — every repeat but the first is `aria-hidden`, and
+// the second loop copy is hidden entirely. Under reduced motion it stands still, centred.
+import type { BrandMarqueeProps } from './types'
+import { BRAND_MARQUEE_REPEATS, brandMarqueeTones } from './variants'
+
+type Props = BrandMarqueeProps
+
+const { text, tone = brandMarqueeTones.volt } = Astro.props
+const repeats = Array.from({ length: BRAND_MARQUEE_REPEATS }, (_, index) => index)
+---
+
+<div class:list={['brand-marquee', `brand-marquee--${tone}`]} data-surface={tone === brandMarqueeTones.dark ? 'dark' : undefined} data-band>
+  <div class="brand-marquee__track">
+    <p class="brand-marquee__group">
+      {repeats.map((index) => <span class="brand-marquee__item" aria-hidden={index === 0 ? undefined : 'true'}>{text}</span>)}
+    </p>
+    <p class="brand-marquee__group" aria-hidden="true">
+      {repeats.map(() => <span class="brand-marquee__item">{text}</span>)}
+    </p>
+  </div>
+</div>
+
+<style>
+  .brand-marquee {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    overflow: hidden;
+    background: var(--surface-muted);
+    color: var(--text-primary);
+    user-select: none;
+  }
+
+  .brand-marquee--volt {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .brand-marquee--dark {
+    background: var(--surface);
+  }
+
+  .brand-marquee__track {
+    display: flex;
+    width: max-content;
+    padding-block: var(--space-16);
+  }
+
+  .brand-marquee__group {
+    display: flex;
+    flex: none;
+    margin: 0;
+    font: var(--type-display-2xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    white-space: nowrap;
+  }
+
+  .brand-marquee__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-32);
+    padding-inline-end: var(--space-32);
+  }
+
+  /* A small diamond between the repeats. */
+  .brand-marquee__item::after {
+    width: 0.2em;
+    height: 0.2em;
+    background: currentcolor;
+    content: '';
+    transform: rotate(45deg);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .brand-marquee__track {
+      animation: brand-marquee-scroll 40s linear infinite; /* token-lint-ignore: a slow loop, longer than any UI duration */
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .brand-marquee__track {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .brand-marquee__group[aria-hidden='true'],
+    .brand-marquee__item[aria-hidden='true'] {
+      display: none;
+    }
+
+    .brand-marquee__item::after {
+      display: none;
+    }
+  }
+
+  @keyframes brand-marquee-scroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .brand-marquee__group {
+      font: var(--type-display-lg);
+      font-stretch: var(--display-stretch);
+    }
+  }
+</style>

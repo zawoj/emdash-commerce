@@ -1,0 +1,96 @@
+---
+// The progress of an order or a return as one horizontal track: a marker per step joined by a
+// line that is solid up to the current step — a check for done, a volt dot for the current one, a
+// hollow dot for what is still to come. The same four words as the order e-mails.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import { timelineStates } from '../../molecules/timeline/variants'
+import type { OrderProgressProps } from './types'
+
+type Props = OrderProgressProps
+
+const { steps, label } = Astro.props
+---
+
+<ol class="order-progress" aria-label={label}>
+  {
+    steps.map((step) => (
+      <li class:list={['order-progress__step', `order-progress__step--${step.state}`]} aria-current={step.state === timelineStates.current ? 'step' : undefined}>
+        <span class="order-progress__marker" aria-hidden="true">{step.state === timelineStates.done && <Icon name={iconNames.check} size={12} />}</span>
+        <span class="order-progress__label"><span class="visually-hidden">{step.stateLabel}: </span>{step.label}</span>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .order-progress {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .order-progress__step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+
+  /* The track runs from this marker to the next one. */
+  .order-progress__step:not(:last-child)::before {
+    position: absolute;
+    top: 9px; /* token-lint-ignore: centre of the 20px marker */
+    left: 20px; /* token-lint-ignore: marker width */
+    right: 0;
+    border-top: var(--stroke-bold) solid var(--border-strong);
+    content: '';
+  }
+
+  .order-progress__step--done:not(:last-child)::before {
+    border-top-color: var(--control-solid);
+  }
+
+  .order-progress__step--current:not(:last-child)::before {
+    border-top-style: dashed;
+  }
+
+  .order-progress__marker {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    width: 20px; /* token-lint-ignore: marker box */
+    height: 20px; /* token-lint-ignore: marker box */
+    align-items: center;
+    justify-content: center;
+    border: var(--stroke-bold) solid var(--border-strong);
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    color: var(--on-control-solid);
+  }
+
+  .order-progress__step--done .order-progress__marker {
+    border-color: var(--control-solid);
+    background: var(--control-solid);
+  }
+
+  .order-progress__step--current .order-progress__marker {
+    border-color: var(--control-solid);
+    background: var(--accent);
+  }
+
+  .order-progress__label {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+  }
+
+  .order-progress__step--done .order-progress__label,
+  .order-progress__step--current .order-progress__label {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+</style>

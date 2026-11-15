@@ -1,0 +1,41 @@
+---
+// YouTube tile shell, shared by the main-column "latest videos" tile and the sidebar "featured
+// video" tile: a white clipped tile with a tile-title row. Content goes in the default slot.
+import TileTitle from '../../molecules/tile-title/index.astro'
+import type { YoutubeTileSize } from './variants'
+
+interface Props {
+  heading: string
+  headingId: string
+  size: YoutubeTileSize
+}
+
+const { heading, headingId, size } = Astro.props
+---
+
+<section class:list={['youtube-tile', `youtube-tile--${size}`]} aria-labelledby={headingId}>
+  <div class="youtube-tile__body">
+    <TileTitle heading={heading} headingId={headingId} />
+    <slot />
+  </div>
+</section>
+
+<style>
+  .youtube-tile {
+    position: relative;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .youtube-tile--main {
+    padding-bottom: 0;
+  }
+
+  .youtube-tile__body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+
+</style>

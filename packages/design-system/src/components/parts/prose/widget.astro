@@ -1,0 +1,16 @@
+---
+// A layout widget dropped into a text (no Figma frame): the widget keeps its own design, the piece only
+// sets it 32px from its neighbours like the other pieces of the text and takes it out of the
+// text's justified alignment.
+---
+
+<div class="prose-block prose-widget">
+  <slot />
+</div>
+
+<style>
+  .prose-widget {
+    min-width: 0;
+    text-align: start;
+  }
+</style>

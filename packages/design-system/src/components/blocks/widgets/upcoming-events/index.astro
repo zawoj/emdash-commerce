@@ -1,0 +1,46 @@
+---
+// Upcoming events: a tile-title tile (heading + a link to the full calendar) over the shared
+// events table (flush: edge to edge in the tile).
+// In a bar the same events come as the sidebar events list. Renders nothing
+// without events.
+import { eventListVariants } from '../../../parts/events-list/variants'
+import EventTable from '../../../parts/event-table/index.astro'
+import { eventTableVariants } from '../../../parts/event-table/variants'
+import EventsList from '../../../parts/events-list/index.astro'
+import TileTitle from '../../../molecules/tile-title/index.astro'
+import type { UpcomingEventsProps } from './types'
+import { upcomingEventsVariants } from './variants'
+
+type Props = UpcomingEventsProps
+
+const { variant, heading, headingId, more, columns, events } = Astro.props
+const isTable = variant === upcomingEventsVariants.table
+
+---
+
+{
+  events.length > 0 &&
+    (isTable ? (
+      <section class="upcoming-events" aria-labelledby={headingId}>
+        <div class="upcoming-events__head">
+          <TileTitle heading={heading} headingId={headingId} more={more} extrasGap={16} />
+        </div>
+        <EventTable variant={eventTableVariants.flush} columns={columns} events={events} />
+      </section>
+    ) : (
+      <EventsList variant={eventListVariants.sidebar} heading={heading} headingId={headingId} more={more} events={events} />
+    ))
+}
+
+<style>
+  .upcoming-events {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .upcoming-events__head {
+    padding: 0;
+  }
+</style>

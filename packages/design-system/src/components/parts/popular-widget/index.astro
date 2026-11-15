@@ -1,0 +1,213 @@
+---
+// Figma "tile-popularne-widget-R" (931:29570): `default` "popularne" (home, zawody, partner) with
+// the brand mark, `kategoria` "polecane" with a Category Label (wpisy-z-kategorii) and
+// `kategoria-partner` with the label and a "powered by" credit under the title (article).
+// Below the title row: text-only card-articles (16px title cut after 2 lines + date or author,
+// optional Category Label pinned right, vertically centered) separated by hairlines.
+// `layout="compact"` is Figma's "X_old_widget-R-czytane" (771:24348; partner / Sylwetki listings).
+import CategoryLabel from '../../atoms/category-label/index.astro'
+import TileTitle from '../../molecules/tile-title/index.astro'
+import PoweredBy from '../powered-by/index.astro'
+import type { PopularWidgetContent } from './types'
+import { popularRowSpacings, popularWidgetLayouts, type PopularWidgetLayout } from './variants'
+import Image from '../../atoms/image/index.astro'
+
+interface Props extends PopularWidgetContent {
+  layout?: PopularWidgetLayout
+}
+
+const { heading, headingId, logo, label, credit, items, layout = popularWidgetLayouts.tile } = Astro.props
+const hasAside = Boolean(logo) || Boolean(label)
+---
+
+<section class:list={['popular-widget', `popular-widget--${layout}`]} aria-labelledby={headingId}>
+  <div class="popular-widget__header">
+    <TileTitle heading={heading} headingId={headingId}>
+      {
+        hasAside && (
+          <span slot="aside" class="popular-widget__aside">
+            {label && (
+              <CategoryLabel category={label.key} size="s">
+                {label.label}
+              </CategoryLabel>
+            )}
+            {logo && <Image {...logo} />}
+          </span>
+        )
+      }
+    </TileTitle>
+    {credit && <PoweredBy credit={credit} />}
+  </div>
+  <ol class="popular-widget__list">
+    {
+      items.map((item) => (
+        <li class:list={['popular-widget__item', `popular-widget__item--${item.spacing ?? popularRowSpacings.regular}`]}>
+          <div class="popular-widget__details">
+            <a class="popular-widget__title" href={item.href} data-balanced-clamp>
+              {item.title}
+            </a>
+            {item.author && <span class="popular-widget__author">{item.author}</span>}
+            {item.date && <span class="popular-widget__date">{item.date}</span>}
+          </div>
+          {item.category && (
+            <CategoryLabel category={item.category.key} color={item.category.color} size="s">
+              {item.category.label}
+            </CategoryLabel>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<script>
+  import '@emdash-commerce/design-system/balanced-clamp'
+</script>
+
+<style>
+  .popular-widget {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .popular-widget__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    padding: var(--space-16) 0 var(--space-16);
+  }
+
+  .popular-widget__aside {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .popular-widget__aside :global(img) {
+    display: block;
+    flex: none;
+  }
+
+  .popular-widget__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    margin: 0;
+    padding: var(--space-12) 0 0;
+    list-style: none;
+  }
+
+  /* Figma's dividers are zero-height lines 12px above each row (drawn 1px above their box). */
+  .popular-widget__item {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-24);
+    padding: 0;
+  }
+
+  .popular-widget__item::before {
+    position: absolute;
+    top: -13px;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: var(--border);
+    content: '';
+  }
+
+  .popular-widget__item--tight {
+    gap: var(--space-8);
+  }
+
+  .popular-widget__details {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+
+  .popular-widget__item--tight .popular-widget__details {
+    gap: var(--space-4);
+  }
+
+  /* Figma: display face, uppercase, balanced, cut after 2 lines. */
+  .popular-widget__title {
+    display: -webkit-box;
+    overflow: hidden;
+    font: var(--type-display-2xs);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display-2xs);
+    color: var(--text-primary);
+    text-decoration: none;
+    text-transform: var(--text-case);
+    text-wrap: balance;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .popular-widget__title:hover {
+    text-decoration: underline;
+  }
+
+  .popular-widget__date {
+    font: var(--type-text-regular-xs);
+    color: var(--text-secondary);
+  }
+
+  .popular-widget__author {
+    font: var(--type-text-medium-xs);
+    color: var(--text-body);
+  }
+
+  /* Figma sizes auto-width text boxes to whole pixels (rounded up); matching that keeps the
+     title's remaining width — and so its line breaks — identical. */
+  .popular-widget__item :global(.category-label) {
+    flex: none;
+    width: calc-size(max-content, round(up, size, 1px));
+  }
+
+  /* compact (Figma 771:24348): 20px padding and gaps, rows split by 12px and a 1px gray/100
+     bottom border. */
+  .popular-widget--compact {
+    gap: var(--space-20);
+    padding: 0;
+    border-radius: var(--radius-card);
+  }
+
+  .popular-widget--compact .popular-widget__header {
+    padding: 0;
+  }
+
+  .popular-widget--compact .popular-widget__list {
+    gap: 0;
+    padding: 0;
+  }
+
+  .popular-widget--compact .popular-widget__item {
+    padding: var(--space-12) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .popular-widget--compact .popular-widget__item:first-child {
+    padding-top: 0;
+  }
+
+  .popular-widget--compact .popular-widget__item:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .popular-widget--compact .popular-widget__item::before {
+    content: none;
+  }
+
+  .popular-widget--compact .popular-widget__date {
+    color: var(--text-secondary);
+  }
+</style>

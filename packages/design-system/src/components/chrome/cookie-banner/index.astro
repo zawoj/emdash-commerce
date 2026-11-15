@@ -1,0 +1,250 @@
+---
+// The cookie-consent bar (no Figma frame): floating at the bottom of the page on a light panel —
+// the notice with its policy link, the answers (reject and accept as buttons, "settings" as a text
+// link) and a panel of per-category choices that opens under them. On a phone it is a compact bar:
+// the title is kept for assistive technology only and the answers sit in one row. The attributes of the
+// consent script (`data-cookie-action`, `data-cookie-toggle`, `data-cookie-panel`) are the hooks it
+// binds to; the root carries whatever else the page puts on it (`hidden`, `data-*`).
+import type { HTMLAttributes } from 'astro/types'
+
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+import FieldCheckbox from '../../atoms/field-checkbox/index.astro'
+import type { CookieBannerCategory } from './types'
+
+interface Props extends HTMLAttributes<'div'> {
+  headingId: string
+  panelId: string
+  title: string
+  description: string
+  policy: { label: string; href: string }
+  rejectLabel: string
+  customizeLabel: string
+  acceptLabel: string
+  saveLabel: string
+  /** The choices of the panel; a locked one is on and cannot be changed. */
+  categories: readonly CookieBannerCategory[]
+}
+
+const { headingId, panelId, title, description, policy, rejectLabel, customizeLabel, acceptLabel, saveLabel, categories, ...attrs } = Astro.props
+---
+
+<div class="cookie-banner" data-surface="light" role="dialog" aria-modal="false" aria-labelledby={headingId} {...attrs}>
+  <div class="cookie-banner__inner">
+    <div class="cookie-banner__bar">
+      <div class="cookie-banner__copy">
+        <h2 id={headingId}>{title}</h2>
+        <p>{description} <a href={policy.href}>{policy.label}</a></p>
+      </div>
+      <div class="cookie-banner__actions">
+        <button type="button" class="cookie-banner__settings" data-cookie-action="customize" aria-expanded="false" aria-controls={panelId}>{customizeLabel}</button>
+        <Button variant={buttonVariants.primary} size={buttonSizes.sm} data-cookie-action="reject-all">{rejectLabel}</Button>
+        <Button variant={buttonVariants.accent} size={buttonSizes.sm} data-cookie-action="accept-all">{acceptLabel}</Button>
+      </div>
+    </div>
+
+    <div id={panelId} class="cookie-banner__panel" data-cookie-panel hidden>
+      <ul class="cookie-banner__categories">
+        {
+          categories.map((category) => (
+            <li>
+              {category.isLocked ? (
+                <FieldCheckbox id={category.id} name={category.key} description={category.description} isChecked isDisabled>
+                  {category.label}
+                </FieldCheckbox>
+              ) : (
+                <FieldCheckbox id={category.id} name={category.key} description={category.description} data-cookie-toggle={category.key}>
+                  {category.label}
+                </FieldCheckbox>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+      <div class="cookie-banner__save">
+        <Button variant={buttonVariants.accent} size={buttonSizes.sm} data-cookie-action="save-preferences">{saveLabel}</Button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .cookie-banner {
+    position: fixed;
+    inset: auto var(--page-gutter) var(--space-24);
+    z-index: 100;
+    max-height: calc(100vh - 2 * var(--space-16));
+    overflow-y: auto;
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    padding: var(--space-32);
+    border-radius: var(--radius-panel);
+    background: var(--surface);
+    box-shadow: var(--shadow-overlay);
+    color: var(--text-body);
+  }
+
+  .cookie-banner[hidden],
+  .cookie-banner__panel[hidden] {
+    display: none;
+  }
+
+  .cookie-banner__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+    width: 100%;
+  }
+
+  .cookie-banner__bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-24);
+  }
+
+  .cookie-banner__copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 880px; /* token-lint-ignore: keeps the notice to a readable line length */
+  }
+
+  .cookie-banner__copy h2 {
+    margin: 0;
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch);
+    text-transform: var(--text-case);
+    color: var(--text-primary);
+  }
+
+  .cookie-banner__copy p {
+    margin: 0;
+    font: var(--type-text-regular-sm);
+    color: var(--text-body);
+  }
+
+  .cookie-banner__copy a {
+    color: var(--link);
+    text-decoration: underline;
+    white-space: nowrap;
+  }
+
+  .cookie-banner__actions {
+    display: flex;
+    flex: none;
+    flex-flow: row wrap;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .cookie-banner__settings {
+    min-height: 44px; /* token-lint-ignore: touch target */
+    padding: 0 var(--space-12);
+    border: none;
+    background: none;
+    color: var(--link);
+    font: var(--type-button-sm);
+    text-transform: var(--button-case);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  .cookie-banner__settings:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .cookie-banner__panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding-top: var(--space-20);
+    border-top: var(--stroke-thin) solid var(--border);
+  }
+
+  .cookie-banner__categories {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-16) var(--space-24);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cookie-banner__categories li {
+    margin: 0;
+  }
+
+  .cookie-banner__save {
+    display: flex;
+  }
+
+  @media (max-width: 1100px) {
+    .cookie-banner__categories {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 900px) {
+    .cookie-banner__bar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cookie-banner {
+      inset: auto var(--space-8) var(--space-8);
+      max-height: calc(100dvh - 2 * var(--space-8));
+      padding: var(--space-16);
+    }
+
+    .cookie-banner__inner,
+    .cookie-banner__bar {
+      gap: var(--space-8);
+    }
+
+    /* The title stays the dialog's accessible name; the bar keeps to the notice and one row of answers. */
+    .cookie-banner__copy h2 {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+
+    .cookie-banner__copy p {
+      font: var(--type-text-regular-xs);
+    }
+
+    /* Long labels (pl: "Akceptuj wszystkie") wrap to a second row instead of running off the screen. */
+    .cookie-banner__actions {
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .cookie-banner__settings {
+      padding: 0;
+      flex: none;
+    }
+
+    .cookie-banner__categories {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cookie-banner__actions > :global(*) {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+  }
+
+  /* Phone: the banner floats above the bottom bar the page has (tab bar or action bar), or the home indicator. */
+  @media (max-width: 767px) {
+    .cookie-banner {
+      bottom: calc(max(var(--bottom-bar-offset), env(safe-area-inset-bottom, 0px)) + var(--space-8));
+    }
+  }
+</style>

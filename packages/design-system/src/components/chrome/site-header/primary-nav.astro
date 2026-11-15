@@ -1,0 +1,138 @@
+---
+// The header's main menu on a desktop (from 1101px; below it the drawer takes over). A top item with
+// columns or tiles opens a full-width mega-menu panel under the header bar; the item keeps its link and
+// gets a disclosure button after it (`aria-expanded` / `aria-controls`), visually hidden until focused, for
+// keyboard users. The panel opens on hover intent; only one panel is open at a time (see `mega-menu.ts`). The panel's links are
+// tab stops only while it is open, so a keyboard user passes the menu in one stop per item.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { ChromeLink, ChromeMenuItem } from '../types'
+import { hasMegaPanel, linkRel, linkTarget } from './mega-columns'
+import MegaPanel from './mega-panel.astro'
+
+interface Props {
+  menu: readonly ChromeMenuItem[]
+  /** Accessible name of the nav. */
+  label: string
+  /** Name of a disclosure button with `{label}` ("Show {label} submenu"); absent = the item's own label. */
+  subMenuLabelTemplate?: string
+  /** Gallery only: the index of the item whose panel is rendered open. */
+  openIndex?: number
+  idPrefix?: string
+}
+
+const { menu, label, subMenuLabelTemplate, openIndex, idPrefix = 'site' } = Astro.props
+const toggleLabel = (item: ChromeLink): string => (subMenuLabelTemplate ? subMenuLabelTemplate.replace('{label}', item.label) : item.label)
+---
+
+<nav class="site-header__nav" aria-label={label} data-site-nav>
+  <ul>
+    {
+      menu.map((item, index) => {
+        const hasPanel = hasMegaPanel(item)
+        const panelId = `${idPrefix}-mega-${index}`
+        const isOpen = hasPanel && openIndex === index
+        return (
+          <li class:list={[hasPanel && 'site-header__has-sub']} data-site-menu-item data-open={isOpen ? '' : undefined}>
+            <a href={item.href} target={linkTarget(item)} rel={linkRel(item)} aria-current={item.isCurrent ? 'true' : undefined} data-site-menu-link>{item.label}</a>
+            {hasPanel && (
+              <button type="button" class="site-header__sub-toggle" aria-expanded={isOpen ? 'true' : 'false'} aria-controls={panelId} aria-label={toggleLabel(item)} data-site-submenu-toggle>
+                <Icon name={iconNames.chevronDown} size={16} />
+              </button>
+            )}
+            {hasPanel && <MegaPanel item={item} id={panelId} />}
+          </li>
+        )
+      })
+    }
+  </ul>
+</nav>
+
+<script>
+  import { initMegaMenu } from './mega-menu'
+
+  initMegaMenu()
+</script>
+
+<style>
+  .site-header__nav {
+    min-width: 0;
+    font: var(--type-text-medium-md);
+  }
+
+  .site-header__nav > ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .site-header__nav > ul > li {
+    display: flex;
+    align-items: center;
+  }
+
+  /* 16px medium black; the underline (2px) of the item under the pointer, with its panel open, or that holds the current page sits on the bar's edge. */
+  .site-header__nav [data-site-menu-link] {
+    padding: var(--space-20) var(--space-16);
+    color: var(--text-primary);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  /* Items touch each other (padding, no gap), so the pointer never crosses a dead zone between two of them. */
+  .site-header__nav [data-site-menu-link]:hover,
+  .site-header__nav [data-site-menu-link][aria-current],
+  .site-header__nav [data-open] > [data-site-menu-link] {
+    text-decoration: underline;
+    text-decoration-thickness: var(--stroke-bold);
+    text-underline-offset: 6px;
+  }
+
+  /* The disclosure button is for keyboard users: visually hidden (still focusable) until it has focus. */
+  .site-header__sub-toggle {
+    display: inline-flex;
+    width: 1px; /* token-lint-ignore: visually hidden */
+    height: 1px; /* token-lint-ignore: visually hidden */
+    margin: -1px;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-primary);
+    clip-path: inset(50%);
+    cursor: pointer;
+  }
+
+  .site-header__sub-toggle:focus-visible {
+    width: 24px; /* token-lint-ignore: disclosure button target */
+    height: 24px; /* token-lint-ignore: disclosure button target */
+    margin: 0 0 0 var(--space-4);
+    clip-path: none;
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .site-header__nav [data-site-menu-link]:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .site-header__sub-toggle :global(svg) {
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .site-header__sub-toggle[aria-expanded='true'] :global(svg) {
+    transform: scaleY(-1);
+  }
+
+  /* Below a desktop the drawer carries the menu. */
+  @media (max-width: 1100px) {
+    .site-header__nav {
+      display: none;
+    }
+  }
+</style>

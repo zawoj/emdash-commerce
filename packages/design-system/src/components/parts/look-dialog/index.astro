@@ -1,0 +1,663 @@
+---
+// The "shop the look" dialog: one modal <dialog> per look that lets the shopper choose a variant (colour, size) of one
+// product (a row's button) or go through every product of the kit step by step (the look's call to action) and
+// add the choice to the cart. A centred modal from 768px; on a phone a bottom sheet with the step buttons at the
+// bottom. Every product's panel is server-rendered into the dialog (the picker, the price per variant, the photo per
+// colour), so the script only switches what is shown. The cart call is injected by the app (`setLookCartAdapter`).
+import Availability from '../../atoms/availability/index.astro'
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import Image from '../../atoms/image/index.astro'
+import Price from '../../atoms/price/index.astro'
+import { priceSizes } from '../../atoms/price/variants'
+import VariantPicker from '../../molecules/variant-picker/index.astro'
+import type { LookDialogProps } from './types'
+
+type Props = LookDialogProps
+
+const { id, products, copy, money } = Astro.props
+const headingId = `${id}-heading`
+const stepId = `${id}-step`
+const labelOfAxis = (product: Props['products'][number]) => Object.fromEntries((product.picker?.axes ?? []).map((axis) => [axis.name.replace(/^option:/, ''), axis.label]))
+const config = {
+  copy,
+  money,
+  products: products.map((product) => ({
+    id: product.id,
+    title: product.title,
+    axes: product.axes,
+    imageAxis: product.imageAxis,
+    axisLabels: labelOfAxis(product),
+    variants: product.variants.map(({ id: variantId, options, isPurchasable, price }) => ({ id: variantId, options, isPurchasable, price })),
+    prices: product.prices.map((price) => ({ label: price.label, minor: price.minor })),
+    defaultPrice: { label: product.defaultPrice.label, minor: product.defaultPrice.minor },
+  })),
+}
+const json = JSON.stringify(config).replace(/</g, '\\u003c')
+---
+
+<dialog id={id} class="look-dialog" aria-labelledby={headingId} data-look-dialog data-mode="kit" data-phase="step">
+  <script type="application/json" data-look-config set:html={json} />
+  <header class="look-dialog__bar">
+    <div class="look-dialog__titles">
+      <h2 class="look-dialog__heading" id={headingId} data-look-heading tabindex="-1">{copy.chooseHeading}</h2>
+      <p class="look-dialog__step" id={stepId} data-look-step aria-live="polite" hidden></p>
+    </div>
+    <button class="look-dialog__close" type="button" aria-label={copy.close} data-look-action="close">
+      <Icon name={iconNames.x} size={20} />
+    </button>
+    <div class="look-dialog__progress" data-look-progress hidden aria-hidden="true"><span class="look-dialog__progress-fill"></span></div>
+  </header>
+
+  <div class="look-dialog__scroll" data-look-scroll>
+    {
+      products.map((product) => (
+        <section class="look-dialog__panel" data-look-panel={product.id} aria-label={product.title} hidden>
+          <form class="look-dialog__form" novalidate data-look-form>
+            <div class="look-dialog__media">
+              <Image {...product.image} class="look-dialog__photo" data-look-photo="" loading="lazy" />
+              {product.colourImages?.map((entry) => <Image {...entry.image} class="look-dialog__photo" data-look-photo={entry.group} loading="lazy" hidden />)}
+            </div>
+            <div class="look-dialog__head">
+              <h3 class="look-dialog__title" data-look-title tabindex="-1">{product.title}</h3>
+              <div class="look-dialog__price" data-look-prices aria-live="polite">
+                {[product.defaultPrice, ...product.prices].map((price, index) => (
+                  <div data-look-price={index === 0 ? 'default' : String(index - 1)} hidden={index !== 0}>
+                    <Price label={price.label} value={price.value} size={priceSizes.lg} compareAt={price.compareAt}>
+                      <Fragment slot="note">{[price.omnibus, price.note].filter(Boolean).map((line) => <span class="look-dialog__note-line">{line}</span>)}</Fragment>
+                    </Price>
+                  </div>
+                ))}
+              </div>
+              {
+                product.variants.filter((variant) => variant.note).map((variant) => (
+                  <p class="look-dialog__stock" data-look-stock={variant.id} hidden>
+                    <Availability label={variant.note ?? ''} isAvailable isLow={variant.isLow} />
+                  </p>
+                ))
+              }
+            </div>
+            <div class="look-dialog__choice">
+              {product.picker && <VariantPicker {...product.picker} />}
+              <p class="look-dialog__hint" data-look-hint hidden>{copy.soldOutHint}</p>
+              <p class="look-dialog__missing" role="alert" data-look-missing></p>
+              <a class="look-dialog__details" href={product.href}>{copy.details}</a>
+            </div>
+          </form>
+        </section>
+      ))
+    }
+
+    <section class="look-dialog__summary" data-look-summary aria-labelledby={`${id}-summary-heading`} hidden>
+      <h3 class="look-dialog__summary-heading visually-hidden" id={`${id}-summary-heading`} tabindex="-1">{copy.summaryLabel}</h3>
+      <ul class="look-dialog__rows" data-look-rows></ul>
+      <p class="look-dialog__nothing" data-look-nothing hidden>{copy.nothingChosen}</p>
+      <p class="look-dialog__total" data-look-total hidden><span>{copy.total}</span><data value="0" data-look-total-value></data></p>
+      <p class="look-dialog__result" role="status" data-look-result hidden></p>
+    </section>
+    <template data-look-row-template>
+      <li class="look-dialog__row">
+        <span class="look-dialog__thumb"><img alt="" data-slot="thumb" /></span>
+        <span class="look-dialog__row-info">
+          <span class="look-dialog__row-title" data-slot="title"></span>
+          <span class="look-dialog__row-variant" data-slot="variant"></span>
+          <span class="look-dialog__row-status" data-slot="status" hidden></span>
+        </span>
+        <span class="look-dialog__row-price" data-slot="price"></span>
+        <button class="look-dialog__row-change" type="button" data-slot="change">{copy.change}</button>
+      </li>
+    </template>
+  </div>
+
+  <footer class="look-dialog__footer" data-look-footer>
+    <Button variant={buttonVariants.outline} size={buttonSizes.lg} class="look-dialog__back" data-look-action="back" hidden>{copy.back}</Button>
+    <Button variant={buttonVariants.outline} size={buttonSizes.lg} class="look-dialog__skip" data-look-action="skip" hidden>{copy.skip}</Button>
+    <Button variant={buttonVariants.primary} size={buttonSizes.lg} class="look-dialog__next" data-look-action="next" hidden>{copy.next}</Button>
+    <Button variant={buttonVariants.primary} size={buttonSizes.lg} class="look-dialog__add" data-look-action="add" hidden>{copy.addToCart}</Button>
+    <Button variant={buttonVariants.outline} size={buttonSizes.lg} class="look-dialog__buy-set" data-look-action="buySet" hidden>{copy.buySet}</Button>
+    <Button variant={buttonVariants.primary} size={buttonSizes.lg} class="look-dialog__add-all" data-look-action="addAll" hidden>{copy.addAll}</Button>
+  </footer>
+</dialog>
+
+<script>
+  import '@emdash-commerce/design-system/look-dialog'
+</script>
+
+<style>
+  .look-dialog {
+    width: min(960px, calc(100% - var(--space-32))); /* token-lint-ignore: dialog width */
+    max-width: none;
+    max-height: calc(100dvh - var(--space-48));
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-overlay);
+    background: var(--surface);
+    color: var(--text-body);
+  }
+
+  .look-dialog[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .look-dialog::backdrop {
+    background: color-mix(in srgb, var(--ink-1000) 60%, transparent);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .look-dialog {
+      opacity: 0;
+      transform: translateY(var(--space-16));
+      transition:
+        opacity var(--duration-fast) var(--ease-in),
+        transform var(--duration-fast) var(--ease-in),
+        overlay var(--duration-fast) allow-discrete,
+        display var(--duration-fast) allow-discrete;
+    }
+
+    .look-dialog[open] {
+      opacity: 1;
+      transform: none;
+      transition-duration: var(--duration-base);
+      transition-timing-function: var(--ease-out);
+    }
+
+    .look-dialog::backdrop {
+      background: transparent;
+      transition:
+        background-color var(--duration-fast) var(--ease-in),
+        overlay var(--duration-fast) allow-discrete,
+        display var(--duration-fast) allow-discrete;
+    }
+
+    .look-dialog[open]::backdrop {
+      background: color-mix(in srgb, var(--ink-1000) 60%, transparent);
+    }
+
+    @starting-style {
+      .look-dialog[open] {
+        opacity: 0;
+        transform: translateY(var(--space-16));
+      }
+
+      .look-dialog[open]::backdrop {
+        background: transparent;
+      }
+    }
+  }
+
+  /* The page behind a phone's sheet does not scroll (an overlay scrollbar means no layout jump). */
+  @media (max-width: 767px) {
+    :global(html:has(.look-dialog[open])) {
+      overflow: hidden;
+    }
+  }
+
+  /* ----- bar: heading, step label, close, progress ----- */
+  .look-dialog__bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16);
+    padding: var(--space-12) var(--space-12) var(--space-12) var(--space-24);
+    border-bottom: var(--stroke-thin) solid var(--border);
+  }
+
+  .look-dialog__titles {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .look-dialog__heading {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+  }
+
+  .look-dialog__heading:focus,
+  .look-dialog__title:focus,
+  .look-dialog__summary-heading:focus {
+    outline: none;
+  }
+
+  .look-dialog__step {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .look-dialog__close {
+    display: inline-flex;
+    flex: none;
+    width: 44px; /* token-lint-ignore: touch target */
+    height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .look-dialog__close:hover {
+    background: var(--surface-hover);
+  }
+
+  .look-dialog__close:focus-visible {
+    outline: 2px solid var(--focus-ring);
+  }
+
+  .look-dialog__progress {
+    position: absolute;
+    inset: auto 0 calc(-1 * var(--stroke-thin));
+    height: var(--stroke-bold);
+    background: var(--border);
+  }
+
+  .look-dialog__progress-fill {
+    display: block;
+    width: calc(var(--look-ratio, 0) * 100%);
+    height: 100%;
+    background: var(--control-solid);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .look-dialog__progress-fill {
+      transition: width var(--duration-base) var(--ease-out);
+    }
+  }
+
+  /* ----- scroll area and a product's panel ----- */
+  .look-dialog__scroll {
+    flex: 1;
+    min-height: 0;
+    padding: var(--space-24);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .look-dialog__panel[hidden],
+  .look-dialog__summary[hidden] {
+    display: none;
+  }
+
+  .look-dialog__form {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-areas:
+      'media head'
+      'media choice';
+    grid-template-rows: auto 1fr;
+    column-gap: var(--space-32);
+    row-gap: var(--space-16);
+  }
+
+  .look-dialog__media {
+    position: relative;
+    grid-area: media;
+    align-self: start;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .look-dialog__media :global(.look-dialog__photo) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+
+  .look-dialog__media :global(.look-dialog__photo[hidden]) {
+    display: none;
+  }
+
+  .look-dialog__head {
+    display: flex;
+    grid-area: head;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .look-dialog__title {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-title-md);
+  }
+
+  .look-dialog__price [hidden],
+  .look-dialog__stock[hidden] {
+    display: none;
+  }
+
+  .look-dialog__note-line {
+    display: block;
+  }
+
+  .look-dialog__stock {
+    margin: 0;
+  }
+
+  .look-dialog__choice {
+    display: flex;
+    grid-area: choice;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  .look-dialog__hint {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+  }
+
+  .look-dialog__hint[hidden] {
+    display: none;
+  }
+
+  .look-dialog__missing {
+    margin: 0;
+    color: var(--hot);
+    font: var(--type-text-medium-sm);
+  }
+
+  .look-dialog__missing:empty {
+    display: none;
+  }
+
+  .look-dialog__details {
+    align-self: flex-start;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+    text-underline-offset: 3px;
+  }
+
+  .look-dialog__details:hover {
+    color: var(--text-primary);
+  }
+
+  /* ----- summary ----- */
+  .look-dialog__rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--stroke-thin) solid var(--border);
+  }
+
+  .look-dialog__row {
+    display: grid;
+    grid-template-columns: var(--space-64) minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--space-16);
+    padding: var(--space-12) 0;
+    border-bottom: var(--stroke-thin) solid var(--border);
+  }
+
+  .look-dialog__row[data-state='skipped'] {
+    color: var(--text-secondary);
+  }
+
+  .look-dialog__row[data-state='skipped'] .look-dialog__thumb {
+    opacity: 0.45; /* token-lint-ignore: a skipped product is dimmed */
+  }
+
+  .look-dialog__thumb {
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--surface-muted);
+  }
+
+  .look-dialog__thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .look-dialog__row-info {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .look-dialog__row-title {
+    color: var(--text-primary);
+    font: var(--type-title-md);
+  }
+
+  .look-dialog__row-variant,
+  .look-dialog__row-status {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+  }
+
+  .look-dialog__row-status[data-tone='error'] {
+    color: var(--hot);
+    font: var(--type-text-medium-sm);
+  }
+
+  .look-dialog__row-status[hidden] {
+    display: none;
+  }
+
+  .look-dialog__row-price {
+    font: var(--type-price-md);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .look-dialog__row-change {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    padding: 0 var(--space-4);
+    border: 0;
+    background: none;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  /* An added item cannot be changed any more; it keeps its column so the prices stay aligned. */
+  .look-dialog__row-change[hidden] {
+    display: inline-flex;
+    visibility: hidden;
+  }
+
+  .look-dialog__row-change:hover {
+    color: var(--text-primary);
+  }
+
+  .look-dialog__row-change:focus-visible {
+    outline: 2px solid var(--focus-ring);
+  }
+
+  .look-dialog__nothing {
+    margin: var(--space-16) 0 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .look-dialog__total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: var(--space-16) 0 0;
+    font: var(--type-text-medium-md);
+  }
+
+  .look-dialog__total data {
+    font: var(--type-price-lg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .look-dialog__nothing[hidden],
+  .look-dialog__total[hidden],
+  .look-dialog__result[hidden] {
+    display: none;
+  }
+
+  .look-dialog__result {
+    margin: var(--space-16) 0 0;
+    padding: var(--space-12) var(--space-16);
+    border: var(--stroke-thin) solid var(--hot);
+    border-radius: var(--radius-field);
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  /* ----- footer ----- */
+  .look-dialog__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-12);
+    padding: var(--space-16) var(--space-24);
+    border-top: var(--stroke-thin) solid var(--border);
+    background: var(--surface);
+  }
+
+  .look-dialog__footer :global(.button[hidden]) {
+    display: none;
+  }
+
+  .look-dialog__footer :global(.look-dialog__back) {
+    margin-right: auto;
+  }
+
+  /* Inactive until the choice is complete, yet pressable: a press says what is missing. */
+  .look-dialog__footer :global(.button[aria-disabled='true']) {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .look-dialog__footer :global(.button[disabled]) {
+    cursor: not-allowed;
+  }
+
+  /* ----- phone: a bottom sheet, the step buttons at the bottom ----- */
+  @media (max-width: 767px) {
+    .look-dialog {
+      width: 100%;
+      margin: auto 0 0;
+      max-height: calc(100dvh - var(--space-48));
+      border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .look-dialog {
+        transform: translateY(100%);
+      }
+
+      @starting-style {
+        .look-dialog[open] {
+          transform: translateY(100%);
+        }
+      }
+    }
+
+    /* The grab handle is decoration: the sheet closes with the button, the backdrop or Escape. */
+    .look-dialog__bar::before {
+      position: absolute;
+      top: var(--space-8);
+      left: 50%;
+      width: var(--space-32);
+      height: var(--space-4);
+      border-radius: var(--radius-full);
+      background: var(--border-strong);
+      content: '';
+      transform: translateX(-50%);
+    }
+
+    .look-dialog__bar {
+      padding: var(--space-20) var(--space-8) var(--space-8) var(--space-16);
+    }
+
+    .look-dialog__scroll {
+      padding: var(--space-16);
+    }
+
+    .look-dialog__form {
+      grid-template-columns: var(--space-96) minmax(0, 1fr);
+      grid-template-areas:
+        'media head'
+        'choice choice';
+      grid-template-rows: auto;
+      column-gap: var(--space-16);
+    }
+
+    .look-dialog__row {
+      grid-template-columns: var(--space-64) minmax(0, 1fr) auto;
+      grid-template-areas:
+        'thumb info price'
+        'thumb change change';
+      row-gap: 0;
+    }
+
+    .look-dialog__thumb {
+      grid-area: thumb;
+    }
+
+    .look-dialog__row-info {
+      grid-area: info;
+    }
+
+    .look-dialog__row-price {
+      grid-area: price;
+    }
+
+    .look-dialog__row-change {
+      grid-area: change;
+      justify-self: start;
+    }
+
+    .look-dialog__row-change[hidden] {
+      display: none;
+    }
+
+    /* Three buttons must fit 358px beside each other: tighter padding, the primary one takes what is left. */
+    .look-dialog__footer {
+      gap: var(--space-8);
+      padding: var(--space-12) var(--space-16) calc(var(--space-12) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .look-dialog__footer :global(.button) {
+      min-width: 0;
+      padding-inline: var(--space-16);
+    }
+
+    .look-dialog__footer :global(.look-dialog__next),
+    .look-dialog__footer :global(.look-dialog__add),
+    .look-dialog__footer :global(.look-dialog__buy-set),
+    .look-dialog__footer :global(.look-dialog__add-all) {
+      flex: 1;
+    }
+
+    .look-dialog__footer :global(.look-dialog__back) {
+      margin-right: 0;
+    }
+  }
+</style>

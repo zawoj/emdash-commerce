@@ -1,0 +1,102 @@
+---
+// A photo tile of the mega menu (desktop panel and phone drawer): the whole tile is one link, the photo
+// sits under a scrim with an eyebrow, a condensed title and the call to action. It fills the cell its
+// parent gives it (4:5). Frame `isolation: isolate`, overlays `z-index: 1`, so the hover zoom never
+// paints over the copy.
+import Image from '../../atoms/image/index.astro'
+import type { ChromeMenuFeatured } from '../types'
+
+interface Props {
+  tile: ChromeMenuFeatured
+  tabindex?: number
+}
+
+const { tile, tabindex } = Astro.props
+const { image } = tile
+---
+
+<a class="menu-tile" href={tile.href} tabindex={tabindex}>
+  <Image src={image.src} srcset={image.srcset} sizes={image.sizes} width={image.width} height={image.height} alt={image.alt} />
+  <span class="menu-tile__copy">
+    {tile.eyebrow && <span class="menu-tile__eyebrow">{tile.eyebrow}</span>}
+    <span class="menu-tile__title">{tile.title}</span>
+    {tile.ctaLabel && <span class="menu-tile__cta">{tile.ctaLabel}</span>}
+  </span>
+</a>
+
+<style>
+  .menu-tile {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--surface-muted);
+    color: var(--on-color);
+    text-decoration: none;
+  }
+
+  .menu-tile :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .menu-tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: var(--image-scrim);
+    pointer-events: none;
+  }
+
+  .menu-tile__copy {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-16);
+  }
+
+  .menu-tile__eyebrow {
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .menu-tile__title {
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .menu-tile__cta {
+    margin-top: var(--space-4);
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .menu-tile:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .menu-tile :global(img) {
+      transition: transform var(--duration-slow) var(--ease-out);
+    }
+
+    .menu-tile:hover :global(img) {
+      transform: scale(var(--hover-zoom));
+    }
+  }
+</style>

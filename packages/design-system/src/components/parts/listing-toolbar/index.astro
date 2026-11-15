@@ -1,0 +1,139 @@
+---
+// The bar above a product grid: the result count, a link that opens the filter panel on a phone and
+// the sort select. The sort is a GET form carrying the other query parameters as hidden fields, so
+// filters survive a sort and the page works without a script (`[data-auto-submit]` submits on change).
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import Select from '../../atoms/select/index.astro'
+import type { ListingToolbarProps } from './types'
+
+type Props = ListingToolbarProps
+
+const { resultCount, action, sort, keep = {}, filterToggle } = Astro.props
+const hiddenFields = Object.entries(keep).flatMap(([name, value]) => (typeof value === 'string' ? [[name, value]] : value.map((item) => [name, item])))
+---
+
+<div class="listing-toolbar">
+  <p class="listing-toolbar__count" role="status" aria-live="polite">{resultCount}</p>
+  {
+    filterToggle && (
+      <a class="listing-toolbar__toggle" href={filterToggle.href} data-listing-filters-open>
+        <Icon name={iconNames.slidersHorizontal} size={16} />
+        {filterToggle.label}
+      </a>
+    )
+  }
+  <form class="listing-toolbar__sort" action={action} method="get" data-auto-submit>
+    {hiddenFields.map(([name, value]) => <input type="hidden" name={name} value={value} />)}
+    <label class="listing-toolbar__label" for={sort.id}>{sort.label}</label>
+    <div class="listing-toolbar__select">
+      <Select id={sort.id} name={sort.name} options={sort.options} value={sort.value} />
+    </div>
+    <span data-auto-submit-hide><Button type="submit" variant={buttonVariants.primary} size={buttonSizes.sm}>{sort.submitLabel}</Button></span>
+  </form>
+</div>
+
+<script>
+  import '@emdash-commerce/design-system/listing-filters'
+</script>
+
+<style>
+  .listing-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8) var(--space-24);
+    padding: 0 0 var(--space-16);
+  }
+
+  .listing-toolbar__count {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .listing-toolbar__toggle {
+    display: none;
+    align-items: center;
+    gap: var(--space-8);
+    min-height: 44px; /* token-lint-ignore: touch target */
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    text-decoration: none;
+  }
+
+  .listing-toolbar__toggle:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .listing-toolbar__toggle:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .listing-toolbar__sort {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-left: auto;
+  }
+
+  .listing-toolbar__label {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  /* The sort reads as a quiet text control: no box, the value in medium weight, a chevron after it. */
+  .listing-toolbar__select {
+    width: auto;
+  }
+
+  .listing-toolbar .listing-toolbar__select :global(.select) {
+    width: auto;
+  }
+
+  .listing-toolbar .listing-toolbar__sort .listing-toolbar__select :global(.select select) {
+    width: auto;
+    height: 44px; /* token-lint-ignore: touch target */
+    padding: 0 var(--space-24) 0 var(--space-4);
+    border: 0;
+    border-radius: var(--radius-field);
+    background: transparent;
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    cursor: pointer;
+  }
+
+  .listing-toolbar .listing-toolbar__select :global(.select__chevron) {
+    right: var(--space-4);
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 899px) {
+    .listing-toolbar {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: var(--space-4);
+    }
+
+    .listing-toolbar__count {
+      order: -1;
+      flex-basis: 100%;
+    }
+
+    .listing-toolbar__toggle {
+      display: inline-flex;
+    }
+  }
+
+  /* Touch: a 16px select (iOS zooms the page on focus below that); its label follows. */
+  @media (pointer: coarse) {
+    .listing-toolbar__label,
+    .listing-toolbar .listing-toolbar__sort .listing-toolbar__select :global(.select select) {
+      font: var(--type-text-medium-md);
+    }
+  }
+</style>

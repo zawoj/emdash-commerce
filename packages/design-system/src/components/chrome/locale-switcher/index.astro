@@ -1,0 +1,83 @@
+---
+// A language switch of the header: one link per language the page exists in, the current one marked.
+// It renders nothing for a page that exists in a single language, so a document published in one
+// locale offers no dead link. The caller builds the links (the same page in each language) and
+// passes every word.
+import type { LocaleSwitcherProps } from './types'
+
+type Props = LocaleSwitcherProps
+
+const { current, options, label } = Astro.props
+---
+
+{
+  options.length > 1 && (
+    <nav class="locale-switcher" aria-label={label}>
+      <ul>
+        {options.map((option) => (
+          <li>
+            <a
+              href={option.href}
+              hreflang={option.code}
+              lang={option.code}
+              aria-current={option.code === current ? 'true' : undefined}
+              title={option.name}
+            >
+              {option.label}
+              <span class="visually-hidden"> {option.name}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<style>
+  .locale-switcher ul {
+    display: flex;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .locale-switcher a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px; /* token-lint-ignore: touch target */
+    min-height: 44px; /* token-lint-ignore: touch target */
+    color: var(--text-muted);
+    font: var(--type-button-sm);
+    transition: color var(--duration-fast) var(--ease-out);
+    text-decoration: none;
+  }
+
+  .locale-switcher a[aria-current='true'] {
+    color: var(--text-primary);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: var(--space-4);
+  }
+
+  .locale-switcher a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .locale-switcher a:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+  }
+
+  @media (max-width: 480px) {
+    .locale-switcher ul {
+      gap: 0;
+    }
+
+    .locale-switcher a {
+      min-width: 36px; /* token-lint-ignore: two-letter code, keeps the phone header on one row */
+    }
+  }
+</style>

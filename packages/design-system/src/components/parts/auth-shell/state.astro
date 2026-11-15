@@ -1,0 +1,88 @@
+---
+// An outcome inside the auth shell (e-mail confirmed, link expired, confirming…): a round glyph
+// in the tone's colour, an optional bold line, the explanation and the way forward (the default
+// slot). An error is announced as an alert, the rest as a status.
+import Icon from '../../atoms/icon/index.astro'
+import { authStateIcons } from './variants'
+import type { AuthStateTone } from './types'
+
+interface Props {
+  tone: AuthStateTone
+  /** The bold first line; the text alone when empty. */
+  title?: string
+  text: string
+  /** Spoken before the text for an error ("Error"), because the glyph is decorative. */
+  toneLabel?: string
+}
+
+const { tone, title, text, toneLabel } = Astro.props
+const isError = tone === 'error'
+---
+
+<div class={`auth-state auth-state--${tone}`} role={isError ? 'alert' : 'status'}>
+  <span class="auth-state__icon"><Icon name={authStateIcons[tone]} size={24} /></span>
+  <div class="auth-state__copy">
+    {title && <p class="auth-state__title">{title}</p>}
+    <p class="auth-state__text">{toneLabel && <span class="visually-hidden">{toneLabel}: </span>}{text}</p>
+  </div>
+</div>
+{Astro.slots.has('default') && <div class="auth-state__actions"><slot /></div>}
+
+<style>
+  .auth-state {
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+    padding: var(--space-20);
+    background: var(--surface-muted);
+  }
+
+  .auth-state__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 48px; /* token-lint-ignore: round glyph */
+    height: 48px; /* token-lint-ignore: round glyph */
+    border-radius: var(--radius-full);
+    background: var(--control-solid);
+    color: var(--on-control-solid);
+  }
+
+  .auth-state--success .auth-state__icon {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .auth-state--error .auth-state__icon {
+    background: var(--hot);
+    color: var(--on-color);
+  }
+
+  .auth-state__copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .auth-state__title {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-lg);
+  }
+
+  .auth-state__text {
+    margin: 0;
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+  }
+
+  .auth-state__actions {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .auth-state__actions > :global(*) {
+    width: 100%;
+  }
+</style>

@@ -1,0 +1,23 @@
+---
+// Renders copy that carries the design's non-breaking spaces ( ) inside justified text. Figma keeps
+// a no-break space at its natural width when it justifies a line, while browsers stretch it like
+// any other space — so each run of words joined by   is set as one atomic inline box, which
+// justification moves but never widens. Plain spaces stay ordinary justification opportunities.
+interface Props {
+  text: string
+}
+
+const noBreakSpace = ' '
+const { text } = Astro.props
+const segments = text.split(' ')
+const lastIndex = segments.length - 1
+---
+
+{segments.map((segment, index) => <>{segment.includes(noBreakSpace) ? <span class="nbsp-text__keep">{segment}</span> : segment}{index < lastIndex && ' '}</>)}
+
+<style>
+  .nbsp-text__keep {
+    display: inline-block;
+    white-space: nowrap;
+  }
+</style>

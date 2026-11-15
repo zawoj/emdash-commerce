@@ -1,0 +1,145 @@
+---
+// The featured article on a black tile: a 371px-tall text column (category label,
+// 36px title, excerpt, byline pinned to the bottom) next to a 623px photo.
+import ArticleDetails from '../../../atoms/article-details/index.astro'
+import { articleDetailsVariants } from '../../../atoms/article-details/variants'
+import CategoryLabel from '../../../atoms/category-label/index.astro'
+import type { FeaturedPostProps } from './types'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = FeaturedPostProps
+
+const { article } = Astro.props
+const { image, category } = article
+---
+
+<article class="featured-post" data-surface="dark">
+  <div class="featured-post__row">
+    <div class="featured-post__text">
+      <div class="featured-post__content">
+        {
+          category && (
+            <div class="featured-post__label">
+              <CategoryLabel category={category.key} color={category.color}>{category.label}</CategoryLabel>
+            </div>
+          )
+        }
+        <h2 class="featured-post__title"><a href={article.href}>{article.title}</a></h2>
+        {article.excerpt && <p class="featured-post__excerpt">{article.excerpt}</p>}
+      </div>
+      <ArticleDetails author={article.author} date={article.date?.label} dateTime={article.date?.iso} variant={articleDetailsVariants.onDark} />
+    </div>
+
+    <div class="featured-post__media">
+      {
+        image && (
+          <Image {...image} />
+        )
+      }
+    </div>
+  </div>
+</article>
+
+<style>
+  .featured-post {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .featured-post__row {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+  }
+
+  /* Figma fixes the text column at the tile's 371px height and spreads content and byline apart. */
+  .featured-post__text {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-24);
+    min-width: 0;
+    min-height: 371px;
+    padding: var(--space-40) var(--space-32);
+  }
+
+  .featured-post__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  /* 4px under the label row. */
+  .featured-post__label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding-bottom: var(--space-4);
+  }
+
+  .featured-post__title {
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    color: var(--text-primary);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .featured-post__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .featured-post__title a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .featured-post__excerpt {
+    font: var(--type-text-regular-sm);
+    color: var(--text-body);
+  }
+
+  .featured-post__media {
+    flex: none;
+    width: 623px;
+    height: 371px;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+  }
+
+  .featured-post__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Below the two-column page width the 623px photo leaves no room for the text column: the photo
+     goes above the text and the text column hugs its content. */
+  @media (max-width: 1100px) {
+    .featured-post__row {
+      flex-direction: column-reverse;
+    }
+
+    .featured-post__text {
+      min-height: 0;
+    }
+
+    .featured-post__media {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 623 / 371;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .featured-post__title {
+      font: var(--type-display-md);
+      font-stretch: var(--display-stretch);
+    }
+  }
+</style>

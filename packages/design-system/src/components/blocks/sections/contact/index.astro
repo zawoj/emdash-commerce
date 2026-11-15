@@ -1,0 +1,120 @@
+---
+// The `contact` block: an H2 over two columns — the address, phone, email and booking link on the
+// left, the opening hours as a ruled list on the right (one column on a phone). The phone links as
+// `tel:` without its spaces.
+import Button from '../../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../../atoms/button/variants'
+import type { ContactProps } from './types'
+
+type Props = ContactProps
+
+const { title, address, phone, email, reservation, hours = [], hoursLabel } = Astro.props
+const telHref = phone ? `tel:${phone.replace(/\s/g, '')}` : undefined
+---
+
+<section class="contact" id="contact">
+  <h2 class="contact__title">{title}</h2>
+  <div class="contact__columns">
+    <div class="contact__details">
+      {address && <p class="contact__address">{address}</p>}
+      {phone && <a class="contact__link" href={telHref}>{phone}</a>}
+      {email && <a class="contact__link" href={`mailto:${email}`}>{email}</a>}
+      {
+        reservation && (
+          <Button variant={buttonVariants.primary} size={buttonSizes.lg} href={reservation.href} target="_blank" rel="noreferrer">
+            {reservation.label}
+          </Button>
+        )
+      }
+    </div>
+    {
+      hours.length > 0 && (
+        <ul class="contact__hours" aria-label={hoursLabel}>
+          {hours.map((entry) => (
+            <li class="contact__hour">
+              <span>{entry.days}</span>
+              <span class="contact__hour-time">{entry.hours}</span>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .contact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+    padding: var(--space-48) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .contact__title {
+    color: var(--text-primary);
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-align: center;
+    text-wrap: balance;
+    text-transform: var(--text-case);
+  }
+
+  .contact__columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-32);
+  }
+
+  .contact__details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-12);
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+  }
+
+  .contact__address {
+    white-space: pre-line;
+  }
+
+  .contact__link {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .contact__hours {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font: var(--type-text-regular-md);
+  }
+
+  .contact__hour {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-16);
+    padding: var(--space-8) 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-body);
+  }
+
+  .contact__hour-time {
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .contact {
+      padding: var(--space-32) 0;
+    }
+
+    .contact__columns {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

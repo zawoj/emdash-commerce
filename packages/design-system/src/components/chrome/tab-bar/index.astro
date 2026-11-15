@@ -1,0 +1,190 @@
+---
+// The phone's bottom tab bar (the shopping-app navigation): five tabs with a glyph and a short label,
+// fixed to the bottom edge above the home indicator (`env(safe-area-inset-bottom)`), white with a
+// hairline on top. The current tab is solid with a short bar above it; the others are quiet. Phones only
+// (<= 767px); tablets and desktop keep the header's own controls. A page's action bar takes its place
+// while it is up (`bottom-bars.css`), and the checkout, which has no menu at all, does not render it.
+// The tabs reuse the header's openers instead of carrying logic: the menu drawer (`data-site-drawer-open`),
+// the search overlay (`data-site-search-open`) and the mini-cart (`data-mini-cart-open`), whose scripts bind
+// every opener on the page.
+import CountBadge from '../../atoms/count-badge/index.astro'
+import { tabGlyphs } from './glyphs'
+import type { TabBarProps } from './types'
+import { tabBarActions } from './variants'
+import './../bottom-bars.css'
+
+type Props = TabBarProps
+
+const { label, items } = Astro.props
+---
+
+<nav class="tab-bar" aria-label={label} data-tab-bar data-surface="light">
+  <ul class="tab-bar__list">
+    {
+      items.map((item) => {
+        const glyph = tabGlyphs[item.icon]
+        const isLink = item.action === tabBarActions.link || item.action === tabBarActions.miniCart
+        const Tag = isLink ? 'a' : 'button'
+        return (
+          <li class="tab-bar__cell">
+            <Tag
+              class:list={['tab-bar__item', item.isCurrent && 'tab-bar__item--current']}
+              href={isLink ? item.href : undefined}
+              type={isLink ? undefined : 'button'}
+              aria-current={item.isCurrent ? (isLink ? 'page' : 'true') : undefined}
+              aria-haspopup={item.action === tabBarActions.drawer || item.action === tabBarActions.search ? 'dialog' : undefined}
+              aria-controls={!isLink ? item.controls : undefined}
+              data-site-drawer-open={item.action === tabBarActions.drawer ? '' : undefined}
+              data-site-search-open={item.action === tabBarActions.search ? '' : undefined}
+              data-mini-cart-open={item.action === tabBarActions.miniCart ? item.controls : undefined}
+            >
+              <span class="tab-bar__glyph-box">
+                <svg class="tab-bar__glyph" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                  {glyph.shapes.map((d) => <path class="tab-bar__shape" d={d} />)}
+                  {glyph.details.map((d) => <path class="tab-bar__detail" d={d} />)}
+                  {glyph.lines.map((d) => <path class="tab-bar__line" d={d} />)}
+                </svg>
+                {item.badge && <span class="tab-bar__badge"><CountBadge count={item.badge.count} labelTemplate={item.badge.labelTemplate} /></span>}
+              </span>
+              <span class="tab-bar__label">{item.label}</span>
+            </Tag>
+          </li>
+        )
+      })
+    }
+  </ul>
+</nav>
+
+<style>
+  .tab-bar {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 30; /* token-lint-ignore: under the header (40), over the page; the cookie banner (100) sits above */
+    display: none;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--surface);
+    border-top: var(--stroke-thin) solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 767px) {
+    .tab-bar {
+      display: block;
+    }
+  }
+
+  .tab-bar__list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tab-bar__cell {
+    min-width: 0;
+  }
+
+  .tab-bar__item {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: var(--tab-bar-height);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  /* The short bar over the current tab. */
+  .tab-bar__item::before {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--stroke-thin));
+    left: 50%;
+    width: var(--space-24);
+    height: var(--stroke-bold);
+    background: var(--text-primary);
+    transform: translateX(-50%) scaleX(0);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .tab-bar__item--current {
+    color: var(--text-primary);
+  }
+
+  .tab-bar__item--current::before {
+    transform: translateX(-50%) scaleX(1);
+  }
+
+  .tab-bar__item:active {
+    color: var(--text-primary);
+  }
+
+  .tab-bar__item:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -4px; /* token-lint-ignore: ring inside a full-bleed bar */
+  }
+
+  .tab-bar__glyph-box {
+    position: relative;
+    display: flex;
+  }
+
+  .tab-bar__glyph path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .tab-bar__item--current .tab-bar__shape {
+    fill: currentColor;
+  }
+
+  .tab-bar__item--current .tab-bar__detail {
+    stroke: var(--surface);
+  }
+
+  .tab-bar__item--current .tab-bar__line {
+    stroke-width: 2.5;
+  }
+
+  .tab-bar__badge {
+    position: absolute;
+    top: calc(-1 * var(--space-4));
+    left: calc(100% - var(--space-8));
+  }
+
+  .tab-bar__label {
+    max-width: 100%;
+    overflow: hidden;
+    font: var(--type-label-semibold-xs);
+    letter-spacing: var(--tracking-label-semibold-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .tab-bar {
+      transition:
+        transform var(--duration-base) var(--ease-out),
+        visibility var(--duration-base);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tab-bar__item::before {
+      transition: none;
+    }
+  }
+</style>

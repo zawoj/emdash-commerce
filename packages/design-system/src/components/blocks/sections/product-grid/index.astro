@@ -1,0 +1,64 @@
+---
+// The "productGrid" section: a titled tile with a grid of product cards — four across, three below
+// 1000px, two below 760px. A section without products renders nothing.
+import ContentTile from '../../../parts/content-tile/index.astro'
+import ProductCard from '../../../parts/product-card/index.astro'
+import type { ProductGridProps } from './types'
+
+type Props = ProductGridProps
+
+const { heading, headingId, more, products, eagerCount = 0 } = Astro.props
+---
+
+{
+  products.length > 0 && (
+    <div class="product-grid-section">
+      <ContentTile heading={heading} headingId={headingId} more={more}>
+        <ul class="product-grid">
+          {products.map((product, index) => <li><ProductCard product={product} isEager={index < eagerCount} /></li>)}
+        </ul>
+      </ContentTile>
+    </div>
+  )
+}
+
+<style>
+  .product-grid-section {
+    padding-block: var(--space-24);
+  }
+
+  /* The section header row: condensed heading left, a small underlined link right. */
+  .product-grid-section :global(.tile-title__heading) {
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .product-grid-section :global(.tile-title__more) {
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-40) var(--grid-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @container content-tile (width < 1000px) {
+    .product-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @container content-tile (width < 760px) {
+    .product-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-24) var(--grid-gap-tight);
+    }
+  }
+</style>

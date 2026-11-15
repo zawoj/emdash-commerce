@@ -1,0 +1,128 @@
+---
+// A partner page's body: the text column (the cover, then the `default` slot) beside a 360px side
+// column (the logo frame, the link to the brand's website, the `aside` slot — the offer card), and
+// the `posts` slot across the full width below. The two columns share the page grid's gutter and
+// stack below 1100px. The logo frame is the partner card's (`partner-card`): a 170px muted frame
+// with the 3px white inner stroke, the logo as one monochrome mark.
+import Button from '../../atoms/button/index.astro'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { PartnerProfileProps } from './types'
+import Image from '../../atoms/image/index.astro'
+
+type Props = PartnerProfileProps
+
+const { cover, logo, website } = Astro.props
+const hasAside = Astro.slots.has('aside')
+const hasSide = logo !== undefined || website !== undefined || hasAside
+---
+
+<div class="partner-profile">
+  <div class:list={['partner-profile__columns', { 'partner-profile__columns--single': !hasSide }]}>
+    <div class="partner-profile__text">
+      {cover && <Image {...cover} class="partner-profile__cover" />}
+      <slot />
+    </div>
+    {
+      hasSide && (
+        <div class="partner-profile__side">
+          {
+            logo && (
+              <div class="partner-profile__logo">
+                <Image {...logo} />
+              </div>
+            )
+          }
+          {
+            website && (
+              <Button variant="primary" kind="cta" href={website.href} target="_blank" rel="noopener" class="partner-profile__website">
+                {website.label}
+                <Icon name={iconNames.arrowUpRight} slot="icon" />
+              </Button>
+            )
+          }
+          <slot name="aside" />
+        </div>
+      )
+    }
+  </div>
+  <slot name="posts" />
+</div>
+
+<style>
+  .partner-profile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-48);
+    width: 100%;
+    min-width: 0;
+    padding-bottom: calc(var(--space-128) - var(--space-24));
+  }
+
+  .partner-profile__columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: var(--space-32);
+    align-items: start;
+  }
+
+  .partner-profile__columns--single {
+    grid-template-columns: minmax(0, 800px);
+  }
+
+  .partner-profile__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    min-width: 0;
+  }
+
+  .partner-profile__cover {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1280 / 762;
+    border-radius: var(--radius-card);
+    object-fit: cover;
+  }
+
+  .partner-profile__side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    min-width: 0;
+  }
+
+  .partner-profile__logo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 170px;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .partner-profile__logo :global(img) {
+    width: auto;
+    max-width: 60%;
+    height: auto;
+    max-height: 96px;
+    object-fit: contain;
+    filter: var(--logo-filter-ink);
+  }
+
+  .partner-profile__side :global(.partner-profile__website.button--cta) {
+    width: 100%;
+  }
+
+  @media (max-width: 1100px) {
+    .partner-profile__columns {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .partner-profile__columns--single {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

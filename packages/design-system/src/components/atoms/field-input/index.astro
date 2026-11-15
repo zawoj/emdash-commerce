@@ -1,0 +1,226 @@
+---
+// Figma kontakt form field: an uppercase caption above a bordered 34px control (no error state
+// in Figma). Any further attribute of the control (`maxlength`, `autocomplete`, `data-*`, …) is
+// passed straight to the `<input>`; `description` is the help line under it. `error` is the inline
+// message under the control (an icon and the text, linked with `aria-describedby`, the control gets
+// `aria-invalid`); a `password` field can carry a show/hide toggle (`passwordToggle`).
+import type { HTMLAttributes } from 'astro/types'
+
+import Icon from '../icon/index.astro'
+import { iconNames } from '../icon/names'
+
+export const fieldInputTypes = {
+  text: 'text',
+  email: 'email',
+  tel: 'tel',
+  password: 'password',
+  number: 'number',
+  search: 'search',
+} as const
+export type FieldInputType = (typeof fieldInputTypes)[keyof typeof fieldInputTypes]
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'id' | 'name' | 'type' | 'value' | 'placeholder' | 'required' | 'disabled'> {
+  id: string
+  name: string
+  label: string
+  type?: FieldInputType
+  placeholder?: string
+  value?: string | number
+  description?: string | null
+  /** Inline validation message; empty = valid. */
+  error?: string | null
+  /** Spoken before the error ("Error") because its glyph is hidden from screen readers. */
+  errorLabel?: string
+  /** Adds a reveal button to a `password` field; both labels are the button's accessible name per state. */
+  passwordToggle?: { readonly showLabel: string; readonly hideLabel: string }
+  isRequired?: boolean
+  isDisabled?: boolean
+}
+
+const {
+  id,
+  name,
+  label,
+  type = fieldInputTypes.text,
+  placeholder,
+  value,
+  description,
+  error,
+  errorLabel,
+  passwordToggle,
+  isRequired = false,
+  isDisabled = false,
+  ...attrs
+} = Astro.props
+const descriptionId = description ? `${id}-description` : undefined
+const errorId = error ? `${id}-error` : undefined
+const describedBy = [descriptionId, errorId].filter(Boolean).join(' ') || undefined
+const hasToggle = type === fieldInputTypes.password && passwordToggle !== undefined
+---
+
+<div class="field-input">
+  <label for={id}>{label}</label>
+  <div class:list={['field-input__control', hasToggle && 'field-input__control--toggle']}>
+    <input
+      id={id}
+      {...attrs}
+      name={name}
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      required={isRequired}
+      disabled={isDisabled}
+      aria-describedby={describedBy}
+      aria-invalid={error ? 'true' : undefined}
+    />
+    {
+      hasToggle && passwordToggle && (
+        <button
+          class="field-input__toggle"
+          type="button"
+          hidden
+          aria-label={passwordToggle.showLabel}
+          aria-pressed="false"
+          data-password-toggle={id}
+          data-show-label={passwordToggle.showLabel}
+          data-hide-label={passwordToggle.hideLabel}
+        >
+          <Icon name={iconNames.eye} size={20} />
+        </button>
+      )
+    }
+  </div>
+  {description && <p id={descriptionId} class="field-input__description">{description}</p>}
+  {
+    error && (
+      <p id={errorId} class="field-input__error">
+        <Icon name={iconNames.octagonAlert} size={16} />
+        <span>{errorLabel && <span class="visually-hidden">{errorLabel}: </span>}{error}</span>
+      </p>
+    )
+  }
+</div>
+
+<script>
+  import '@emdash-commerce/design-system/password-toggle'
+</script>
+
+<style>
+  .field-input {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .field-input label {
+    font: var(--type-text-medium-sm);
+    color: var(--text-primary);
+  }
+
+  .field-input input {
+    font: var(--type-text-regular-md);
+    width: 100%;
+    height: 48px;
+    border-radius: var(--radius-field);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    /* Figma's stroke is inside the box: content starts 8px/12px from the outer edge. */
+    padding: 0 calc(var(--space-16) - 1px);
+    color: var(--text-body);
+    transition: border-color var(--duration-fast) var(--ease-out);
+  }
+
+  @media (hover: hover) {
+    .field-input input:hover:not(:focus-visible, :disabled, [aria-invalid='true']) {
+      border-color: var(--text-primary);
+    }
+  }
+
+  .field-input input:focus-visible {
+    border-color: var(--text-primary);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -1px;
+  }
+
+  .field-input__control {
+    position: relative;
+    display: flex;
+  }
+
+  .field-input__control--toggle input {
+    padding-right: 52px; /* token-lint-ignore: room for the reveal button */
+  }
+
+  .field-input__toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: inline-flex;
+    width: 48px; /* token-lint-ignore: square beside the 48px control */
+    height: 48px; /* token-lint-ignore: square beside the 48px control */
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .field-input__toggle[hidden] {
+    display: none;
+  }
+
+  .field-input__toggle:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+  }
+
+  .field-input__toggle[aria-pressed='true'] {
+    color: var(--text-primary);
+  }
+
+  .field-input input[aria-invalid='true'] {
+    border: var(--stroke-bold) solid var(--hot);
+    padding: 0 calc(var(--space-16) - var(--space-2));
+  }
+
+  .field-input input[aria-invalid='true']:focus-visible {
+    outline-color: var(--hot);
+  }
+
+  .field-input__error {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-6);
+    margin: 0;
+    color: var(--hot);
+    font: var(--type-text-medium-sm);
+  }
+
+  .field-input__error :global(svg) {
+    flex: none;
+    margin-top: var(--space-2);
+  }
+
+  .field-input input::placeholder {
+    color: var(--text-subtle);
+  }
+
+  .field-input__description {
+    margin: 0;
+    font: var(--type-text-regular-xs);
+    color: var(--text-muted);
+  }
+
+  .field-input input:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  /* A control the visitor filled in wrong, or left empty and tried to submit (native validation). */
+  .field-input input:user-invalid {
+    border: var(--stroke-bold) solid var(--hot);
+  }
+</style>

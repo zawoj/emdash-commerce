@@ -1,0 +1,96 @@
+---
+// Figma search-bar select (787:33310 …): a bordered gray/0 control with a trailing 14px chevron,
+// value in gray/600. It fills its container (the SearchBar molecule sizes it to Figma's 150 /
+// 164px). The chevron comes through the "icon" slot. A caller may set `--select-font` (a `--type-*`
+// value) and `--select-font-weight` on a wrapper for Figma's per-state value styles.
+import { selectSizes, type SelectSize } from './variants'
+
+export interface SelectOption {
+  readonly label: string
+  readonly value: string
+}
+
+interface Props {
+  id: string
+  name: string
+  options: readonly SelectOption[]
+  value?: string
+  ariaLabel?: string
+  isDisabled?: boolean
+  size?: SelectSize
+}
+
+const { id, name, options, value, ariaLabel, isDisabled = false, size = selectSizes.m } = Astro.props
+---
+
+<div class:list={['select', `select--${size}`]}>
+  <select id={id} name={name} aria-label={ariaLabel} disabled={isDisabled}>
+    {
+      options.map((option) => (
+        <option value={option.value} selected={option.value === value}>
+          {option.label}
+        </option>
+      ))
+    }
+  </select>
+  <span class="select__chevron" aria-hidden="true">
+    <slot name="icon" />
+  </span>
+</div>
+
+<style>
+  .select {
+    position: relative;
+    width: 100%;
+  }
+
+  .select select {
+    font: var(--select-font, var(--type-label-regular-xs));
+    width: 100%;
+    height: 48px;
+    appearance: none;
+    border-radius: var(--radius-field);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    padding: 0 var(--space-40) 0 calc(var(--space-16) - 1px);
+    color: var(--text-body);
+    transition: border-color var(--duration-fast) var(--ease-out);
+  }
+
+  @media (hover: hover) {
+    .select select:hover:not(:focus-visible, :disabled, [aria-invalid='true']) {
+      border-color: var(--text-primary);
+    }
+  }
+
+  .select select:focus-visible {
+    border-color: var(--text-primary);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -1px;
+  }
+
+  .select--l select {
+    height: 48px;
+    font: var(--select-font, var(--type-text-regular-xs));
+    font-weight: var(--select-font-weight, 500);
+  }
+
+  .select select:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .select__chevron {
+    position: absolute;
+    top: 50%;
+    right: var(--space-16);
+    display: flex;
+    width: 14px;
+    height: 14px;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+</style>

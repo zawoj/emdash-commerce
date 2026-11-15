@@ -1,0 +1,66 @@
+---
+// The checkout header's right side: a lock and "Secure checkout", plus a quiet help link. It sits in
+// the minimal site header's `actions` slot, so the flow stays distraction-free but never feels lost.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { SecureNoteProps } from './types'
+
+type Props = SecureNoteProps
+
+const { label, help } = Astro.props
+---
+
+<div class="secure-note">
+  <span class="secure-note__label">
+    <Icon name={iconNames.lock} size={16} />
+    {label}
+  </span>
+  {help && <a class="secure-note__help" href={help.href}>{help.label}</a>}
+</div>
+
+<style>
+  .secure-note {
+    display: flex;
+    align-items: center;
+    gap: var(--space-24);
+  }
+
+  .secure-note__label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8);
+    color: var(--text-primary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    white-space: nowrap;
+  }
+
+  .secure-note__help {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .secure-note__help:hover {
+    color: var(--text-primary);
+  }
+
+  .secure-note__help:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .secure-note {
+      gap: var(--space-12);
+    }
+
+    .secure-note__help {
+      display: none;
+    }
+  }
+</style>

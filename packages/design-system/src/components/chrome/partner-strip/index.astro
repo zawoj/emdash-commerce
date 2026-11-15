@@ -1,0 +1,107 @@
+---
+// Figma "scroll-partners": the partner-logo ticker under the header (661:5146) and above the
+// footer (699:14617). Figma lays one 1500px row of logo groups centered in the band (so it starts
+// 30px left of the edge at 1440 and 150px at 1200); here the row is a seamless marquee of
+// identical groups, started at that same offset (also its resting position with reduced motion).
+// Header and footer differ only in band height, logo offset and gap. Figma's header instances in
+// the 1200 frames (and on the Sylwetki listing) are 146.95px tall: the same strip cut to 36px with
+// the logos where they were — so the header band is 36px at ≤1200px, or always with `isShort`.
+import { partnerStripPlacements, type PartnerStripPlacement } from './variants'
+import type { PartnerLogo } from '../types'
+import Image from '../../atoms/image/index.astro'
+
+interface Props {
+  logos: readonly PartnerLogo[]
+  placement: PartnerStripPlacement
+  /** Header only: the 36px band at every width. */
+  isShort?: boolean
+}
+
+const { logos, placement, isShort = false } = Astro.props
+const gap = placement === partnerStripPlacements.header ? 48 : 32
+/** Width the marquee must cover beyond the viewport: Figma's 1500px row plus the widest screens. */
+const COVER_WIDTH = 2600
+const groupWidth = logos.reduce((sum, logo) => sum + logo.width, 0)
+// One pass = every logo once; the marquee shifts by `passes` passes, then repeats, so the row is
+// made of 2 × `passes` identical passes (at least five).
+const passWidth = groupWidth + logos.length * gap
+const passes = Math.max(5, Math.ceil(COVER_WIDTH / Math.max(passWidth, 1)))
+const groups = Array.from({ length: passes * 2 }, (_, index) => index)
+---
+
+<div
+  class:list={['partner-strip', `partner-strip--${placement}`, isShort && 'partner-strip--short']}
+  style={`--partner-strip-shift: ${passes * passWidth}px`}
+  aria-hidden="true"
+>
+  <div class="partner-strip__track">
+    {
+      groups.map(() =>
+        logos.map((logo) => <Image src={logo.src} width={logo.width} height={logo.height} alt="" />),
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .partner-strip {
+    display: flex;
+    align-items: flex-start;
+    overflow: hidden;
+    background: var(--surface-muted);
+  }
+
+  /* 661:5146 — the 17.95px logo row centered in 42px: 12.02px from the top. */
+  .partner-strip--header {
+    --partner-strip-gap: var(--space-48);
+    height: 42px;
+    padding-top: 12.023px; /* token-lint-ignore: Figma logo row offset */
+  }
+
+  .partner-strip--short {
+    height: 36px;
+  }
+
+  @media (max-width: 1200px) {
+    .partner-strip--header {
+      height: 36px;
+    }
+  }
+
+  /* 699:14617 — the logo row 16px from the top of a 50px band. */
+  .partner-strip--footer {
+    --partner-strip-gap: var(--space-32);
+    height: 50px;
+    padding-top: var(--space-16);
+  }
+
+  .partner-strip__track {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--partner-strip-gap);
+    /* Figma centers a 1500px row in the band. */
+    margin-left: calc((100% - 1500px) / 2); /* token-lint-ignore: Figma's ticker row width */
+    animation: partner-strip-scroll 40s linear infinite;
+  }
+
+  /* Every logo is drawn in one flat grey (neutral-500): black, then inverted 45% — whatever
+     colours the uploaded logo has. */
+  .partner-strip__track :global(img) {
+    display: block;
+    flex: none;
+    filter: var(--logo-filter-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .partner-strip__track {
+      animation: none;
+    }
+  }
+
+  @keyframes partner-strip-scroll {
+    to {
+      transform: translateX(calc(-1 * var(--partner-strip-shift)));
+    }
+  }
+</style>

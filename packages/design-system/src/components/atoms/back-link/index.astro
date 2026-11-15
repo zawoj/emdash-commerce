@@ -1,0 +1,66 @@
+---
+// The phone's app-style "back" bar: a chevron and the name of where it leads ("‹ Koszulki"), a full-width
+// 48px link on a hairline, running edge to edge directly under the header. It is a real link (the parent page,
+// the previous checkout step), never history.back. Phones only (<= 767px); wider screens show the full
+// breadcrumb trail or the step's own back link instead.
+import Icon from '../icon/index.astro'
+import { iconNames } from '../icon/names'
+
+interface Props {
+  href: string
+  /** Where it leads: the visible text. */
+  label: string
+  /** The accessible name when it should say more than the text ("Back to Koszulki"). */
+  ariaLabel?: string
+}
+
+const { href, label, ariaLabel } = Astro.props
+---
+
+<a class="back-link" href={href} aria-label={ariaLabel} data-back-link>
+  <Icon name={iconNames.chevronLeft} size={24} />
+  <span class="back-link__label">{label}</span>
+</a>
+
+<style>
+  .back-link {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .back-link {
+      display: flex;
+      min-height: var(--space-48);
+      align-items: center;
+      gap: var(--space-4);
+      /* Flush under the header: cancels the page's top padding (set by PageMain) and runs past its gutters. */
+      margin: calc(-1 * var(--page-main-padding-top, 0px)) calc(-1 * var(--page-gutter)) 0;
+      padding: 0 var(--page-gutter) 0 calc(var(--page-gutter) - var(--space-8));
+      border-bottom: var(--stroke-thin) solid var(--border);
+      color: var(--text-primary);
+      font: var(--type-text-medium-md);
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .back-link:active {
+      background: var(--surface-hover);
+    }
+
+    .back-link:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: -2px; /* token-lint-ignore: ring inside a full-bleed bar */
+    }
+
+    .back-link :global(svg) {
+      flex: none;
+    }
+
+    .back-link__label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+</style>

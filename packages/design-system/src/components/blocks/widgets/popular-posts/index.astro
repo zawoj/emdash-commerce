@@ -1,0 +1,26 @@
+---
+// "Popularne / polecane": the popular widget (Figma 931:29570) in one of its two title rows —
+// "popularne" with the brand mark, "polecane" with the category label and the partner credit.
+// Renders nothing without items.
+import PopularWidget from '../../../parts/popular-widget/index.astro'
+import type { PopularPostsProps } from './types'
+import { popularPostsLooks } from './variants'
+
+type Props = PopularPostsProps
+
+const { look, heading, headingId, items, label, credit } = Astro.props
+const isRecommended = look === popularPostsLooks.recommended
+---
+
+{
+  items.length > 0 && (
+    <PopularWidget
+      heading={heading}
+      headingId={headingId}
+      items={items}
+      logo={undefined}
+      label={isRecommended ? label : undefined}
+      credit={isRecommended ? credit : undefined}
+    />
+  )
+}

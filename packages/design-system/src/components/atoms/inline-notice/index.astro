@@ -1,0 +1,75 @@
+---
+// A message set inside the page flow: a glyph, an optional bold title and the text. Errors are
+// announced at once (`role="alert"`), the other tones politely (`role="status"`).
+import Icon from '../icon/index.astro'
+import { iconNames, type IconName } from '../icon/names'
+import { noticeTones, type NoticeTone } from './variants'
+import type { InlineNoticeProps } from './types'
+
+type Props = InlineNoticeProps
+
+const { tone = noticeTones.info, title, toneLabel, id, role } = Astro.props
+
+const glyphs: Record<NoticeTone, IconName> = {
+  info: iconNames.info,
+  success: iconNames.circleCheck,
+  warning: iconNames.triangleAlert,
+  error: iconNames.octagonAlert,
+}
+const defaultRole = tone === noticeTones.error ? 'alert' : 'status'
+const resolvedRole = role ?? defaultRole
+---
+
+<div id={id} class:list={['inline-notice', `inline-notice--${tone}`]} role={resolvedRole === 'none' ? undefined : resolvedRole}>
+  <span class="inline-notice__icon" aria-hidden="true"><Icon name={glyphs[tone]} size={20} /></span>
+  <div class="inline-notice__body">
+    {toneLabel && <span class="visually-hidden">{toneLabel}: </span>}
+    {title && <p class="inline-notice__title">{title}</p>}
+    <div class="inline-notice__text"><slot /></div>
+  </div>
+</div>
+
+<style>
+  .inline-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-12);
+    padding: var(--space-16);
+    border-radius: var(--radius-panel);
+    background: var(--surface-muted);
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+  }
+
+  .inline-notice__icon {
+    display: inline-flex;
+    flex: none;
+    color: var(--text-primary);
+  }
+
+  .inline-notice__body {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .inline-notice__title {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+  }
+
+  .inline-notice__text:empty {
+    display: none;
+  }
+
+  .inline-notice__text :global(a) {
+    color: var(--link);
+  }
+
+  .inline-notice--error .inline-notice__title,
+  .inline-notice--error .inline-notice__icon {
+    color: var(--hot);
+  }
+</style>

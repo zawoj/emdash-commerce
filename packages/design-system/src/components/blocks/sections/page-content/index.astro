@@ -1,0 +1,52 @@
+---
+// The `pageContent` block: an H2 over plain text in a centred column. The body is plain text, not
+// rich text, so its line breaks are kept as written (`white-space: pre-line`).
+import type { PageContentProps } from './types'
+import { pageContentWidths } from './variants'
+
+type Props = PageContentProps
+
+const { title, body, width = pageContentWidths.md } = Astro.props
+---
+
+<section class:list={['page-content', `page-content--${width}`]}>
+  {title && <h2 class="page-content__title">{title}</h2>}
+  <p class="page-content__body">{body}</p>
+</section>
+
+<style>
+  .page-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .page-content--sm {
+    max-width: 560px; /* token-lint-ignore: text measure, no token */
+  }
+
+  .page-content--md {
+    max-width: 720px; /* token-lint-ignore: text measure, no token */
+  }
+
+  .page-content--lg {
+    max-width: 960px; /* token-lint-ignore: text measure, no token */
+  }
+
+  .page-content__title {
+    color: var(--text-primary);
+    font: var(--type-display-xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+  }
+
+  .page-content__body {
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+    line-height: 28px; /* token-lint-ignore: long-form reading leading */
+    white-space: pre-line;
+  }
+</style>

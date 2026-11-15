@@ -1,0 +1,93 @@
+---
+// A native <details>: the whole summary row is the target (a touch-sized row with a chevron), the
+// content opens beneath it, and it works without a script.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { DisclosureProps } from './types'
+
+type Props = DisclosureProps
+
+const { summary, isOpen = false, headingLevel, group } = Astro.props
+const Heading = headingLevel ? (`h${headingLevel}` as const) : 'span'
+---
+
+<details class="disclosure" open={isOpen} name={group} data-details-motion>
+  <summary class="disclosure__summary">
+    <Heading class="disclosure__title">{summary}</Heading>
+    <span class="disclosure__chevron" aria-hidden="true"><Icon name={iconNames.chevronDown} /></span>
+  </summary>
+  <div class="disclosure__content"><slot /></div>
+</details>
+
+<script>
+  import '../../../utils/details-motion'
+</script>
+
+<style>
+  .disclosure {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .disclosure__summary {
+    display: flex;
+    min-height: 48px; /* token-lint-ignore: touch target */
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16);
+    padding: var(--space-12) 0;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .disclosure__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .disclosure__summary:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    .disclosure__summary:hover .disclosure__chevron {
+      background: var(--surface-muted);
+      color: var(--text-primary);
+    }
+
+    .disclosure__summary:hover .disclosure__title {
+      text-decoration: underline;
+      text-underline-offset: 4px; /* token-lint-ignore: underline offset */
+    }
+  }
+
+  .disclosure__title {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+  }
+
+  .disclosure__chevron {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px; /* token-lint-ignore: hover disc around the chevron */
+    height: 32px; /* token-lint-ignore: hover disc around the chevron */
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    transition:
+      transform var(--duration-collapse) var(--ease-out),
+      background var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .disclosure[open]:not([data-closing]) .disclosure__chevron {
+    transform: rotate(180deg);
+  }
+
+  .disclosure__content {
+    padding: 0 0 var(--space-16);
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+  }
+</style>

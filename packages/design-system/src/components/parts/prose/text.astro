@@ -1,0 +1,229 @@
+---
+// The text of an article or a plain page (Figma "article" body and "plain text" page): headings,
+// paragraphs, lists, links and the highlighter set in the design's type, 16px apart, with the
+// non-text pieces (`ProseQuote`, `ProseFigure`, …) as siblings 32px apart. The caller renders
+// semantic HTML (h2–h4, p, ul, ol, li, a, strong, em, mark) into the slot; this component only
+// owns how it looks.
+interface Props {
+  class?: string
+}
+
+const { class: className } = Astro.props
+---
+
+<div class:list={['prose', className]}>
+  <slot />
+</div>
+
+<style>
+  .prose {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-16);
+    width: 100%;
+    min-width: 0;
+    font: var(--type-text-regular-lg);
+    color: var(--text-body);
+    text-align: start;
+    overflow-wrap: break-word;
+  }
+
+  .prose > :global(p),
+  .prose > :global(h2),
+  .prose > :global(h3),
+  .prose > :global(h4),
+  .prose > :global(ul),
+  .prose > :global(ol) {
+    margin: 0;
+  }
+
+  .prose > :global(p) {
+    isolation: isolate;
+  }
+
+  /* Readable measure: running text stops at ~68 characters. */
+  .prose > :global(p),
+  .prose > :global(ul),
+  .prose > :global(ol),
+  .prose > :global(blockquote) {
+    max-width: 68ch;
+  }
+
+  /* A plain quote typed into rich text (the designed pull quote is `ProseQuote`). */
+  .prose > :global(blockquote) {
+    margin: 0;
+    padding-inline-start: var(--space-16);
+    border-inline-start: 2px solid var(--text-primary);
+    color: var(--text-secondary);
+  }
+
+  /* An image typed into rich text without a `ProseFigure` around it fills the column. */
+  .prose > :global(img) {
+    width: 100%;
+    height: auto;
+  }
+
+  /* The pieces dropped into the text sit 32px from their neighbours (the 16px gap plus this). */
+  .prose > :global(.prose-block) {
+    margin-block: var(--space-16);
+  }
+
+  /* A heading starts a section: 32px above, 16px to its text. */
+  .prose > :global(h2),
+  .prose > :global(h3),
+  .prose > :global(h4) {
+    isolation: isolate;
+    margin-top: var(--space-16);
+    color: var(--text-primary);
+    text-align: start;
+    text-transform: var(--text-case);
+    text-wrap: balance;
+    letter-spacing: var(--tracking-display);
+  }
+
+  .prose > :global(h2) {
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+  }
+
+  /* Figma sets the opening section heading of an article one step larger (`data-size="lg"`). */
+  .prose > :global(h2[data-size='lg']) {
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch);
+  }
+
+  .prose > :global(h3) {
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch);
+  }
+
+  .prose > :global(h4) {
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch);
+  }
+
+  .prose > :global(:first-child) {
+    margin-top: 0;
+  }
+
+  /* The items hang their markers 24px left of the text, 6px apart. */
+  .prose > :global(ul),
+  .prose > :global(ol) {
+    padding: 0;
+  }
+
+  .prose > :global(ul) {
+    list-style: disc;
+  }
+
+  .prose > :global(ol) {
+    list-style: decimal;
+  }
+
+  .prose :global(li) {
+    margin-inline-start: var(--space-24);
+  }
+
+  .prose :global(li + li) {
+    margin-top: var(--space-6);
+  }
+
+  .prose :global(li > ul),
+  .prose :global(li > ol) {
+    margin-top: var(--space-6);
+    padding: 0;
+  }
+
+  /* Figma's plain-text page (a narrow page) sets its lists one step smaller: 14px items 7px apart, the
+     marker hanging in a 21px indent that grows 8px per extra digit of the last number. */
+  :global([data-width='narrow']) .prose > :global(ul),
+  :global([data-width='narrow']) .prose > :global(ol) {
+    padding-inline-start: 21px; /* token-lint-ignore: Figma list indent, no token */
+    font: var(--type-text-regular-sm);
+  }
+
+  :global([data-width='narrow']) .prose > :global(ol:has(> li:nth-child(10))) {
+    padding-inline-start: 29px; /* token-lint-ignore: Figma list indent with two-digit numbers, no token */
+  }
+
+  :global([data-width='narrow']) .prose > :global(ol:has(> li:nth-child(100))) {
+    padding-inline-start: 37px; /* token-lint-ignore: Figma list indent with three-digit numbers, no token */
+  }
+
+  :global([data-width='narrow']) .prose > :global(ul) > :global(li),
+  :global([data-width='narrow']) .prose > :global(ol) > :global(li) {
+    margin-inline-start: 0;
+  }
+
+  :global([data-width='narrow']) .prose > :global(ul) > :global(li + li),
+  :global([data-width='narrow']) .prose > :global(ol) > :global(li + li) {
+    margin-top: 7px; /* token-lint-ignore: Figma list paragraph spacing 7px, no token */
+  }
+
+  /* The policy's links are underlined in the text colour (Figma's plain-text page). */
+  :global([data-width='narrow']) .prose :global(a) {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-position: from-font;
+  }
+
+  .prose :global(a) {
+    color: var(--link);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+    transition: text-decoration-color var(--duration-fast) var(--ease-out);
+  }
+
+  .prose :global(a:hover) {
+    text-decoration-thickness: 2px;
+  }
+
+  .prose :global(strong) {
+    font-weight: 700;
+  }
+
+  .prose :global(code) {
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-chip);
+    background: var(--surface-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; /* token-lint-ignore: monospace stack for inline code, no token */
+    font-size: 0.9em;
+  }
+
+  /* Highlighter: a box drawn under the text (stacked below it — the paragraph isolates the
+     stacking). */
+  .prose :global(mark) {
+    position: relative;
+    z-index: -1;
+    padding: var(--space-2) 0;
+    background: var(--highlight);
+    color: var(--on-accent);
+    box-decoration-break: clone;
+  }
+
+  /* Phone: justified lines in a ~360px column open wide gaps between words. */
+  @media (max-width: 640px) {
+    .prose {
+      text-align: start;
+    }
+
+    .prose > :global(h2) {
+      font: var(--type-display-sm);
+      font-stretch: var(--display-stretch);
+    }
+
+    .prose > :global(h2[data-size='lg']) {
+      font: var(--type-display-md);
+      font-stretch: var(--display-stretch);
+    }
+
+    .prose > :global(h3),
+    .prose > :global(h4) {
+      font: var(--type-display-xs);
+      font-stretch: var(--display-stretch);
+    }
+  }
+</style>

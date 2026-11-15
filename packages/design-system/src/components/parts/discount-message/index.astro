@@ -1,0 +1,22 @@
+---
+// The note under a discount's cover (or in its text) while the offer is not on: a surface panel with the
+// cooperation settings' message, announced as a status.
+import type { DiscountMessageProps } from './types'
+
+type Props = DiscountMessageProps
+
+const { message } = Astro.props
+---
+
+<p class="discount-message" role="status">{message}</p>
+
+<style>
+  .discount-message {
+    margin: 0;
+    padding: var(--space-16) var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--accent);
+    color: var(--on-accent);
+    font: var(--type-text-medium-md);
+  }
+</style>

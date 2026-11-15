@@ -1,0 +1,22 @@
+---
+// Events feature on the home band: the "plan your next event" panel beside the dark event cards. Renders nothing without events.
+import EventsFeature from '../../../parts/events-feature/index.astro'
+import { eventFeatureVariants } from '../../../parts/events-feature/variants'
+import type { StartLineProps } from './types'
+
+type Props = StartLineProps
+
+const { heading, headingId, cta, events } = Astro.props
+---
+
+{
+  events.length > 0 && (
+    <EventsFeature
+      heading={heading}
+      headingId={headingId}
+      cta={cta}
+      events={events}
+      variant={eventFeatureVariants.fullWidth}
+    />
+  )
+}

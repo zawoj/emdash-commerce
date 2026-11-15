@@ -1,0 +1,78 @@
+---
+// Figma article rail partner tile (944:33104): a category-colored card with a 3px stroke all
+// round, pairing a gray/50 partner-logo panel (263×35 logo, 28/20 padding) with an uppercase
+// caption bar — 129px tall at Figma's 300px width.
+import { categoryColor } from '../../../utils/category-color'
+import type { CategoryKey } from '../category-label/variants'
+
+interface Props {
+  /** The category's palette key; `color` wins when both are given. */
+  category?: CategoryKey
+  /** Any CSS colour — a CMS category's hex. */
+  color?: string
+  class?: string
+}
+
+const { category, color, class: className } = Astro.props
+const badgeColor = categoryColor({ key: category, color })
+---
+
+<div
+  class:list={['category-partner-badge', className]}
+  style={badgeColor ? `--category-partner-badge-color: ${badgeColor}` : undefined}
+>
+  <div class="category-partner-badge__logo-panel">
+    <div class="category-partner-badge__logo">
+      <slot name="logo" />
+    </div>
+  </div>
+  <div class="category-partner-badge__bar">
+    <span class="category-partner-badge__caption"><slot name="caption" /></span>
+  </div>
+</div>
+
+<style>
+  .category-partner-badge {
+    display: flex;
+    overflow: hidden;
+    width: 300px;
+    flex-direction: column;
+    border: 3px solid var(--category-partner-badge-color);
+    border-radius: var(--radius-card);
+    background: var(--category-partner-badge-color);
+  }
+
+  .category-partner-badge__logo-panel {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 28px var(--space-20);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .category-partner-badge__logo {
+    display: flex;
+    width: 263px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .category-partner-badge__bar {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-12) var(--space-8) 10px;
+  }
+
+  .category-partner-badge__caption {
+    color: var(--on-color);
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    white-space: nowrap;
+  }
+</style>

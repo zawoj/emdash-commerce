@@ -1,0 +1,129 @@
+---
+// Figma "tile-socials-widget-R" (931:32726; home, artykul — identical): a near-black tile with a
+// 2×2 grid of channel cards (8px gaps): the channel name with its icon and the follower count in a
+// 30px bottom-aligned row.
+// Rows take their content's height (Figma: 80px with the in-flow icons, 78px below).
+import TileTitle from '../../molecules/tile-title/index.astro'
+import type { SocialsWidgetContent } from './types'
+
+type Props = SocialsWidgetContent
+
+const { heading, headingId, channels } = Astro.props
+/** Card padding: an icon inset by exactly this much sits in the row's flow. */
+const cardInset = 12
+const isLifted = (iconTop: number, iconRight: number) => iconTop !== cardInset || iconRight !== cardInset
+---
+
+<section class="socials-widget" data-surface="dark" aria-labelledby={headingId}>
+  <TileTitle heading={heading} headingId={headingId} />
+  <ul class="socials-widget__grid">
+    {
+      channels.map((channel) => (
+        <li>
+          <a
+            class="socials-widget__card"
+            href={channel.href}
+            style={`--icon-right: ${channel.iconRight}px; --icon-top: ${channel.iconTop}px`}
+          >
+            <span class="socials-widget__text">
+              <span class="socials-widget__label">{channel.label}</span>
+              <img
+                class:list={['socials-widget__icon', isLifted(channel.iconTop, channel.iconRight) && 'socials-widget__icon--lifted']}
+                src={channel.icon}
+                width="16"
+                height="16"
+                alt=""
+              />
+            </span>
+            <span class="socials-widget__value">{channel.value}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .socials-widget {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    overflow: hidden;
+    padding: var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--ink-1000);
+  }
+
+  .socials-widget__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .socials-widget__grid li {
+    display: flex;
+    min-width: 0;
+  }
+
+  .socials-widget__card {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--space-8);
+    overflow: hidden;
+    padding: var(--space-12);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--ink-900);
+    text-decoration: none;
+  }
+
+  .socials-widget__text {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .socials-widget__label {
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-muted);
+  }
+
+  /* In flow at the row's top-right (YouTube, Instagram), which makes that row 16px tall. Figma
+     lifts the Facebook glyphs out of the flow, 1–2px above the row: `--icon-top` / `--icon-right`
+     are offsets from the card's padding box. */
+  .socials-widget__icon {
+    flex: none;
+  }
+
+  .socials-widget__icon--lifted {
+    position: absolute;
+    top: calc(var(--icon-top) - var(--space-12));
+    right: calc(var(--icon-right) - var(--space-12));
+  }
+
+  /* Figma: display ExtraBold 24px at full width on a 21.328px line, tracked -1.116px, bottom of a
+     30px row with 8px top padding. */
+  .socials-widget__value {
+    display: flex;
+    align-items: flex-end;
+    height: 30px; /* token-lint-ignore: Figma "Bold Text" row height */
+    padding-top: var(--space-8);
+    font: var(--type-numeric-lg);
+    font-stretch: var(--display-stretch-card);
+    line-height: 21.328px;
+    letter-spacing: normal;
+    color: var(--text-primary);
+  }
+</style>

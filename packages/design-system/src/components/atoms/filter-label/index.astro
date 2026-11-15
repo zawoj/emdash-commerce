@@ -1,0 +1,51 @@
+---
+// Figma site search bar "info" (787:33305 "Filtry", 787:36263 "Sortowanie"): a 12px lucide icon
+// plus a label, no box — Figma lifts the glyphs with a 1px drop shadow. Always a <button>:
+// opening the filter / sort panel is a script action. The icon comes through the `icon` slot.
+import { filterLabelTones, type FilterLabelTone } from './variants'
+
+interface Props {
+  tone?: FilterLabelTone
+  class?: string
+}
+
+const { tone = filterLabelTones.subtle, class: className } = Astro.props
+---
+
+<button type="button" class:list={['filter-label', `filter-label--${tone}`, className]}>
+  <span class="filter-label__icon"><slot name="icon" /></span>
+  <span class="filter-label__label"><slot /></span>
+</button>
+
+<style>
+  .filter-label {
+    display: inline-flex;
+    height: 34px;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-8) 0;
+    border: none;
+    border-radius: var(--radius-chip);
+    background: none;
+    color: var(--text-subtle);
+    font: var(--type-label-regular-xs);
+    cursor: pointer;
+  }
+
+  .filter-label--muted {
+    color: var(--text-muted);
+  }
+
+  .filter-label__icon {
+    display: inline-flex;
+    width: 12px;
+    height: 12px;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+  }
+
+  .filter-label__label {
+    font: var(--type-label-regular-xs);
+  }
+</style>

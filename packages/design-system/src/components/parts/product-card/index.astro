@@ -1,0 +1,291 @@
+---
+// The card of a shop grid: the 4:5 photo frame, the title (the card's one link, stretched over the
+// whole card), an optional two-line excerpt, then the price and the stock status on one row. The
+// photo arrives as ready <img> attributes; without one the frame stays, filled with the muted
+// surface, so a grid row keeps one height. A reduced product shows the previous price struck through
+// and the Omnibus note; badges sit on the photo; a product that cannot be bought keeps its place,
+// dimmed, with its status as text on the photo. An optional second photo cross-fades in on hover and
+// an optional size row slides up over the photo bottom (desktop hover only, presentational: the
+// whole card stays one link). Without them the photo zooms gently.
+import Availability from '../../atoms/availability/index.astro'
+import Price from '../../atoms/price/index.astro'
+import type { ProductCardContent } from './types'
+import Image from '../../atoms/image/index.astro'
+
+interface Props {
+  product: ProductCardContent
+  /** The photo is above the fold (a first grid row): eager with high priority; otherwise lazy. */
+  isEager?: boolean
+  /** With `isEager`: also `fetchpriority="high"`. Only the page's one LCP candidate sets it. */
+  isLead?: boolean
+}
+
+const { product, isEager = false, isLead = true } = Astro.props
+const badges = product.badges ?? []
+const isSoldOut = product.availability?.isAvailable === false
+const hover = product.hoverImage
+const sizes = product.sizes ?? []
+const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => size.label)
+---
+
+<article class:list={['product-card', isSoldOut && 'product-card--sold-out', hover && 'product-card--has-hover']}>
+  <div class="product-card__frame">
+    {product.image && <Image class="product-card__img" {...product.image} isEager={isEager} isLead={isLead} />}
+    {product.image && hover && <Image class="product-card__img product-card__img--hover" {...hover} alt="" isEager={false} />}
+    {
+      isSoldOut && product.availability && (
+        <ul class="product-card__badges">
+          <li class="product-card__badge product-card__badge--sold-out">{product.availability.label}</li>
+        </ul>
+      )
+    }
+    {
+      sizes.length > 0 && !isSoldOut && (
+        <>
+          <ul class="product-card__sizes" aria-hidden="true">
+            {sizes.map((size) => (
+              <li class:list={['product-card__size', !size.isAvailable && 'product-card__size--sold-out']}>{size.label}</li>
+            ))}
+          </ul>
+          {product.sizesLabel && availableSizes.length > 0 && <span class="visually-hidden">{product.sizesLabel}: {availableSizes.join(', ')}</span>}
+        </>
+      )
+    }
+  </div>
+  <div class="product-card__body">
+    {/* The marker line is always there (empty when there is nothing to say), so the titles and
+        prices of a grid row stay on one line whether a sibling is marked or not. */}
+    <p class="product-card__markers" aria-hidden={badges.length === 0 ? 'true' : undefined}>{badges.join(' · ')}</p>
+    <h2 class="product-card__title">
+      <a class="product-card__link" href={product.href}>{product.title}</a>
+    </h2>
+    {product.excerpt && <p class="product-card__excerpt">{product.excerpt}</p>}
+    <div class="product-card__meta">
+      <Price label={product.price.label} value={product.price.value} compareAt={product.compareAtPrice}>
+        {product.lowestPriceNote && <Fragment slot="note">{product.lowestPriceNote}</Fragment>}
+      </Price>
+      {product.availability && !isSoldOut && product.availability.isLow && <Availability label={product.availability.label} isAvailable={product.availability.isAvailable} isLow={product.availability.isLow} />}
+    </div>
+  </div>
+</article>
+
+<style>
+  .product-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .product-card:focus-within {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .product-card__frame {
+    position: relative;
+    isolation: isolate; /* the zooming photo gets its own layer; badges and sizes stay above it */
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .product-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* A second photo lies over the first, transparent until the hover. */
+  .product-card__img--hover {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .product-card__img {
+      transition: transform var(--duration-slow) var(--ease-out);
+    }
+
+    .product-card:hover .product-card__img {
+      transform: scale(var(--hover-zoom));
+    }
+
+    .product-card--has-hover .product-card__img--hover {
+      transform: scale(calc(1 + (var(--hover-zoom) - 1) / 2));
+      transition:
+        opacity var(--duration-slow) var(--ease-out),
+        transform var(--duration-slow) var(--ease-out);
+    }
+
+    .product-card--has-hover:hover .product-card__img--hover {
+      transform: scale(1);
+    }
+
+    /* With a second photo the cross-fade is the motion; the first one stays still. */
+    .product-card--has-hover:hover .product-card__img:not(.product-card__img--hover) {
+      transform: none;
+    }
+  }
+
+  @media (hover: hover) {
+    .product-card:hover .product-card__img--hover {
+      opacity: 1;
+    }
+  }
+
+  /* The size row: hidden on touch, slides up over the photo bottom on a desktop hover. */
+  .product-card__sizes {
+    display: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .product-card__sizes {
+      position: absolute;
+      z-index: 2;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--space-4) var(--space-12);
+      margin: 0;
+      padding: var(--space-12);
+      background: rgb(255 255 255 / 0.82); /* token-lint-ignore: frosted bar over the photo */
+      color: var(--text-primary);
+      backdrop-filter: blur(8px); /* token-lint-ignore: frosted bar over the photo */
+      list-style: none;
+      opacity: 0;
+      transform: translateY(100%);
+      pointer-events: none;
+    }
+
+    .product-card:hover .product-card__sizes,
+    .product-card:focus-within .product-card__sizes {
+      opacity: 1;
+      transform: none;
+    }
+
+    .product-card__size {
+      font: var(--type-text-medium-sm);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .product-card__size--sold-out {
+      color: var(--text-subtle);
+      text-decoration: line-through;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .product-card__sizes {
+      transition:
+        transform var(--duration-base) var(--ease-out),
+        opacity var(--duration-base) var(--ease-out);
+    }
+  }
+
+  .product-card__badges {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none; /* the stretched title link stays the target under the badge */
+    top: var(--space-12);
+    left: var(--space-12);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .product-card__badge {
+    padding: var(--space-4) var(--space-8);
+    border-radius: var(--radius-chip);
+    background: var(--ink-0);
+    color: var(--ink-1000);
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  /* Nike's coloured marker line above the title: "New · -23%" as text, not a sticker on the photo. */
+  .product-card__markers {
+    min-height: 20px; /* token-lint-ignore: one line of text-medium-sm, reserved when empty */
+    margin: 0;
+    color: var(--hot);
+    font: var(--type-text-medium-sm);
+  }
+
+  .product-card--sold-out .product-card__img:not(.product-card__img--hover),
+  .product-card--sold-out .product-card__title {
+    opacity: 0.6;
+  }
+
+  .product-card__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-top: var(--space-12);
+  }
+
+  .product-card__title {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--text-primary);
+    font: var(--type-title-md);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .product-card__link {
+    color: inherit;
+  }
+
+  .product-card__link:focus-visible {
+    outline: none;
+  }
+
+  /* The title link covers the whole card, so the photo and the price are part of the target. */
+  .product-card__link::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  .product-card__link {
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    transition: text-decoration-color var(--duration-fast) var(--ease-out);
+  }
+
+  .product-card:hover .product-card__link {
+    text-decoration-color: currentcolor;
+  }
+
+  .product-card__excerpt {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .product-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-8);
+    margin-top: auto;
+    padding-top: var(--space-8);
+  }
+</style>

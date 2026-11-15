@@ -1,0 +1,42 @@
+---
+// Figma "pagination" tile (kalendarz 1023:58397): prev, the first five pages, an ellipsis and the
+// last page, next, then the results line — the current page and its neighbours stay listed when
+// they fall past the first five. Assembles the Pagination/PaginationItem/PaginationArrow atoms.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import Pagination from '../../atoms/pagination/index.astro'
+import PaginationArrow from '../../atoms/pagination-arrow/index.astro'
+import PaginationItem from '../../atoms/pagination-item/index.astro'
+import type { PaginationBarProps } from './types'
+import { PAGINATION_LEADING_PAGES } from './variants'
+
+type Props = PaginationBarProps
+
+const { currentPage, totalPages, resultsLabel, labels, pageHref } = Astro.props
+
+const isListed = (page: number): boolean =>
+  page >= 1 && page <= totalPages && (page <= PAGINATION_LEADING_PAGES || page === totalPages || Math.abs(page - currentPage) <= 1)
+const listed = Array.from({ length: totalPages }, (_, index) => index + 1).filter(isListed)
+// Each listed page, preceded by an ellipsis marker when pages were skipped before it.
+const entries = listed.flatMap((page, index) => (index > 0 && page - listed[index - 1] > 1 ? [null, page] : [page]))
+---
+
+<Pagination ariaLabel={labels.nav} resultsLabel={resultsLabel}>
+  <PaginationArrow direction="prev" href={currentPage > 1 ? pageHref(currentPage - 1) : undefined} ariaLabel={labels.previous}>
+    <Icon name={iconNames.chevronLeft} slot="icon" />
+  </PaginationArrow>
+  {
+    entries.map((page) =>
+      page === null ? (
+        <PaginationArrow direction="ellipsis">
+          <Icon name={iconNames.ellipsis} slot="icon" />
+        </PaginationArrow>
+      ) : (
+        <PaginationItem label={page} href={pageHref(page)} isActive={page === currentPage} />
+      ),
+    )
+  }
+  <PaginationArrow direction="next" href={currentPage < totalPages ? pageHref(currentPage + 1) : undefined} ariaLabel={labels.next}>
+    <Icon name={iconNames.chevronRight} slot="icon" />
+  </PaginationArrow>
+</Pagination>

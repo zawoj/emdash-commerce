@@ -1,0 +1,179 @@
+---
+// The product photos: a scroll-snap track (the next photo peeks in on a phone so it reads as a
+// carousel; the track takes focus, arrow keys scroll it) with thumbnails that are in-page links —
+// all of it works without a script. `@emdash-commerce/design-system/product-gallery` adds the current
+// thumbnail, smooth scrolling and per-colour filtering (see that file for the events).
+import type { ProductGalleryProps } from './types'
+import Image from '../../atoms/image/index.astro'
+
+type Props = ProductGalleryProps
+
+const { id, images, label, thumbnailsLabel, thumbnailLabelTemplate, isEager = true } = Astro.props
+const slideId = (index: number) => `${id}-photo-${index + 1}`
+const thumbLabel = (index: number) => thumbnailLabelTemplate.replace('{index}', String(index + 1)).replace('{total}', String(images.length))
+---
+
+<div class="product-gallery" data-product-gallery>
+  <div class="product-gallery__track" tabindex="0" role="region" aria-label={label} data-gallery-track>
+    {
+      images.length === 0 ? (
+        <div class="product-gallery__slide product-gallery__slide--empty" aria-hidden="true"></div>
+      ) : (
+        images.map((item, index) => (
+          <figure class="product-gallery__slide" id={slideId(index)} data-gallery-slide data-gallery-group={item.group}>
+            <Image class="product-gallery__img" {...item.image} isEager={isEager && index === 0} />
+          </figure>
+        ))
+      )
+    }
+  </div>
+  {
+    images.length > 1 && (
+      <ul class="product-gallery__thumbs" aria-label={thumbnailsLabel}>
+        {images.map((item, index) => (
+          <li class="product-gallery__thumb-item" data-gallery-thumb-item>
+            <a
+              class="product-gallery__thumb"
+              href={`#${slideId(index)}`}
+              aria-label={thumbLabel(index)}
+              aria-current={index === 0 ? 'true' : undefined}
+              data-gallery-thumb
+              data-gallery-group={item.group}
+            >
+              <Image {...(item.thumbnail ?? item.image)} alt="" sizes="96px" isEager={false} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</div>
+
+<script>
+  import '@emdash-commerce/design-system/product-gallery'
+</script>
+
+<style>
+  .product-gallery {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr); /* token-lint-ignore: thumbnail rail */
+    grid-template-areas: 'thumbs track';
+    gap: var(--space-12);
+    align-items: start;
+    min-width: 0;
+  }
+
+  .product-gallery__track {
+    display: flex;
+    grid-area: track;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+
+  .product-gallery__track:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .product-gallery__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .product-gallery__slide {
+    flex: 0 0 100%;
+    aspect-ratio: 4 / 5;
+    margin: 0;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+    scroll-snap-align: start;
+  }
+
+  .product-gallery__slide[hidden] {
+    display: none;
+  }
+
+  .product-gallery__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-gallery__thumbs {
+    display: flex;
+    grid-area: thumbs;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .product-gallery__thumb-item[hidden] {
+    display: none;
+  }
+
+  .product-gallery__thumb {
+    display: block;
+    aspect-ratio: 1;
+    border: var(--stroke-thin) solid transparent;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+    opacity: 0.7;
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .product-gallery__thumb:hover {
+    opacity: 1;
+  }
+
+  .product-gallery__thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-gallery__thumb[aria-current='true'] {
+    border-color: var(--text-primary);
+    opacity: 1;
+  }
+
+  .product-gallery__thumb:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* A phone: thumbnails go under the track and each slide leaves a strip of the next one visible. */
+  @media (max-width: 640px) {
+    .product-gallery {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        'track'
+        'thumbs';
+      gap: var(--space-8);
+    }
+
+    .product-gallery__slide {
+      flex-basis: 86%;
+    }
+
+    /* The peek of the next photo only makes sense when there is one: a lone photo takes the full width. */
+    .product-gallery__slide:only-child {
+      flex-basis: 100%;
+    }
+
+    .product-gallery__thumbs {
+      flex-direction: row;
+      overflow-x: auto;
+    }
+
+    .product-gallery__thumb-item {
+      flex: 0 0 64px; /* token-lint-ignore: thumbnail size */
+    }
+  }
+</style>

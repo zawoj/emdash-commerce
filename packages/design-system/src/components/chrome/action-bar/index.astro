@@ -1,0 +1,111 @@
+---
+// A page's one primary action as a bottom bar on a phone (a shopping app's sticky "Add to bag" /
+// "Checkout"): the caption and value on the left (a price, a total), the full-width primary button on
+// the right, on a white bar with a hairline, above the home indicator. While it is up it replaces the tab
+// bar (`bottom-bars.css`). Phones only (<= 767px).
+//
+// - `watch` (a selector): the bar appears only once that element — the inline buy button — has scrolled up
+//   out of the screen, and hides again when it comes back (`utils/action-bar.ts`). Without `watch` the bar
+//   is always up (the cart's total and checkout).
+// - `proxy` (a selector): a press is forwarded to that control, so the page's own handling (the size
+//   prompt, the add-to-cart call) runs once, in one place; the bar mirrors its label and disabled state.
+// - `mirror` (selectors): the root to observe and, inside it, the element whose text is the value.
+// Without a script a watched bar stays hidden and the page's own button does the work.
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+import type { ActionBarProps } from './types'
+import './../bottom-bars.css'
+
+type Props = ActionBarProps
+
+const { label, caption, value, action, watch, proxy, mirror } = Astro.props
+const isWatching = Boolean(watch)
+---
+
+<div
+  class="action-bar"
+  role="group"
+  aria-label={label}
+  data-action-bar
+  data-surface="light"
+  data-state={isWatching ? 'hidden' : 'shown'}
+  data-action-bar-watch={watch}
+  data-action-bar-mirror={mirror ? JSON.stringify(mirror) : undefined}
+  inert={isWatching ? true : undefined}
+>
+  {
+    value && (
+      <p class="action-bar__summary">
+        {caption && <span class="action-bar__caption">{caption}</span>}
+        <span class="action-bar__value" data-action-bar-value>{value}</span>
+      </p>
+    )
+  }
+  <Button class="action-bar__button" variant={buttonVariants.primary} size={buttonSizes.lg} href={action.href} isDisabled={action.isDisabled} data-action-bar-proxy={proxy} data-action-bar-button>{action.label}</Button>
+</div>
+
+<script>
+  import '@emdash-commerce/design-system/action-bar'
+</script>
+
+<style>
+  .action-bar {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 30; /* token-lint-ignore: same layer as the tab bar it replaces */
+    display: none;
+    align-items: center;
+    gap: var(--space-16);
+    padding: var(--space-12) var(--page-gutter) calc(var(--space-12) + env(safe-area-inset-bottom, 0px));
+    background: var(--surface);
+    border-top: var(--stroke-thin) solid var(--border);
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 767px) {
+    .action-bar {
+      display: flex;
+    }
+  }
+
+  /* The bar is hidden by sliding it out of the screen (and out of the tab order). */
+  .action-bar[data-state='hidden'] {
+    visibility: hidden;
+    transform: translateY(100%);
+  }
+
+  .action-bar__summary {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: var(--space-2);
+    max-width: 45%; /* token-lint-ignore: the button keeps most of the row */
+    margin: 0;
+  }
+
+  .action-bar__caption {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+  }
+
+  .action-bar__value {
+    overflow: hidden;
+    font: var(--type-price-md);
+    font-variant-numeric: tabular-nums;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .action-bar :global(.action-bar__button) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .action-bar {
+      transition:
+        transform var(--duration-base) var(--ease-out),
+        visibility var(--duration-base);
+    }
+  }
+</style>

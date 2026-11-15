@@ -1,0 +1,226 @@
+---
+// The form that files a review: a star rating chosen with radio inputs (arrow keys move between
+// the stars, the focus ring is drawn on the star), an optional title, the text with a live counter
+// and the errors under their fields. Posts without JavaScript; the counter is its only script.
+// Once the review is sent, `success` replaces the form.
+import Button from '../../atoms/button/index.astro'
+import { buttonVariants } from '../../atoms/button/variants'
+import FieldInput from '../../atoms/field-input/index.astro'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import InlineNotice from '../../atoms/inline-notice/index.astro'
+import { noticeTones } from '../../atoms/inline-notice/variants'
+import type { ReviewFormProps } from './types'
+
+type Props = ReviewFormProps
+
+const STAR = 'M12 2.5l2.94 5.96 6.58.96-4.76 4.64 1.12 6.55L12 17.52l-5.88 3.09 1.12-6.55L2.48 9.42l6.58-.96L12 2.5z'
+const { id, action, hidden, heading, ratingOptions, ratingLegend, titleLabel, titleMax, bodyLabel, bodyHint, bodyMin, bodyMax, counterTemplate, submitLabel, errorLabel, optionalLabel, values = {}, errors = {}, success, successLabel } = Astro.props
+// The stars are listed from the highest so the later ones in the DOM are the lower ones: a checked
+// or hovered star lights itself and every star after it.
+const stars = [...ratingOptions].sort((a, b) => Number(b.value) - Number(a.value))
+const bodyId = `${id}-body`
+const bodyDescribedBy = [`${bodyId}-hint`, errors.body ? `${bodyId}-error` : null].filter(Boolean).join(' ')
+const counter = (count: number) => counterTemplate.replace('{count}', String(count)).replace('{max}', String(bodyMax))
+---
+
+{
+  success ? (
+    <InlineNotice tone={noticeTones.success} title={success.title} toneLabel={successLabel}>{success.text}</InlineNotice>
+  ) : (
+    <form class="review-form" method="post" action={action} data-review-form novalidate>
+      <h3 class="review-form__heading">{heading}</h3>
+      {errors.form && <InlineNotice tone={noticeTones.error} toneLabel={errorLabel}>{errors.form}</InlineNotice>}
+      {hidden.map((field) => <input type="hidden" name={field.name} value={field.value} />)}
+      <fieldset class="review-form__rating" aria-describedby={errors.rating ? `${id}-rating-error` : undefined}>
+        <legend>{ratingLegend}</legend>
+        <div class="review-form__stars">
+          {
+            stars.map((star) => (
+              <>
+                <input id={`${id}-rating-${star.value}`} type="radio" name="rating" value={star.value} checked={values.rating === star.value} required aria-invalid={errors.rating ? 'true' : undefined} />
+                <label for={`${id}-rating-${star.value}`}>
+                  <span class="visually-hidden">{star.label}</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d={STAR} /></svg>
+                </label>
+              </>
+            ))
+          }
+        </div>
+        {
+          errors.rating && (
+            <p id={`${id}-rating-error`} class="review-form__error"><Icon name={iconNames.octagonAlert} size={16} /><span><span class="visually-hidden">{errorLabel}: </span>{errors.rating}</span></p>
+          )
+        }
+      </fieldset>
+      <FieldInput id={`${id}-title`} name="title" label={`${titleLabel} (${optionalLabel})`} value={values.title} maxlength={titleMax} autocomplete="off" error={errors.title} errorLabel={errorLabel} />
+      <div class="review-form__body">
+        <label for={bodyId}>{bodyLabel}</label>
+        <textarea id={bodyId} name="body" rows="6" required minlength={bodyMin} maxlength={bodyMax} aria-describedby={bodyDescribedBy} aria-invalid={errors.body ? 'true' : undefined} data-review-body>{values.body}</textarea>
+        <p id={`${bodyId}-hint`} class="review-form__hint">
+          <span>{bodyHint}</span>
+          <span data-review-counter data-template={counterTemplate} data-max={bodyMax} aria-hidden="true">{counter(Array.from(values.body ?? '').length)}</span>
+        </p>
+        {
+          errors.body && (
+            <p id={`${bodyId}-error`} class="review-form__error"><Icon name={iconNames.octagonAlert} size={16} /><span><span class="visually-hidden">{errorLabel}: </span>{errors.body}</span></p>
+          )
+        }
+      </div>
+      <slot name="captcha" />
+      <Button type="submit" variant={buttonVariants.primary}>{submitLabel}</Button>
+    </form>
+  )
+}
+
+<script>
+  // Keeps the counter beside the text current. Nothing else depends on it.
+  for (const form of document.querySelectorAll<HTMLFormElement>('form[data-review-form]')) {
+    const field = form.querySelector<HTMLTextAreaElement>('[data-review-body]')
+    const counter = form.querySelector<HTMLElement>('[data-review-counter]')
+    if (!field || !counter) continue
+    const update = () => {
+      counter.textContent = (counter.dataset.template ?? '').replace('{count}', String(Array.from(field.value).length)).replace('{max}', counter.dataset.max ?? '')
+    }
+    field.addEventListener('input', update)
+  }
+</script>
+
+<style>
+  .review-form {
+    display: flex;
+    max-width: 640px; /* token-lint-ignore: form column */
+    flex-direction: column;
+    gap: var(--space-16);
+    align-items: flex-start;
+  }
+
+  .review-form :global(.field-input),
+  .review-form__body,
+  .review-form__rating {
+    align-self: stretch;
+  }
+
+  .review-form__heading {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch-card);
+    text-transform: var(--text-case);
+  }
+
+  .review-form__rating {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .review-form__rating legend,
+  .review-form__body label {
+    padding: 0;
+    margin-bottom: var(--space-8);
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  .review-form__body label {
+    display: block;
+  }
+
+  .review-form__stars {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+
+  .review-form__stars input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  .review-form__stars label {
+    display: inline-flex;
+    padding: var(--space-4);
+    color: var(--ink-1000);
+    cursor: pointer;
+  }
+
+  .review-form__stars svg {
+    width: 32px; /* token-lint-ignore: star size */
+    height: 32px; /* token-lint-ignore: star size */
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+
+  /* A star is filled when it is chosen or when a later (lower in the DOM, higher on screen) one is. */
+  .review-form__stars input:checked ~ label svg {
+    fill: currentColor;
+  }
+
+  .review-form__stars input:focus-visible + label {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
+  }
+
+  @media (hover: hover) {
+    .review-form__stars:hover label svg {
+      fill: none;
+    }
+
+    .review-form__stars label:hover svg,
+    .review-form__stars label:hover ~ label svg {
+      fill: currentColor;
+    }
+  }
+
+  .review-form__body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .review-form__body textarea {
+    width: 100%;
+    min-height: 150px; /* token-lint-ignore: textarea height */
+    padding: calc(var(--space-8) - 1px) calc(var(--space-12) - 1px);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-field);
+    background: var(--surface);
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+    resize: vertical;
+  }
+
+  .review-form__body textarea[aria-invalid='true'] {
+    border-color: var(--hot);
+  }
+
+  .review-form__body textarea:focus-visible {
+    border-color: var(--text-primary);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .review-form__hint {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-16);
+    margin: var(--space-8) 0 0;
+    color: var(--text-muted);
+    font: var(--type-text-regular-xs);
+  }
+
+  .review-form__error {
+    display: flex;
+    gap: var(--space-8);
+    align-items: flex-start;
+    margin: var(--space-8) 0 0;
+    color: var(--hot);
+    font: var(--type-text-regular-xs);
+  }
+</style>

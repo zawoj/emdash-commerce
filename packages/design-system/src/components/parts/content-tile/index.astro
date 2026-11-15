@@ -1,0 +1,78 @@
+---
+// Figma "tile" (home 944:29221, 944:29272, 944:29443; article "related"): a 12px-radius surface with
+// 32/24 padding that opens with a TileTitle row. The dark surface flips text tokens through
+// `data-surface`. Everything in the `background` slot is painted under the content (negative
+// z-index inside the tile's own stacking context) and clipped by the tile. The tile is the
+// `content-tile` size container its cards' layout breakpoints query. With `headingId` the
+// section is labelled by its heading.
+import type { LinkContent } from '../../../types/link'
+import TileTitle from '../../molecules/tile-title/index.astro'
+import { tilePaddings, tileSurfaces, type TilePadding, type TileSurface } from './variants'
+
+interface Props {
+  heading: string
+  headingId?: string
+  /** The link on the right of the title row (Figma "read more"). */
+  more?: LinkContent
+  surface?: TileSurface
+  /** Vertical gap between the title row and each content block — Figma uses 20, 24 or 32. */
+  gap?: 20 | 24 | 32
+  /** Gap between the heading and the `after-heading` slot — Figma uses 4 or 16. */
+  extrasGap?: 4 | 16
+  padding?: TilePadding
+}
+
+const {
+  heading,
+  headingId,
+  more,
+  surface = tileSurfaces.light,
+  gap = 24,
+  extrasGap = 4,
+  padding = tilePaddings.regular,
+} = Astro.props
+const isDark = surface === tileSurfaces.dark
+---
+
+<section
+  class:list={['content-tile', isDark && 'content-tile--dark', `content-tile--padding-${padding}`]}
+  data-surface={isDark ? tileSurfaces.dark : undefined}
+  aria-labelledby={headingId}
+  style={`--content-tile-gap: var(--space-${gap})`}
+>
+  <slot name="background" />
+  <div class="content-tile__title">
+    <TileTitle heading={heading} headingId={headingId} more={more} extrasGap={extrasGap}>
+      <slot name="after-heading" slot="after-heading" />
+    </TileTitle>
+  </div>
+  <slot />
+</section>
+
+<style>
+  .content-tile {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    gap: var(--content-tile-gap);
+    overflow: hidden;
+    padding: 0;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    container: content-tile / inline-size;
+  }
+
+  /* A light tile is flat on the page; a dark tile is a black band with its own padding. */
+  .content-tile--dark {
+    padding: var(--tile-padding-y) var(--tile-padding-x);
+  }
+
+  .content-tile--dark.content-tile--padding-compact {
+    padding: var(--space-20);
+  }
+
+  .content-tile--dark .content-tile__title {
+    --tile-link: var(--link);
+  }
+</style>

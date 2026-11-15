@@ -1,0 +1,34 @@
+---
+// One field's place in the row: the percentage of the row it takes (the rest of the row shares the
+// 16px gaps), a full row on a phone.
+interface Props {
+  /** Share of the row in percent; the whole row when empty. */
+  width?: number | null
+}
+
+const { width } = Astro.props
+const share = width && width > 0 && width < 100 ? width : 100
+---
+
+<div class="form-field" style={`--form-field-width: ${share}`}>
+  <slot />
+</div>
+
+<style>
+  .form-field {
+    display: flex;
+    flex: 0 0 calc(var(--form-field-width) * 1% - (100 - var(--form-field-width)) * var(--space-16) / 100);
+    min-width: 0;
+  }
+
+  .form-field > :global(*) {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  @media (max-width: 640px) {
+    .form-field {
+      flex-basis: 100%;
+    }
+  }
+</style>

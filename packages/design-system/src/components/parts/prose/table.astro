@@ -1,0 +1,83 @@
+---
+// A table of plain-text cells inside a text (no Figma frame): the design's body type on the
+// light tile surface, hairline row dividers, an optional bold header row. Wider than the column it
+// scrolls sideways instead of squeezing the cells.
+import type { ProseTableRow } from './types'
+
+interface Props {
+  rows: readonly ProseTableRow[]
+  hasHeaderRow?: boolean
+  /** Accessible name of the scrolling region. */
+  label?: string
+}
+
+const { rows, hasHeaderRow = false, label } = Astro.props
+const [headerRow, ...bodyRows] = rows
+const bodyOf = hasHeaderRow ? bodyRows : rows
+---
+
+<div class="prose-block prose-table" role="region" aria-label={label} tabindex="0">
+  <table>
+    {
+      hasHeaderRow && headerRow && (
+        <thead>
+          <tr>
+            {headerRow.cells.map((cell) => (
+              <th scope="col">{cell}</th>
+            ))}
+          </tr>
+        </thead>
+      )
+    }
+    <tbody>
+      {
+        bodyOf.map((row) => (
+          <tr>
+            {row.cells.map((cell) => (
+              <td>{cell}</td>
+            ))}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .prose-table {
+    width: 100%;
+    overflow-x: auto;
+    border-block: 1px solid var(--border);
+    background: var(--surface);
+    text-align: start;
+  }
+
+  .prose-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font: var(--type-text-regular-sm);
+    color: var(--text-body);
+  }
+
+  .prose-table th,
+  .prose-table td {
+    min-width: 96px; /* token-lint-ignore: keeps narrow cells readable before the table scrolls */
+    padding: var(--space-12) var(--space-16);
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .prose-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .prose-table th {
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    border-bottom-color: var(--text-primary);
+    color: var(--text-primary);
+    text-align: start;
+  }
+</style>

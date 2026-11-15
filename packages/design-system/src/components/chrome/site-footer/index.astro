@@ -1,0 +1,402 @@
+---
+// Figma "footer" component (661:3421): the partner strip, the dark body (sister-product cards,
+// logo + claim + socials, link columns) and the bottom bar. `variant` picks Figma's withPartners
+// (`full`, 699:14616 — cards and four columns, 618px; every frame but one) or noPartners
+// (`compact`, 661:3420 — no cards, five columns, no "Licencje", 426px).
+import SocialLinks from '../../atoms/social-links/index.astro'
+import SiteWordmark from '../../atoms/site-wordmark/index.astro'
+import PartnerStrip from '../partner-strip/index.astro'
+import { partnerStripPlacements } from '../partner-strip/variants'
+import { footerSocialIcons } from '../social-icons'
+import type { ChromeLink, FooterColumn, FooterProject, FooterSocial, PartnerLogo } from '../types'
+import PromoCard from './promo-card.astro'
+import { footerVariants, type FooterVariant } from './variants'
+interface Props {
+  /** The site name: the alt of the logo. */
+  siteName: string
+  /** The claim under the logo; each line is a paragraph. */
+  description?: string
+  columns: readonly FooterColumn[]
+  socials?: readonly FooterSocial[]
+  projects?: readonly FooterProject[]
+  /** The partner ticker above the footer; none = no strip. */
+  partners?: readonly PartnerLogo[]
+  legalLinks?: readonly ChromeLink[]
+  /** Names the legal links' nav; needed only with `legalLinks`. */
+  legalLabel?: string
+  copyright?: string
+  backToTopLabel: string
+  /** The label of a `projects` card that is not open yet; needed only with such a card. */
+  comingSoonLabel?: string
+  variant?: FooterVariant
+}
+
+const {
+  siteName,
+  description = '',
+  columns,
+  socials = [],
+  projects = [],
+  partners = [],
+  legalLinks = [],
+  legalLabel = '',
+  copyright = '',
+  backToTopLabel,
+  comingSoonLabel = '',
+  variant = footerVariants.full,
+} = Astro.props
+const isFull = variant === footerVariants.full
+const lastProject = projects[projects.length - 1]
+// Figma gives the "coming soon" card a fixed width and shares the rest between the others.
+const promoColumns =
+  lastProject?.isComingSoon && projects.length > 1
+    ? `repeat(${projects.length - 1}, minmax(0, 1fr)) 333.5px`
+    : `repeat(${Math.max(projects.length, 1)}, minmax(0, 1fr))`
+const claim = description.split(/\n+/).filter((line) => line.trim() !== '')
+const socialLinks = socials.flatMap((social) => {
+  const icon = footerSocialIcons[social.platform]
+  return icon ? [{ href: social.href, label: social.label, icon }] : []
+})
+---
+
+<footer class:list={['site-footer', `site-footer--${variant}`]} data-surface="dark">
+  {partners.length > 0 && <PartnerStrip logos={partners} placement={partnerStripPlacements.footer} />}
+
+  <div class="site-footer__body">
+    {
+      isFull && projects.length > 0 && (
+        <div class="site-footer__promos" style={`--site-footer-promo-columns: ${promoColumns}`}>
+          {projects.map((promo) => (
+            <PromoCard promo={promo} comingSoonLabel={comingSoonLabel} />
+          ))}
+        </div>
+      )
+    }
+
+    <div class="site-footer__row">
+      <div class="site-footer__brand">
+        <div class="site-footer__brand-text">
+          <div class="site-footer__claim">
+            {claim.map((line) => <p>{line}</p>)}
+          </div>
+          {socialLinks.length > 0 && <SocialLinks links={socialLinks} variant="square" />}
+        </div>
+      </div>
+      <div class="site-footer__columns" style={`--site-footer-columns: ${columns.length}`}>
+        {
+          columns.map((column) => (
+            <nav class="site-footer__column" aria-label={column.heading}>
+              <h2>{column.heading}</h2>
+              <ul>
+                {column.links.map((link) => (
+                  <li>
+                    <a href={link.href}>{link.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="site-footer__wordmark">
+      <SiteWordmark siteName={siteName} variant="fill" />
+    </div>
+  </div>
+
+  <div class="site-footer__bottom">
+    <div class="site-footer__bottom-inner">
+      <div class="site-footer__legal">
+        <span>{copyright}</span>
+        {
+          legalLinks.length > 0 && (
+            <nav aria-label={legalLabel}>
+              <ul>
+                {legalLinks.map((link) => (
+                  <li>
+                    <a href={link.href}>{link.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )
+        }
+      </div>
+      <a href="#top" class="site-footer__back-to-top">{backToTopLabel}</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  /* A pure black band (data-surface="dark"). */
+  .site-footer {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    color: var(--text-primary);
+  }
+
+  /* Link columns, then the giant wordmark across the full content width, then the legal row. */
+  .site-footer__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-80);
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    padding: var(--space-96) var(--page-gutter) var(--space-48);
+  }
+
+  .site-footer--compact .site-footer__body {
+    padding-top: var(--space-80);
+    gap: var(--space-64);
+  }
+
+  .site-footer__wordmark {
+    width: 100%;
+  }
+
+  /* 843:29101 — flexible cards and, when the last one is "coming soon", Figma's fixed 333.5px card, 8px apart. */
+  .site-footer__promos {
+    display: grid;
+    grid-template-columns: var(--site-footer-promo-columns);
+    gap: var(--space-8);
+  }
+
+  .site-footer__row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-64);
+  }
+
+  .site-footer__brand {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: var(--space-32);
+    width: 280px; /* token-lint-ignore: claim column width */
+  }
+
+  .site-footer__brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  .site-footer__claim {
+    font: var(--type-text-regular-md);
+    color: var(--text-secondary);
+    text-wrap: balance;
+  }
+
+  .site-footer__columns {
+    display: grid;
+    grid-template-columns: repeat(var(--site-footer-columns), auto);
+    column-gap: clamp(var(--space-24), 4vw, var(--space-96));
+    white-space: nowrap;
+  }
+
+  .site-footer__column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+
+  .site-footer__column h2 {
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    text-transform: var(--label-case);
+    letter-spacing: var(--tracking-label);
+    color: var(--text-primary);
+  }
+
+  .site-footer__column ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    list-style: none;
+    padding: 0;
+  }
+
+  .site-footer__column a {
+    display: block;
+    font: var(--type-text-regular-md);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .site-footer__column a:hover,
+  .site-footer__legal a:hover,
+  .site-footer__back-to-top:hover {
+    color: var(--text-primary);
+  }
+
+  .site-footer__bottom {
+    background: var(--surface);
+  }
+
+  .site-footer__bottom-inner {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-40);
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    padding: var(--space-20) var(--page-gutter) var(--space-24);
+    font: var(--type-text-regular-xs);
+    white-space: nowrap;
+  }
+
+  .site-footer__legal {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-20);
+    color: var(--text-muted);
+  }
+
+  .site-footer__legal ul {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-20);
+    list-style: none;
+    padding: 0;
+  }
+
+  /* Figma rounds every auto-width text box up to a whole pixel, which sets where the next item
+     in a row (and the next link column) starts; `calc-size` does the same. */
+  .site-footer__legal li,
+  .site-footer__legal > span,
+  .site-footer__column h2,
+  .site-footer__column li {
+    width: calc-size(max-content, round(up, size, 1px));
+  }
+
+  .site-footer__legal a,
+  .site-footer__back-to-top {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  @media (max-width: 1100px) {
+    .site-footer__promos {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .site-footer__row {
+      flex-direction: column;
+      gap: var(--space-40);
+    }
+
+    .site-footer__bottom-inner,
+    .site-footer__legal,
+    .site-footer__legal ul {
+      flex-wrap: wrap;
+    }
+
+    .site-footer__bottom-inner {
+      gap: var(--space-12) var(--space-40);
+    }
+
+    .site-footer__columns {
+      grid-template-columns: repeat(3, auto);
+      gap: var(--space-32) var(--space-48);
+      justify-content: start;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .site-footer__body,
+    .site-footer--compact .site-footer__body {
+      gap: var(--space-48);
+      padding: var(--space-64) var(--page-gutter) var(--space-40);
+    }
+
+    .site-footer__columns {
+      grid-template-columns: repeat(3, auto);
+      gap: var(--space-32) var(--space-40);
+      justify-content: start;
+    }
+
+  }
+
+  /* Phone: the footer ends above the bottom bar (its own surface runs under it). */
+  @media (max-width: 767px) {
+    .site-footer {
+      padding-bottom: var(--bottom-bar-offset);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .site-footer__body,
+    .site-footer--compact .site-footer__body {
+      gap: var(--space-40);
+      padding: var(--space-48) var(--page-gutter) var(--space-32);
+    }
+
+    .site-footer__promos {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .site-footer__brand {
+      width: auto;
+    }
+
+    .site-footer__columns {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); /* the second column carries the contact e-mail */
+      gap: var(--space-32) var(--space-16);
+      white-space: normal;
+    }
+
+    .site-footer__column li {
+      width: 100%;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .site-footer__bottom-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-12);
+      padding: var(--space-16) var(--page-gutter) var(--space-24);
+      white-space: normal;
+    }
+
+    .site-footer__legal {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-12);
+    }
+
+    .site-footer__legal ul {
+      flex-wrap: wrap;
+      gap: var(--space-12) var(--space-20);
+    }
+  }
+
+  /* Touch: every footer link is a 48px row (the list gap moves into the link's padding). */
+  @media (pointer: coarse) {
+    .site-footer__column ul {
+      gap: 0;
+    }
+
+    .site-footer__column a,
+    .site-footer__legal a,
+    .site-footer__back-to-top {
+      display: flex;
+      align-items: center;
+      min-height: var(--space-48);
+    }
+
+    .site-footer__legal ul {
+      column-gap: var(--space-20);
+    }
+  }
+</style>

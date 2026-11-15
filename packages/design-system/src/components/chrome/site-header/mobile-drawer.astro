@@ -1,0 +1,454 @@
+---
+// The phone and tablet menu (below 1101px): a full-screen white drawer sliding in from the right. Level
+// one is the list of top items (big rows with chevrons); an item with columns or tiles drills into a
+// second level that slides in over it (its name as the heading, an "All" link, its columns as headed link
+// lists, photo tiles) with a Back button; a column with more than `DRAWER_DRILL_MIN_LINKS` links is one
+// row with a chevron that opens a third level of its own. Account and help links sit under the list. A native modal <dialog>: focus trap, Escape and the
+// inert page come from the platform; `drawer-script.ts` adds the drill-down, focus handling and the
+// body scroll lock. `isStatic` renders it open and inline for the gallery.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { ChromeLink, ChromeMenuItem, HeaderAccount, HeaderDrawerCopy } from '../types'
+import { columnAllLink, featuredTiles, hasMegaPanel, linkRel, linkTarget, menuColumns } from './mega-columns'
+import MenuTile from './menu-tile.astro'
+
+interface Props {
+  id: string
+  menu: readonly ChromeMenuItem[]
+  copy: HeaderDrawerCopy
+  /** Small links under the list (help, contact). */
+  topLinks?: readonly ChromeLink[]
+  account?: HeaderAccount
+  login?: ChromeLink
+  /** Gallery only: open and inline, drilled into this top item (its index) or at the root (`-1`). */
+  staticLevel?: number
+}
+
+const { id, menu, copy, topLinks = [], account, login, staticLevel } = Astro.props
+const isStatic = staticLevel !== undefined
+/** A column with more links than this opens as a level of its own instead of a list inline. */
+const DRAWER_DRILL_MIN_LINKS = 6
+const levelId = (index: number): string => `${id}-level-${index}`
+const groupLevelId = (index: number, groupIndex: number): string => `${id}-level-${index}-${groupIndex}`
+const activeIndex = staticLevel !== undefined && staticLevel >= 0 ? staticLevel : -1
+const STATE_RIGHT = 'right'
+const levelState = (index: number): string => (index === activeIndex ? 'active' : 'right')
+const secondary: ChromeLink[] = [...(account ? [{ label: account.label, href: account.href }] : []), ...(login ? [login] : []), ...topLinks]
+---
+
+<dialog id={id} class="site-drawer" aria-label={copy.label} data-site-drawer data-surface="light" open={isStatic} data-static={isStatic ? '' : undefined}>
+  <div class="site-drawer__sheet">
+    <div class="site-drawer__bar">
+      <button type="button" class="site-drawer__back" data-drawer-back hidden={activeIndex < 0}>
+        <Icon name={iconNames.chevronLeft} size={20} />
+        <span>{copy.backLabel}</span>
+      </button>
+      <button type="button" class="site-drawer__close" aria-label={copy.closeLabel} data-drawer-close>
+        <Icon name={iconNames.x} size={24} />
+      </button>
+    </div>
+
+    <div class="site-drawer__viewport">
+      <div class="site-drawer__level" data-drawer-level="root" data-state={activeIndex < 0 ? 'active' : 'left'} inert={activeIndex >= 0}>
+        <ul class="site-drawer__list">
+          {
+            menu.map((item, index) => (
+              <li>
+                {hasMegaPanel(item) ? (
+                  <button type="button" class="site-drawer__row" aria-controls={levelId(index)} data-drawer-go={levelId(index)}>
+                    <span>{item.label}</span>
+                    <Icon name={iconNames.chevronRight} size={24} />
+                  </button>
+                ) : (
+                  <a class="site-drawer__row" href={item.href} target={linkTarget(item)} rel={linkRel(item)}>
+                    <span>{item.label}</span>
+                  </a>
+                )}
+              </li>
+            ))
+          }
+        </ul>
+        {
+          secondary.length > 0 && (
+            <ul class="site-drawer__secondary">
+              {secondary.map((link) => (
+                <li>
+                  <a href={link.href} target={linkTarget(link)} rel={linkRel(link)}>{link.label}</a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </div>
+
+      {
+        menu.map((item, index) => {
+          if (!hasMegaPanel(item)) return null
+          const columns = menuColumns(item)
+          const tiles = featuredTiles(item)
+          return (
+            <>
+              <section class="site-drawer__level" id={levelId(index)} data-drawer-level={levelId(index)} data-state={levelState(index)} inert={index !== activeIndex} aria-label={item.label}>
+                <h2 class="site-drawer__title">{item.label}</h2>
+                <p class="site-drawer__all">
+                  <a href={item.href} target={linkTarget(item)} rel={linkRel(item)}>{item.allLabel ?? item.label}</a>
+                </p>
+                {columns.map((group, groupIndex) =>
+                  group.links.length > DRAWER_DRILL_MIN_LINKS && group.label ? (
+                    <button type="button" class="site-drawer__drill" aria-controls={groupLevelId(index, groupIndex)} data-drawer-go={groupLevelId(index, groupIndex)}>
+                      <span>{group.label}</span>
+                      <Icon name={iconNames.chevronRight} size={24} />
+                    </button>
+                  ) : (
+                    <div class="site-drawer__group">
+                      {group.label && <p class="site-drawer__heading">{group.label}</p>}
+                      <ul>
+                        {columnAllLink(item, group) && (
+                          <li>
+                            <a href={group.href ?? item.href}>{item.allLabel}</a>
+                          </li>
+                        )}
+                        {group.links.map((link) => (
+                          <li>
+                            <a href={link.href} target={linkTarget(link)} rel={linkRel(link)}>{link.label}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ),
+                )}
+                {tiles.length > 0 && (
+                  <ul class="site-drawer__tiles">
+                    {tiles.map((tile) => (
+                      <li>
+                        <MenuTile tile={tile} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+              {columns.map((group, groupIndex) =>
+                group.links.length > DRAWER_DRILL_MIN_LINKS && group.label ? (
+                  <section class="site-drawer__level" id={groupLevelId(index, groupIndex)} data-drawer-level={groupLevelId(index, groupIndex)} data-state={STATE_RIGHT} inert aria-label={group.label}>
+                    <h2 class="site-drawer__title">{group.label}</h2>
+                    <div class="site-drawer__group site-drawer__group--plain">
+                      <ul>
+                        {columnAllLink(item, group) && (
+                          <li>
+                            <a href={group.href ?? item.href}>{item.allLabel}</a>
+                          </li>
+                        )}
+                        {group.links.map((link) => (
+                          <li>
+                            <a href={link.href} target={linkTarget(link)} rel={linkRel(link)}>{link.label}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </section>
+                ) : null,
+              )}
+            </>
+          )
+        })
+      }
+    </div>
+  </div>
+</dialog>
+
+<script>
+  import { initMobileDrawers } from './drawer-script'
+
+  initMobileDrawers()
+</script>
+
+<style>
+  .site-drawer {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: none;
+    background: var(--surface);
+    color: var(--text-primary);
+  }
+
+  .site-drawer::backdrop {
+    background: color-mix(in srgb, var(--ink-1000) 40%, transparent);
+  }
+
+  .site-drawer {
+    /* On a tablet the full-screen sheet keeps its content in a readable column. */
+    --drawer-inset: max(var(--page-gutter), calc((100cqw - 560px) / 2)); /* token-lint-ignore: readable column width */
+    container-type: inline-size;
+  }
+
+  .site-drawer__sheet {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .site-drawer__bar {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    min-height: var(--header-height);
+    padding: 0 var(--space-8) 0 var(--drawer-inset);
+  }
+
+  .site-drawer__back,
+  .site-drawer__close {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: 44px; /* token-lint-ignore: touch target */
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    cursor: pointer;
+  }
+
+  .site-drawer__back[hidden] {
+    display: none;
+  }
+
+  .site-drawer__close {
+    justify-content: center;
+    width: 44px; /* token-lint-ignore: touch target */
+    margin-left: auto;
+    border-radius: var(--radius-control);
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .site-drawer__close:hover {
+    background: var(--surface-hover);
+  }
+
+  .site-drawer__back:focus-visible,
+  .site-drawer__close:focus-visible,
+  .site-drawer a:focus-visible,
+  .site-drawer__row:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* The levels stack in one viewport; the active one is on screen, earlier ones wait on the left, later ones on the right. */
+  .site-drawer__viewport {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .site-drawer__level {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-8) var(--drawer-inset) var(--space-48);
+    background: var(--surface);
+    visibility: hidden;
+    transform: translateX(100%);
+  }
+
+  .site-drawer__level[data-state='active'] {
+    visibility: visible;
+    transform: none;
+  }
+
+  .site-drawer__level[data-state='left'] {
+    transform: translateX(-30%);
+  }
+
+  .site-drawer__list,
+  .site-drawer__secondary,
+  .site-drawer__group ul,
+  .site-drawer__tiles {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-drawer__row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-16) 0;
+    border: none;
+    background: none;
+    color: var(--text-primary);
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-align: left;
+    text-decoration: none;
+    text-transform: var(--text-case);
+    cursor: pointer;
+  }
+
+  .site-drawer__secondary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin-top: var(--space-32);
+  }
+
+  .site-drawer__secondary a {
+    display: block;
+    padding: var(--space-8) 0;
+    color: var(--text-secondary);
+    font: var(--type-text-medium-md);
+    text-decoration: none;
+  }
+
+  .site-drawer__title {
+    margin: var(--space-8) 0 var(--space-16);
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .site-drawer__all {
+    margin: 0 0 var(--space-16);
+  }
+
+  .site-drawer__all a {
+    display: block;
+    padding: var(--space-8) 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    text-decoration: none;
+  }
+
+  /* A column that stays inline: its heading, then its links. */
+  .site-drawer__group {
+    padding: var(--space-16) 0 var(--space-8);
+  }
+
+  .site-drawer__heading {
+    margin: 0 0 var(--space-4);
+    font: var(--type-text-medium-md);
+    color: var(--text-primary);
+  }
+
+  .site-drawer__group li a {
+    display: block;
+    padding: var(--space-8) 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-md);
+    text-decoration: none;
+  }
+
+  .site-drawer__group--plain {
+    padding-top: 0;
+  }
+
+  .site-drawer__group--plain li a {
+    padding: var(--space-12) 0;
+    color: var(--text-primary);
+  }
+
+  /* A long column: one row with a chevron that opens a level of its own. */
+  .site-drawer__drill {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-16) 0;
+    border: none;
+    background: none;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .site-drawer__drill:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .site-drawer__tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-12);
+    padding-top: var(--space-16);
+    border-top: var(--stroke-thin) solid var(--border);
+  }
+
+  /* The slide: a level moves in from the right, the one it covers drifts left; the page behind cannot scroll. */
+  @media (prefers-reduced-motion: no-preference) {
+    .site-drawer__level {
+      transition:
+        transform 320ms var(--ease-out), /* token-lint-ignore: slide */
+        visibility 0s linear 320ms; /* token-lint-ignore: slide */
+    }
+
+    .site-drawer__level[data-state='active'] {
+      transition-delay: 0s;
+    }
+
+    .site-drawer:not([data-static]) {
+      transition:
+        transform var(--duration-base) var(--ease-in),
+        overlay var(--duration-base) allow-discrete,
+        display var(--duration-base) allow-discrete;
+      transform: translateX(100%);
+    }
+
+    .site-drawer[open]:not([data-static]) {
+      transform: none;
+      transition-timing-function: var(--ease-out);
+    }
+
+    .site-drawer:not([data-static])::backdrop {
+      background: transparent;
+      transition:
+        background-color var(--duration-base) var(--ease-in),
+        overlay var(--duration-base) allow-discrete,
+        display var(--duration-base) allow-discrete;
+    }
+
+    .site-drawer[open]:not([data-static])::backdrop {
+      background: color-mix(in srgb, var(--ink-1000) 40%, transparent);
+    }
+
+    @starting-style {
+      .site-drawer[open]:not([data-static]) {
+        transform: translateX(100%);
+      }
+
+      .site-drawer[open]:not([data-static])::backdrop {
+        background: transparent;
+      }
+    }
+  }
+
+  /* A gallery specimen: open, inline, the height of a phone screen, without the close button. */
+  .site-drawer[data-static] {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 760px; /* token-lint-ignore: specimen height, a phone screen */
+    border: var(--stroke-thin) solid var(--border);
+  }
+
+  .site-drawer[data-static] .site-drawer__close {
+    display: none;
+  }
+
+  /* The drawer is below 1101px only: no scroll lock needed where the menu is inline. */
+  :global(html:has(.site-drawer[open]:not([data-static]))) {
+    overflow: hidden;
+  }
+</style>

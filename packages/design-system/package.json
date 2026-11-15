@@ -1,0 +1,60 @@
+{
+  "name": "@emdash-commerce/design-system",
+  "version": "0.0.1",
+  "description": "Shop storefront design system (volt sportswear skin, de-branded): design tokens and every visual component as props-driven Astro components — no app logic, no imports from any app.",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    },
+    "./components/*": "./src/components/*",
+    "./assets/*": "./src/assets/*",
+    "./category-color": "./src/utils/category-color.ts",
+    "./tokens.css": "./src/tokens/index.css",
+    "./reset.css": "./src/tokens/reset.css",
+    "./fonts.css": "./src/tokens/fonts.css",
+    "./balanced-clamp": "./src/utils/balanced-clamp.ts",
+    "./hero-slider": "./src/utils/hero-slider.ts",
+    "./prose-gallery": "./src/utils/prose-gallery.ts",
+    "./ad-rotation": "./src/utils/ad-rotation.ts",
+    "./quantity-stepper": "./src/utils/quantity-stepper.ts",
+    "./count-badge": "./src/utils/count-badge.ts",
+    "./site-header-ids": "./src/components/chrome/site-header/ids.ts",
+    "./action-bar": "./src/utils/action-bar.ts",
+    "./action-bar-core": "./src/utils/action-bar-core.ts",
+    "./password-toggle": "./src/utils/password-toggle.ts",
+    "./details-motion": "./src/utils/details-motion.ts",
+    "./details-motion-core": "./src/utils/details-motion-core.ts",
+    "./tabs-core": "./src/utils/tabs-core.ts",
+    "./tabs": "./src/utils/tabs.ts",
+    "./toggle-section": "./src/utils/toggle-section.ts",
+    "./variant-picker": "./src/utils/variant-picker.ts",
+    "./variant-availability": "./src/utils/variant-availability.ts",
+    "./variant-choice": "./src/utils/variant-choice.ts",
+    "./look-kit": "./src/utils/look-kit.ts",
+    "./look-dialog": "./src/utils/look-dialog.ts",
+    "./turnstile": "./src/utils/turnstile.ts",
+    "./mini-cart": "./src/utils/mini-cart.ts",
+    "./product-gallery": "./src/utils/product-gallery.ts",
+    "./listing-filters": "./src/utils/listing-filters.ts",
+    "./pickup-point-picker": "./src/utils/pickup-point-picker.ts",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "token-lint": "./scripts/token-lint.mjs"
+  },
+  "scripts": {
+    "typecheck": "astro check",
+    "test": "node scripts/token-lint.mjs src"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "astro": "7.3.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "typescript": "5.9.3"
+  }
+}

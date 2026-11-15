@@ -1,0 +1,63 @@
+---
+// Figma article rail partner tile (944:33104): the category-coloured badge pairing the strategic
+// partner's logo with a caption bar, linked to the partner's website when it has one.
+import CategoryPartnerBadge from '../../../atoms/category-partner-badge/index.astro'
+import type { CategoryPartnerProps } from './types'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = CategoryPartnerProps
+
+const { caption, captionId, color, category, partner } = Astro.props
+---
+
+<section class="category-partner" aria-labelledby={captionId}>
+  <CategoryPartnerBadge category={category} color={color} class="category-partner__badge">
+    <Fragment slot="logo">
+      {
+        partner.href ? (
+          <a href={partner.href} rel="sponsored noopener" class="category-partner__link">
+            {partner.logo ? <Image {...partner.logo} alt={partner.logo.alt || partner.name} /> : partner.name}
+          </a>
+        ) : partner.logo ? (
+          <Image {...partner.logo} alt={partner.logo.alt || partner.name} />
+        ) : (
+          <span class="category-partner__name">{partner.name}</span>
+        )
+      }
+    </Fragment>
+    <Fragment slot="caption"><span id={captionId}>{caption}</span></Fragment>
+  </CategoryPartnerBadge>
+</section>
+
+<style>
+  /* The badge atom is drawn at Figma's 300px; in the bar it follows the bar's width instead. */
+  .category-partner :global(.category-partner__badge) {
+    width: 100%;
+  }
+
+  .category-partner__link {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .category-partner :global(img) {
+    display: block;
+    max-width: 100%;
+    height: 35px; /* token-lint-ignore: Figma logo box height, no token */
+    width: auto;
+    object-fit: contain;
+    /* The logo as one flat grey (neutral-400) whatever its own colours. */
+    filter: var(--logo-filter-muted);
+  }
+
+  .category-partner__name {
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-primary);
+  }
+</style>

@@ -1,0 +1,89 @@
+---
+// Figma col-side "tile" (944:33096; zawody 1023:60554) — "table of contents": the side tile title
+// (TileTitle s) and the section links; the current section is set in the medium weight, the primary
+// color and underlined. The article page pins the tile (sticky, top 0) while it scrolls.
+import TileTitle from '../../../molecules/tile-title/index.astro'
+import { tileTitleSizes } from '../../../molecules/tile-title/variants'
+import type { TableOfContentsProps } from './types'
+
+type Props = TableOfContentsProps
+
+const { heading, headingId, entries, currentId, isSticky = false, id } = Astro.props
+---
+
+{
+  entries.length > 0 && (
+    <nav id={id} class:list={['table-of-contents', isSticky && 'table-of-contents--sticky']} aria-labelledby={headingId}>
+      <TileTitle heading={heading} headingId={headingId} size={tileTitleSizes.s} />
+      <ol class="table-of-contents__list">
+        {entries.map((entry) => (
+          <li>
+            <a href={`#${entry.id}`} aria-current={entry.id === currentId ? 'location' : undefined}>
+              {entry.label}
+            </a>
+            {entry.children && entry.children.length > 0 && (
+              <ol class="table-of-contents__list table-of-contents__list--nested">
+                {entry.children.map((child) => (
+                  <li>
+                    <a href={`#${child.id}`} aria-current={child.id === currentId ? 'location' : undefined}>
+                      {child.label}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+<style>
+  .table-of-contents {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding: var(--space-16) 0;
+    border-block: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .table-of-contents--sticky {
+    position: sticky;
+    top: 0;
+  }
+
+  .table-of-contents__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .table-of-contents__list--nested {
+    margin-top: var(--space-16);
+    padding-left: var(--space-16);
+  }
+
+  .table-of-contents a {
+    display: block;
+    font: var(--type-text-regular-xs);
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  .table-of-contents a:hover {
+    text-decoration: underline;
+  }
+
+  .table-of-contents a[aria-current] {
+    font: var(--type-text-medium-xs);
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+</style>

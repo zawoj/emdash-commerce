@@ -1,0 +1,108 @@
+---
+// The top of a product page: the photos stacked in the left column, and in the right one the H1,
+// the headline price, the stock status (`availability` slot), the excerpt and the buying controls
+// (`actions` slot). The slots are the app's: the stock status is often a live value (a server
+// island), the add-to-cart control carries the app's cart script. One column below 700px.
+import Price from '../../atoms/price/index.astro'
+import { priceSizes } from '../../atoms/price/variants'
+import type { ProductDetailProps } from './types'
+import Image from '../../atoms/image/index.astro'
+
+type Props = ProductDetailProps
+
+const { title, images, price, excerpt } = Astro.props
+---
+
+<section class="product-detail">
+  <div class="product-detail__gallery">
+    {images.map((image) => <Image class="product-detail__img" {...image} />)}
+    {images.length === 0 && <div class="product-detail__placeholder" aria-hidden="true"></div>}
+  </div>
+  <div class="product-detail__summary">
+    <h1 class="product-detail__title">{title}</h1>
+    <Price label={price.label} value={price.value} size={priceSizes.lg} />
+    <slot name="availability" />
+    {excerpt && <p class="product-detail__excerpt">{excerpt}</p>}
+    <div class="product-detail__actions">
+      <slot name="actions" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .product-detail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-64);
+    align-items: start;
+  }
+
+  .product-detail__gallery {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .product-detail__img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .product-detail__placeholder {
+    aspect-ratio: 4 / 5;
+    background: var(--surface-muted);
+  }
+
+  .product-detail__summary {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-24));
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-16);
+  }
+
+  /* The product name is the page's one headline: condensed caps, the only place a name is. */
+  .product-detail__title {
+    color: var(--text-primary);
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .product-detail__excerpt {
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+  }
+
+  .product-detail__actions:empty {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .product-detail {
+      gap: var(--space-32);
+    }
+  }
+
+  @media (max-width: 700px) {
+    .product-detail {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-24);
+    }
+
+    .product-detail__summary {
+      position: static;
+    }
+
+    .product-detail__title {
+      font: var(--type-display-md);
+      font-stretch: var(--display-stretch);
+      letter-spacing: var(--tracking-display);
+    }
+  }
+</style>

@@ -1,0 +1,196 @@
+---
+// The page of an address with nothing on it (404, 410) or of a shop that cannot answer (500, 503): a
+// black brand panel — the status code as a quiet label, a huge condensed message, one line of
+// explanation, the volt way back, an optional search box and quiet links. It is the page's <main>
+// (the skip link's target) unless the layout already renders one (`PageMain`) — then
+// `isMain={false}` makes it a plain section.
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { StatusPageProps } from './types'
+
+type Props = StatusPageProps
+
+const { eyebrow, title, description, action, secondaryAction, search, links = [], isMain = true } = Astro.props
+const Tag = isMain ? 'main' : 'section'
+---
+
+<Tag id={isMain ? 'main-content' : undefined} class="status-page" data-surface="dark" data-band>
+  <div class="status-page__inner">
+    <p class="status-page__eyebrow">{eyebrow}</p>
+    <h1 class="status-page__title">{title}</h1>
+    <p class="status-page__description">{description}</p>
+    <div class="status-page__actions">
+      <Button variant={buttonVariants.accent} size={buttonSizes.lg} href={action.href}>{action.label}</Button>
+      {secondaryAction && <Button variant={buttonVariants.inverse} size={buttonSizes.lg} href={secondaryAction.href}>{secondaryAction.label}</Button>}
+    </div>
+    {
+      search && (
+        <form class="status-page__search" role="search" action={search.action} method="get">
+          <label class="visually-hidden" for="status-page-search">{search.label}</label>
+          <span class="status-page__search-icon" aria-hidden="true"><Icon name={iconNames.search} size={20} /></span>
+          <input class="status-page__search-input" id="status-page-search" type="search" name={search.name} placeholder={search.placeholder} autocomplete="off" />
+          <button class="status-page__search-submit" type="submit">{search.submitLabel}</button>
+        </form>
+      )
+    }
+    {
+      links.length > 0 && (
+        <ul class="status-page__links">
+          {links.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
+        </ul>
+      )
+    }
+  </div>
+</Tag>
+
+<style>
+  .status-page {
+    display: flex;
+    align-items: center;
+    min-height: 70vh; /* token-lint-ignore: keeps the footer below the fold on a short message */
+    padding: var(--space-96) var(--page-gutter);
+    background: var(--surface);
+    color: var(--text-body);
+  }
+
+  .status-page__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-24);
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+  }
+
+  .status-page__eyebrow {
+    margin: 0;
+    padding: var(--space-4) var(--space-8);
+    border-radius: var(--radius-chip);
+    background: var(--accent);
+    color: var(--on-accent);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .status-page__title {
+    max-width: 14ch; /* token-lint-ignore: keeps a huge message on two or three lines */
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-5xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .status-page__description {
+    max-width: 48ch; /* token-lint-ignore: readable line length for one sentence */
+    margin: 0;
+    color: var(--text-body);
+    font: var(--type-text-regular-lg);
+  }
+
+  .status-page__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+  }
+
+  .status-page__search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 520px; /* token-lint-ignore: search box width */
+    min-height: 56px; /* token-lint-ignore: prominent search field */
+    padding: var(--space-4);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    transition: border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .status-page__search:focus-within {
+    border-color: var(--text-primary);
+  }
+
+  .status-page__search-icon {
+    display: inline-flex;
+    padding: 0 var(--space-8) 0 var(--space-16);
+    color: var(--text-secondary);
+  }
+
+  .status-page__search-input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    min-height: 44px; /* token-lint-ignore: touch target inside the pill */
+    border: 0;
+    background: none;
+    color: var(--text-primary);
+    font: var(--type-text-regular-md);
+  }
+
+  .status-page__search-input:focus {
+    outline: none;
+  }
+
+  .status-page__search-submit {
+    min-height: 44px; /* token-lint-ignore: touch target inside the pill */
+    padding: 0 var(--space-20);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: var(--control-solid);
+    color: var(--on-control-solid);
+    cursor: pointer;
+    font: var(--type-text-medium-md);
+    text-transform: var(--button-case);
+  }
+
+  .status-page__search-submit:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .status-page__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8) var(--space-24);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .status-page__links a {
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .status-page__links a:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .status-page {
+      min-height: 0;
+      padding: var(--space-64) var(--page-gutter);
+    }
+
+    .status-page__title {
+      font: var(--type-display-2xl);
+      font-stretch: var(--display-stretch);
+      letter-spacing: var(--tracking-display);
+    }
+
+    .status-page__search-submit {
+      padding: 0 var(--space-16);
+    }
+  }
+</style>

@@ -1,0 +1,67 @@
+---
+// Figma "pagination" tile (706:15871) — the white tile that lays out items/arrows and the results line.
+// Takes PaginationItem/PaginationArrow as children via the default slot: nothing is hardcoded.
+interface Props {
+  ariaLabel?: string
+  resultsLabel?: string
+}
+
+const { ariaLabel, resultsLabel } = Astro.props
+---
+
+<nav class="pagination" aria-label={ariaLabel}>
+  <div class="pagination__items">
+    <slot />
+  </div>
+  {resultsLabel && <p class="pagination__results">{resultsLabel}</p>}
+</nav>
+
+<style>
+  /* 706:15871: a borderless white radius-lg tile, 20px padding, the results line top-aligned with
+     the 34px item row (Figma aligns the bar's children to the start, not the center). */
+  .pagination {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-16);
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: var(--space-20) 0 0;
+  }
+
+  .pagination__items {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  .pagination__results {
+    font: var(--type-label-regular-xs);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* Below mobile, the item row (page numbers + arrows) and the results line no longer share one
+     row readably — stack them and let the results line wrap instead of forcing the whole bar to
+     scroll horizontally. */
+  @media (max-width: 480px) {
+    .pagination {
+      justify-content: center;
+      padding: var(--space-16) 0 0;
+    }
+
+    .pagination__items {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .pagination__results {
+      width: 100%;
+      text-align: center;
+      white-space: normal;
+    }
+  }
+</style>

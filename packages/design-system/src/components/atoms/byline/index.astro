@@ -1,0 +1,46 @@
+---
+// Byline — the small Avatar plus the Article Meta pair (author, date) inlined here since
+// Article Meta itself isn't one of this batch's atoms.
+import Avatar from '../avatar/index.astro'
+
+interface Props {
+  avatarSrc: string
+  avatarAlt: string
+  author: string
+  date: string
+}
+
+const { avatarSrc, avatarAlt, author, date } = Astro.props
+---
+
+<div class="byline">
+  <Avatar src={avatarSrc} alt={avatarAlt} size="sm" />
+  <div class="byline__meta">
+    <span class="byline__author">{author}</span>
+    <span class="byline__date">{date}</span>
+  </div>
+</div>
+
+<style>
+  .byline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .byline__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .byline__author {
+    font: var(--type-label-medium-sm);
+    color: var(--text-body);
+  }
+
+  .byline__date {
+    font: var(--type-label-regular-xs);
+    color: var(--text-secondary);
+  }
+</style>

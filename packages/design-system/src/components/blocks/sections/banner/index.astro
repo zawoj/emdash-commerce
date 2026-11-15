@@ -1,0 +1,123 @@
+---
+// The "banner" section: a full-bleed campaign band (it breaks out of the page column). With a photo:
+// the photo under the scrim with a centred condensed heading, a short text and a white pill button.
+// Without one: a black band with the volt button.
+import Button from '../../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../../atoms/button/variants'
+import type { BannerProps } from './types'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = BannerProps
+
+const { heading, headingId, text, image, action, eyebrow, attrs } = Astro.props
+---
+
+<section class:list={['banner', image && 'banner--with-image']} aria-labelledby={headingId} data-surface="dark" data-band {...attrs?.root}>
+  {image && <Image class="banner__img" {...image} />}
+  <div class="banner__copy">
+    {eyebrow && <p class="banner__eyebrow" {...attrs?.eyebrow}>{eyebrow}</p>}
+    <h2 id={headingId} class="banner__heading" {...attrs?.heading}>{heading}</h2>
+    {text && <p class="banner__text" {...attrs?.text}>{text}</p>}
+    {action && <Button variant={image ? buttonVariants.inverse : buttonVariants.accent} size={buttonSizes.lg} href={action.href} {...attrs?.action}>{action.label}</Button>}
+  </div>
+</section>
+
+<style>
+  .banner {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    overflow: hidden;
+    background: var(--surface);
+    color: var(--text-body);
+  }
+
+  .banner--with-image {
+    min-height: var(--band-height);
+  }
+
+  .banner--with-image::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--image-scrim);
+    content: '';
+  }
+
+  .banner__img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.7); /* token-lint-ignore: dims any photo so the centred copy reads */
+  }
+
+  .banner__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-16);
+    width: 100%;
+    max-width: var(--page-max-width);
+    padding: var(--space-96) var(--page-gutter);
+    text-align: center;
+  }
+
+  .banner__eyebrow {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    letter-spacing: var(--tracking-display);
+    text-transform: uppercase;
+  }
+
+  .banner__heading {
+    margin: 0;
+    max-width: 16ch;
+    color: var(--text-primary);
+    font: var(--type-display-4xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .banner__text {
+    margin: 0;
+    max-width: 48ch; /* token-lint-ignore: readable line length */
+    color: var(--text-primary);
+    font: var(--type-text-medium-lg);
+  }
+
+  .banner__copy :global(.button) {
+    margin-top: var(--space-8);
+  }
+
+  @media (max-width: 900px) {
+    .banner__heading {
+      font: var(--type-display-3xl);
+      font-stretch: var(--display-stretch);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .banner__copy {
+      padding-block: var(--space-64);
+    }
+
+    .banner__heading {
+      font: var(--type-display-xl);
+      font-stretch: var(--display-stretch);
+    }
+
+    .banner__text {
+      font: var(--type-text-medium-md);
+    }
+  }
+</style>

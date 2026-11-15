@@ -1,0 +1,85 @@
+---
+// A single checkbox of a form — an option, or a consent — with its text beside it, the control in
+// the design's dark accent. The label is the default slot, so a consent can carry a link. Further
+// attributes go to the `<input>`.
+import type { HTMLAttributes } from 'astro/types'
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'id' | 'name' | 'type' | 'required' | 'disabled' | 'checked'> {
+  id: string
+  name: string
+  description?: string | null
+  /** Inline validation message (the consent was not given); shown in the error colour. */
+  error?: string | null
+  errorLabel?: string
+  isChecked?: boolean
+  isRequired?: boolean
+  isDisabled?: boolean
+}
+
+const { id, name, description, error, errorLabel, isChecked = false, isRequired = false, isDisabled = false, ...attrs } = Astro.props
+const descriptionId = description || error ? `${id}-description` : undefined
+---
+
+<div class="field-checkbox">
+  <label for={id}>
+    <input id={id} {...attrs} type="checkbox" name={name} required={isRequired} checked={isChecked} disabled={isDisabled} aria-describedby={descriptionId} aria-invalid={error ? 'true' : undefined} />
+    <span class="field-checkbox__text"><slot /></span>
+  </label>
+  {error ? <p id={descriptionId} class="field-checkbox__description field-checkbox__description--error">{errorLabel && <span class="visually-hidden">{errorLabel}: </span>}{error}</p> : description && <p id={descriptionId} class="field-checkbox__description">{description}</p>}
+</div>
+
+<style>
+  .field-checkbox {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .field-checkbox label {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--space-12);
+    padding: var(--space-4) 0;
+    cursor: pointer;
+  }
+
+  .field-checkbox input {
+    flex: none;
+    width: 20px; /* token-lint-ignore: native checkbox box, no token */
+    height: 20px; /* token-lint-ignore: native checkbox box, no token */
+    margin: 0;
+    accent-color: var(--control-solid);
+    cursor: pointer;
+  }
+
+  .field-checkbox__text {
+    font: var(--type-text-regular-sm);
+    padding-top: 0;
+    color: var(--text-body);
+  }
+
+  .field-checkbox__description {
+    margin: 0 0 0 calc(20px + var(--space-12)); /* token-lint-ignore: aligns with the label text beside the 20px box */
+    font: var(--type-text-regular-xs);
+    color: var(--text-muted);
+  }
+
+  .field-checkbox__description--error {
+    color: var(--hot);
+    font: var(--type-text-medium-sm);
+  }
+
+  .field-checkbox input[aria-invalid='true'] {
+    outline: var(--stroke-bold) solid var(--hot);
+    outline-offset: 1px;
+  }
+
+  @media (pointer: coarse) {
+    .field-checkbox label {
+      align-items: center;
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

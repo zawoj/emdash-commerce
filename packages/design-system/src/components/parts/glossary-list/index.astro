@@ -1,0 +1,198 @@
+---
+// The glossary listing (no Figma frame — composed from the strona search bar of "deals listing"
+// 1017:40841 and the plain-text column of "plain text" 1021:52562): the search form centred in 800px,
+// a bar of the letters that have terms, then the terms grouped by letter in the 778px text column —
+// the letter in a display face beside its rows (a row: the term as a link, its short definition).
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import SearchBar from '../../molecules/search-bar/index.astro'
+import { searchBarSizes } from '../../molecules/search-bar/variants'
+import type { GlossaryListProps } from './types'
+
+type Props = GlossaryListProps
+
+const { action, label, search, lettersLabel, groups, emptyLabel } = Astro.props
+---
+
+<section class="glossary-list" aria-label={label}>
+  <form class="glossary-list__search" role="search" action={action} method="get">
+    <SearchBar search={search} size={searchBarSizes.l}>
+      <Icon name={iconNames.search} slot="search-icon" />
+    </SearchBar>
+  </form>
+  {
+    groups.length > 0 ? (
+      <>
+        <nav class="glossary-list__letters" aria-label={lettersLabel}>
+          {groups.map((group) => (
+            <a class="glossary-list__letter" href={`#${group.id}`}>
+              {group.letter}
+            </a>
+          ))}
+        </nav>
+        <div class="glossary-list__groups">
+          {groups.map((group) => (
+            <section class="glossary-list__group" id={group.id} aria-labelledby={`${group.id}-letter`}>
+              <h2 class="glossary-list__group-letter" id={`${group.id}-letter`}>
+                {group.letter}
+              </h2>
+              <ul class="glossary-list__terms">
+                {group.terms.map((term) => (
+                  <li class="glossary-list__term">
+                    <a class="glossary-list__name" href={term.href}>
+                      {term.name}
+                    </a>
+                    <p class="glossary-list__definition">{term.definition}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </>
+    ) : (
+      <p class="glossary-list__empty">{emptyLabel}</p>
+    )
+  }
+</section>
+
+<style>
+  .glossary-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-32);
+    width: 100%;
+    min-width: 0;
+    padding-bottom: var(--space-96);
+  }
+
+  .glossary-list__search {
+    width: 100%;
+    max-width: 800px; /* token-lint-ignore: search instance width of the deals listing frame, no token */
+  }
+
+  .glossary-list__letters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-8);
+    max-width: 778px; /* token-lint-ignore: plain-text column width, no token */
+  }
+
+  .glossary-list__letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px; /* token-lint-ignore: 40px control height of the strona search, no token */
+    height: 40px; /* token-lint-ignore: 40px control height of the strona search, no token */
+    padding: 0 var(--space-8);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--text-primary);
+    font: var(--type-label-semibold-md);
+    text-decoration: none;
+    transition: background var(--duration-fast) var(--ease-out);
+  }
+
+  .glossary-list__letter:hover,
+  .glossary-list__letter:focus-visible {
+    background: var(--surface-hover);
+  }
+
+  .glossary-list__groups {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-48);
+    width: 100%;
+    max-width: 778px; /* token-lint-ignore: plain-text column width, no token */
+  }
+
+  .glossary-list__group {
+    display: grid;
+    grid-template-columns: var(--space-96) minmax(0, 1fr);
+    gap: var(--space-24);
+    /* The jump bar scrolls the group below the sticky header. */
+    scroll-margin-top: var(--space-96);
+  }
+
+  .glossary-list__group-letter {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-2xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    line-height: 1;
+  }
+
+  .glossary-list__terms {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .glossary-list__term {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-16) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .glossary-list__term:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .glossary-list__name {
+    color: var(--text-primary);
+    font: var(--type-text-medium-lg);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .glossary-list__name:hover,
+  .glossary-list__name:focus-visible {
+    text-decoration: underline;
+  }
+
+  .glossary-list__definition {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-md);
+    overflow-wrap: anywhere;
+  }
+
+  .glossary-list__empty {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-md);
+    text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    .glossary-list {
+      gap: var(--space-24);
+      padding-bottom: var(--space-64);
+    }
+
+    .glossary-list__groups {
+      gap: var(--space-32);
+    }
+
+    .glossary-list__group {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-8);
+      scroll-margin-top: var(--space-64);
+    }
+
+    .glossary-list__group-letter {
+      font: var(--type-display-lg);
+      font-stretch: var(--display-stretch);
+    }
+  }
+</style>

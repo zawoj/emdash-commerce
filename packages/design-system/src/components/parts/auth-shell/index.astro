@@ -1,0 +1,251 @@
+---
+// The frame of the sign-in / registration / password pages: the form column (display heading, lead,
+// the form, the secondary links) beside a brand panel — a campaign photo under the scrim, or the
+// black board with volt blocks — that names three member benefits. On a phone the form comes first
+// and the panel shrinks to a slim dark strip of the benefits. All copy comes in as props.
+// Slots: default = the form (or the state that replaces it), `notice` = the one-time notice above
+// the form, `links` = the small links under it.
+import Icon from '../../atoms/icon/index.astro'
+import type { AuthShellProps } from './types'
+
+type Props = AuthShellProps
+
+const { heading, lead, brand } = Astro.props
+const hasImage = Boolean(brand.image)
+// A slot a page leaves empty (no notice this time, no links on a state page) draws no wrapper.
+const notice = Astro.slots.has('notice') ? (await Astro.slots.render('notice')).trim() : ''
+const links = Astro.slots.has('links') ? (await Astro.slots.render('links')).trim() : ''
+---
+
+<div class="auth-shell">
+  <div class="auth-shell__main">
+    <div class="auth-shell__column">
+      <header class="auth-shell__head">
+        <h1 class="auth-shell__heading">{heading}</h1>
+        {lead && <p class="auth-shell__lead">{lead}</p>}
+      </header>
+      {notice && <div class="auth-shell__notice"><Fragment set:html={notice} /></div>}
+      <div class="auth-shell__body"><slot /></div>
+      {links && <div class="auth-shell__links"><Fragment set:html={links} /></div>}
+    </div>
+  </div>
+  <aside class:list={['auth-shell__panel', hasImage && 'auth-shell__panel--photo']} data-surface="dark" aria-label={brand.benefitsLabel}>
+    {brand.image && <img class="auth-shell__photo" src={brand.image.src} width={brand.image.width} height={brand.image.height} alt={brand.image.alt} loading="eager" decoding="async" />}
+    {!hasImage && <span class="auth-shell__block" aria-hidden="true"></span>}
+    <div class="auth-shell__brand">
+      <p class="auth-shell__eyebrow">{brand.eyebrow}</p>
+      <p class="auth-shell__headline">{brand.headline}</p>
+    </div>
+    <ul class="auth-shell__benefits">
+      {
+        brand.benefits.map((benefit) => (
+          <li class="auth-shell__benefit">
+            <span class="auth-shell__icon"><Icon name={benefit.icon} size={16} /></span>
+            <span>{benefit.text}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </aside>
+</div>
+
+<style>
+  .auth-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    min-height: 640px; /* token-lint-ignore: keeps the split tall enough for the photo */
+  }
+
+  .auth-shell__main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-48) var(--space-24);
+  }
+
+  .auth-shell__column {
+    display: flex;
+    width: 100%;
+    max-width: 440px; /* token-lint-ignore: form measure */
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+
+  .auth-shell__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .auth-shell__heading {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .auth-shell__lead {
+    margin: 0;
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+  }
+
+  .auth-shell__notice {
+    display: contents;
+  }
+
+  .auth-shell__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  .auth-shell__links {
+    padding-top: var(--space-20);
+    border-top: 1px solid var(--border);
+  }
+
+  .auth-shell__panel {
+    position: relative;
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: var(--space-32);
+    padding: var(--space-48);
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    color: var(--text-primary);
+  }
+
+  .auth-shell__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .auth-shell__panel--photo::before {
+    position: absolute;
+    inset: 0;
+    background: var(--image-scrim);
+    content: '';
+  }
+
+  /* The board's volt block, a parallelogram cut like the wordmark's A. */
+  .auth-shell__block {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 46%; /* token-lint-ignore: board block share */
+    height: 38%; /* token-lint-ignore: board block share */
+    background: var(--accent);
+    clip-path: polygon(24% 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .auth-shell__brand,
+  .auth-shell__benefits {
+    position: relative;
+  }
+
+  .auth-shell__eyebrow {
+    margin: 0 0 var(--space-12);
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .auth-shell__panel--photo .auth-shell__eyebrow {
+    color: var(--text-primary);
+  }
+
+  .auth-shell__headline {
+    margin: 0;
+    max-width: 9ch; /* token-lint-ignore: sets the line break of the slogan */
+    color: var(--text-primary);
+    font: var(--type-display-2xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .auth-shell__benefits {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    margin: 0;
+    padding: var(--space-24) 0 0;
+    border-top: 1px solid var(--border-strong);
+    list-style: none;
+  }
+
+  .auth-shell__benefit {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+  }
+
+  .auth-shell__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 28px; /* token-lint-ignore: icon chip */
+    height: 28px; /* token-lint-ignore: icon chip */
+    border-radius: var(--radius-full);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  @media (max-width: 900px) {
+    .auth-shell {
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .auth-shell__main {
+      padding: var(--space-8) 0 var(--space-32);
+    }
+
+    /* The slim strip under the form: the benefits only. */
+    .auth-shell__panel {
+      padding: var(--space-20) var(--space-16);
+      gap: 0;
+    }
+
+    .auth-shell__brand,
+    .auth-shell__photo,
+    .auth-shell__block {
+      display: none;
+    }
+
+    .auth-shell__panel--photo::before {
+      display: none;
+    }
+
+    .auth-shell__benefits {
+      padding: 0;
+      border-top: 0;
+      gap: var(--space-8);
+    }
+
+    .auth-shell__benefit {
+      font: var(--type-text-regular-sm);
+    }
+
+    .auth-shell__icon {
+      width: 24px; /* token-lint-ignore: icon chip */
+      height: 24px; /* token-lint-ignore: icon chip */
+    }
+  }
+</style>

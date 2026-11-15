@@ -1,0 +1,52 @@
+---
+// Figma "article" > section 944:33241 (1200px: col-main 1019:48512): the "related" tile with
+// three stacked article cards, 20px apart.
+import ArticleCard from '../../../parts/article-card/index.astro'
+import { articleCardSizes } from '../../../parts/article-card/variants'
+import ContentTile from '../../../parts/content-tile/index.astro'
+import { tilePaddings } from '../../../parts/content-tile/variants'
+import type { RelatedPostsProps } from './types'
+
+type Props = RelatedPostsProps
+
+const { heading, headingId, items } = Astro.props
+const hasItems = items.length > 0
+---
+
+{
+  hasItems && (
+    <ContentTile heading={heading} headingId={headingId} gap={20} padding={tilePaddings.compact}>
+      <ul class="related-posts__grid">
+        {
+          items.map((article) => (
+            <li>
+              <ArticleCard article={article} size={articleCardSizes.l} />
+            </li>
+          ))
+        }
+      </ul>
+    </ContentTile>
+  )
+}
+
+<style>
+  .related-posts__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-20);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .related-posts__grid li {
+    display: flex;
+    flex-direction: column;
+  }
+
+  @container content-tile (width < 640px) {
+    .related-posts__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

@@ -1,0 +1,251 @@
+---
+// Delivery and payment as a visible list of radio cards (never a dropdown): the courier or payment
+// glyph, the title, a description, the delivery date and the price on the right. A disabled option
+// says why in words. Anything an option needs once chosen — the pickup-point picker under a
+// parcel-locker method, the card form under "card" — goes in the slot `extra-<value>`; it shows
+// only while that option is checked.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { ChoiceListProps } from './types'
+import Image from '../../atoms/image/index.astro'
+
+type Props = ChoiceListProps
+
+const { id, name, legend, options, isRequired = false, error, errorLabel } = Astro.props
+const errorId = error ? `${id}-error` : undefined
+const extras = await Promise.all(options.map(async (option) => (Astro.slots.has(`extra-${option.value}`) ? await Astro.slots.render(`extra-${option.value}`) : '')))
+---
+
+<fieldset class="choice-list" aria-describedby={errorId} aria-invalid={error ? 'true' : undefined}>
+  <legend class="choice-list__legend">{legend}</legend>
+  <ul class="choice-list__options">
+    {
+      options.map((option, index) => (
+        <li class:list={['choice-list__item', option.isDisabled && 'choice-list__item--disabled']}>
+          <label class="choice-list__card" for={`${id}-${index}`}>
+            <input
+              class="choice-list__input"
+              id={`${id}-${index}`}
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={option.isChecked}
+              disabled={option.isDisabled}
+              required={isRequired}
+              aria-describedby={option.disabledReason ? `${id}-${index}-reason` : undefined}
+            />
+            {option.logo ? (
+              <Image class="choice-list__logo" {...option.logo} />
+            ) : (
+              option.icon && <span class="choice-list__icon" aria-hidden="true"><Icon name={option.icon} size={24} /></span>
+            )}
+            <span class="choice-list__text">
+              <span class="choice-list__title">{option.title}</span>
+              {option.description && <span class="choice-list__description">{option.description}</span>}
+              {option.deliveryDate && <span class="choice-list__date">{option.deliveryDate}</span>}
+              {option.disabledReason && <span class="choice-list__reason" id={`${id}-${index}-reason`}>{option.disabledReason}</span>}
+            </span>
+            {option.price && <span class:list={['choice-list__price', option.isFree && 'choice-list__price--free']}>{option.price}</span>}
+          </label>
+          {extras[index] && <div class="choice-list__extra" set:html={extras[index]} />}
+        </li>
+      ))
+    }
+  </ul>
+  {
+    error && (
+      <p class="choice-list__error" id={errorId} role="alert">
+        <Icon name={iconNames.octagonAlert} size={16} />
+        <span>{errorLabel && <span class="visually-hidden">{errorLabel}: </span>}{error}</span>
+      </p>
+    )
+  }
+</fieldset>
+
+<style>
+  .choice-list {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-12);
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .choice-list__legend {
+    margin-bottom: var(--space-12);
+    padding: 0;
+    color: var(--text-primary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .choice-list__options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .choice-list__item {
+    border: var(--stroke-thin) solid var(--border);
+    border-radius: var(--radius-panel);
+    background: var(--surface);
+    transition: border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .choice-list__item:hover {
+    border-color: var(--border-strong);
+  }
+
+  .choice-list__item:has(.choice-list__input:checked),
+  .choice-list__item:has(.choice-list__input:checked):hover {
+    border-color: var(--text-primary);
+    box-shadow: inset 0 0 0 1px var(--text-primary); /* token-lint-ignore: 2px selected outline without a layout shift */
+  }
+
+  .choice-list__item:has(.choice-list__input:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .choice-list__card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-12);
+    min-height: 72px; /* token-lint-ignore: touch target of a rich row */
+    padding: var(--space-16) var(--space-20);
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .choice-list__input {
+    flex: none;
+    width: 18px; /* token-lint-ignore: native radio box */
+    height: 18px; /* token-lint-ignore: native radio box */
+    margin: var(--space-2) 0 0;
+    accent-color: var(--ink-1000);
+    cursor: inherit;
+  }
+
+  .choice-list__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px; /* token-lint-ignore: method glyph tile */
+    height: 44px; /* token-lint-ignore: method glyph tile */
+    border-radius: var(--radius-chip);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+  }
+
+  .choice-list__logo {
+    flex: none;
+    width: 40px; /* token-lint-ignore: logo box */
+    height: auto;
+  }
+
+  .choice-list__text {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .choice-list__title {
+    color: var(--text-primary);
+    font: var(--type-title-md);
+  }
+
+  .choice-list__description,
+  .choice-list__reason {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .choice-list__date {
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  .choice-list__reason {
+    color: var(--text-primary);
+    font-style: italic;
+  }
+
+  .choice-list__price {
+    flex: none;
+    color: var(--text-primary);
+    font: var(--type-price-md);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .choice-list__price--free {
+    align-self: flex-start;
+    padding: var(--space-2) var(--space-8);
+    border-radius: var(--radius-chip);
+    background: var(--accent);
+    color: var(--on-accent);
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .choice-list__item--disabled {
+    border-style: dashed;
+  }
+
+  .choice-list__item--disabled .choice-list__card {
+    cursor: not-allowed;
+  }
+
+  .choice-list__item--disabled .choice-list__icon,
+  .choice-list__item--disabled .choice-list__logo,
+  .choice-list__item--disabled .choice-list__title,
+  .choice-list__item--disabled .choice-list__price {
+    opacity: 0.55;
+  }
+
+  .choice-list__extra {
+    display: none;
+    margin: 0 var(--space-20);
+    padding: var(--space-16) 0 var(--space-20);
+    border-top: 1px solid var(--border);
+  }
+
+  .choice-list__item:has(.choice-list__input:checked) .choice-list__extra {
+    display: block;
+  }
+
+  .choice-list__error {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    margin: 0;
+    color: var(--hot);
+    font: var(--type-text-medium-sm);
+  }
+
+  /* Phone: the decorative glyph tile goes, so the description gets a readable measure beside the price. */
+  @media (max-width: 520px) {
+    .choice-list__card {
+      padding: var(--space-16);
+    }
+
+    .choice-list__icon {
+      display: none;
+    }
+
+    .choice-list__extra {
+      margin: 0 var(--space-16);
+    }
+  }
+</style>

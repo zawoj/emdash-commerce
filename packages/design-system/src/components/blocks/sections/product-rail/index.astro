@@ -1,0 +1,239 @@
+---
+// The "productRail" section: the heading row (heading left; collection tab links, a "View all"
+// link and the prev/next buttons right) over a scroll-snap row of product cards. Cards are sized so
+// a fraction of the next one is always in view, which is what tells the shopper it scrolls. The
+// track is a focusable labelled region; the buttons appear once the script runs and are disabled at
+// the ends. A rail without products renders nothing.
+import Icon from '../../../atoms/icon/index.astro'
+import { iconNames } from '../../../atoms/icon/names'
+import ScrollButton from '../../../atoms/scroll-button/index.astro'
+import ProductCard from '../../../parts/product-card/index.astro'
+import type { ProductRailProps } from './types'
+
+type Props = ProductRailProps
+
+const { heading, headingId, products, tabs = [], tabsLabel, more, label, prevLabel, nextLabel, eagerCount = 0 } = Astro.props
+---
+
+{
+  products.length > 0 && (
+    <section class="product-rail" aria-labelledby={headingId} data-product-rail>
+      <div class="product-rail__head">
+        <h2 id={headingId} class="product-rail__heading">{heading}</h2>
+        <div class="product-rail__aside">
+          {tabs.length > 0 && (
+            <nav class="product-rail__tabs" aria-label={tabsLabel}>
+              <ul class="product-rail__tab-list">
+                {tabs.map((tab) => (
+                  <li><a class="product-rail__tab" href={tab.href} aria-current={tab.isCurrent ? 'page' : undefined}>{tab.label}</a></li>
+                ))}
+              </ul>
+            </nav>
+          )}
+          {more && <a class="product-rail__more" href={more.href}>{more.label}</a>}
+          <div class="product-rail__controls" data-rail-controls hidden>
+            <ScrollButton class="product-rail__button" label={prevLabel} isDisabled>
+              <Icon slot="icon" name={iconNames.chevronLeft} />
+            </ScrollButton>
+            <ScrollButton class="product-rail__button" label={nextLabel}>
+              <Icon slot="icon" name={iconNames.chevronRight} />
+            </ScrollButton>
+          </div>
+        </div>
+      </div>
+      <div class="product-rail__track" tabindex="0" role="region" aria-label={label} data-rail-track>
+        <ul class="product-rail__list">
+          {products.map((product, index) => (
+            <li class="product-rail__item" data-rail-item><ProductCard product={product} isEager={index < eagerCount} isLead={false} /></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<script>
+  import '../../../../utils/product-rail'
+</script>
+
+<style>
+  .product-rail {
+    padding-block: var(--space-32);
+    container: product-rail / inline-size;
+  }
+
+  .product-rail__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-16) var(--space-32);
+    margin-bottom: var(--space-24);
+  }
+
+  .product-rail__heading {
+    margin: 0;
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .product-rail__aside {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-16) var(--space-24);
+  }
+
+  .product-rail__tab-list {
+    display: flex;
+    gap: var(--space-24);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .product-rail__tab,
+  .product-rail__more {
+    color: var(--text-secondary);
+    font: var(--type-text-medium-sm);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .product-rail__tab {
+    padding-block: var(--space-4);
+    border-bottom: 2px solid transparent;
+  }
+
+  .product-rail__tab:hover,
+  .product-rail__more:hover {
+    color: var(--text-primary);
+  }
+
+  .product-rail__tab[aria-current='page'] {
+    border-bottom-color: var(--text-primary);
+    color: var(--text-primary);
+  }
+
+  .product-rail__more {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .product-rail__tab:focus-visible,
+  .product-rail__more:focus-visible,
+  .product-rail__track:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .product-rail__controls {
+    display: flex;
+    gap: var(--space-8);
+  }
+
+  .product-rail__controls[hidden] {
+    display: none;
+  }
+
+  .product-rail__controls :global(.product-rail__button) {
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .product-rail__controls :global(.product-rail__button:hover) {
+    border-color: var(--text-primary);
+    background: var(--surface-hover);
+  }
+
+  .product-rail__controls :global(.product-rail__button:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .product-rail__track {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .product-rail__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .product-rail__list {
+    --rail-gap: var(--grid-gap);
+    --rail-visible: 4.3;
+    display: flex;
+    gap: var(--rail-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* N whole cards, their gaps, and a fraction of the next card fill the track exactly. */
+  .product-rail__item {
+    flex: none;
+    width: calc((100cqw - (var(--rail-visible) - 0.3) * var(--rail-gap)) / var(--rail-visible));
+    scroll-snap-align: start;
+  }
+
+  @container product-rail (width < 1000px) {
+    .product-rail__list {
+      --rail-visible: 3.3;
+    }
+  }
+
+  @container product-rail (width < 700px) {
+    .product-rail__list {
+      --rail-visible: 2.3;
+    }
+  }
+
+  @container product-rail (width < 520px) {
+    .product-rail__list {
+      --rail-visible: 1.4;
+      --rail-gap: var(--grid-gap-tight);
+    }
+
+    .product-rail__head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .product-rail__aside {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (pointer: coarse) {
+    .product-rail__controls :global(.product-rail__button) {
+      width: 44px; /* token-lint-ignore: touch target */
+      height: 44px; /* token-lint-ignore: touch target */
+    }
+
+    .product-rail__aside {
+      column-gap: var(--space-16);
+    }
+
+    .product-rail__tab-list {
+      gap: var(--space-16);
+    }
+
+    .product-rail__more,
+    .product-rail__tab {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

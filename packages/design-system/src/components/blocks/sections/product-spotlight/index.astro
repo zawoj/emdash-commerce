@@ -1,0 +1,370 @@
+---
+// The "productSpotlight" section: one product as a technical feature. The photo carries numbered
+// markers; each callout's label hangs off its marker on a hairline leader ("01 — CUSHION" and one
+// line of text). The labels are one ordered list: over the photo on a wide screen, a plain list
+// under the photo on a phone (where only the markers stay on the photo). The side panel holds the
+// name, price, spec rows, one primary link and one quiet one.
+import Button from '../../../atoms/button/index.astro'
+import { buttonVariants } from '../../../atoms/button/variants'
+import Image from '../../../atoms/image/index.astro'
+import type { ProductSpotlightProps } from './types'
+import { calloutSides } from './variants'
+
+type Props = ProductSpotlightProps
+
+const { heading, headingId, eyebrow, image, callouts, calloutsLabel, price, compareAtPrice, specs, cta, secondary } = Astro.props
+/** The photo keeps its own proportions (the points are percentages of it); a tall one is shown narrower instead of cropped. */
+const ratio = image.width && image.height ? `${image.width} / ${image.height}` : '4 / 3'
+const pad = (index: number): string => String(index + 1).padStart(2, '0')
+---
+
+<section class="product-spotlight" aria-labelledby={headingId}>
+ <div class="product-spotlight__layout">
+  <div class="product-spotlight__stage">
+   <div class="product-spotlight__frame" style={`--ratio: ${ratio}`}>
+    <figure class="product-spotlight__figure">
+      <Image class="product-spotlight__img" {...image} />
+      <div class="product-spotlight__markers" aria-hidden="true">
+        {callouts.map((callout, index) => <span class="product-spotlight__marker" style={`--x: ${callout.x}%; --y: ${callout.y}%`}>{pad(index)}</span>)}
+      </div>
+    </figure>
+    <ol class="product-spotlight__callouts" aria-label={calloutsLabel}>
+      {
+        callouts.map((callout, index) => (
+          <li
+            class:list={['product-spotlight__callout', `product-spotlight__callout--${callout.side ?? calloutSides.end}`]}
+            style={`--x: ${callout.x}%; --y: ${callout.y}%`}
+          >
+            <p class="product-spotlight__callout-title"><span class="product-spotlight__callout-num">{pad(index)}</span> — {callout.title}</p>
+            <p class="product-spotlight__callout-text">{callout.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+   </div>
+  </div>
+  <div class="product-spotlight__panel">
+    {eyebrow && <p class="product-spotlight__eyebrow">{eyebrow}</p>}
+    <h2 id={headingId} class="product-spotlight__name">{heading}</h2>
+    <p class="product-spotlight__price">
+      <span>{price}</span>
+      {compareAtPrice && <s class="product-spotlight__compare">{compareAtPrice}</s>}
+    </p>
+    <dl class="product-spotlight__specs">
+      {specs.map((spec) => (
+        <div class="product-spotlight__spec">
+          <dt>{spec.label}</dt>
+          <dd>{spec.value}</dd>
+        </div>
+      ))}
+    </dl>
+    <div class="product-spotlight__actions">
+      <Button href={cta.href} variant={buttonVariants.accent} size="lg">{cta.label}</Button>
+      {secondary && <a class="product-spotlight__secondary" href={secondary.href}>{secondary.label}</a>}
+    </div>
+  </div>
+ </div>
+</section>
+
+<style>
+  .product-spotlight {
+    padding-block: var(--space-24);
+    container: product-spotlight / inline-size;
+  }
+
+  .product-spotlight__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+    gap: var(--grid-gap-tight);
+  }
+
+  .product-spotlight__stage {
+    min-width: 0;
+    background: var(--accent);
+  }
+
+  .product-spotlight__frame {
+    --frame-max-height: 720px; /* token-lint-ignore: tallest photo on a wide screen */
+    position: relative;
+    width: min(100%, calc(var(--frame-max-height) * var(--ratio)));
+    margin-inline: auto;
+  }
+
+  .product-spotlight__figure {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .product-spotlight__figure :global(.product-spotlight__img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: var(--ratio);
+    object-fit: cover;
+  }
+
+  /* Markers: black discs with a volt number, on the photo whatever the surface is. */
+  .product-spotlight__marker {
+    position: absolute;
+    top: var(--y);
+    left: var(--x);
+    z-index: 1;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    translate: -50% -50%;
+    border-radius: var(--radius-full);
+    background: var(--ink-1000);
+    color: var(--accent);
+    font: var(--type-label-caps-2xs);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: var(--tracking-label);
+  }
+
+  .product-spotlight__marker::after {
+    position: absolute;
+    inset: -6px;
+    border: 1px solid var(--ink-1000);
+    border-radius: var(--radius-full);
+    content: '';
+    opacity: 0.35;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .product-spotlight__marker::after {
+      animation: spotlight-ping 2.8s var(--ease-out) infinite;
+    }
+  }
+
+  @keyframes spotlight-ping {
+    0% {
+      opacity: 0.6;
+      scale: 0.7;
+    }
+
+    70%,
+    100% {
+      opacity: 0;
+      scale: 1.35;
+    }
+  }
+
+  /* Callout: the label block starts at its marker's centre; its top edge is the hairline leader. */
+  .product-spotlight__callouts {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .product-spotlight__callout {
+    --leader: 190px; /* token-lint-ignore: leader length */
+    position: absolute;
+    top: var(--y);
+    left: var(--x);
+    z-index: 2;
+    width: var(--leader);
+    padding: var(--space-8) 0 0;
+    border-top: 1px solid var(--ink-1000);
+    color: var(--ink-1000);
+    pointer-events: none;
+  }
+
+  .product-spotlight__callout--end {
+    padding-left: var(--space-24);
+  }
+
+  .product-spotlight__callout--start {
+    padding-right: var(--space-24);
+    translate: -100% 0;
+    text-align: right;
+  }
+
+  /* Vertical leaders: the hairline runs from the marker to the free band at the photo's top / bottom. */
+  .product-spotlight__callout--up,
+  .product-spotlight__callout--down {
+    width: var(--leader);
+    padding: 0 0 0 var(--space-12);
+    border-top: none;
+    border-left: 1px solid var(--ink-1000);
+  }
+
+  .product-spotlight__callout--up {
+    top: 5%;
+    height: calc(var(--y) - 5%);
+  }
+
+  .product-spotlight__callout--down {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: calc(95% - var(--y));
+  }
+
+  .product-spotlight__callout-title,
+  .product-spotlight__callout-text {
+    margin: 0;
+  }
+
+  .product-spotlight__callout-title {
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .product-spotlight__callout-text {
+    margin-top: var(--space-4);
+    font: var(--type-text-regular-xs);
+  }
+
+  .product-spotlight__panel {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-32);
+    background: var(--surface-muted);
+  }
+
+  .product-spotlight__eyebrow {
+    margin: 0 0 var(--space-12);
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .product-spotlight__name {
+    margin: 0;
+    font: var(--type-display-xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .product-spotlight__price {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-12);
+    margin: var(--space-16) 0 var(--space-32);
+    font: var(--type-price-lg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .product-spotlight__compare {
+    color: var(--text-secondary);
+    font: var(--type-price-md);
+  }
+
+  .product-spotlight__specs {
+    margin: auto 0 0;
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .product-spotlight__spec {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-16);
+    padding-block: var(--space-12);
+    border-top: 1px solid var(--border);
+  }
+
+  .product-spotlight__spec dt {
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .product-spotlight__spec dd {
+    margin: 0;
+    font: var(--type-text-medium-sm);
+    text-align: right;
+  }
+
+  .product-spotlight__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-16) var(--space-24);
+    margin-top: var(--space-32);
+  }
+
+  .product-spotlight__secondary {
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .product-spotlight__secondary:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Narrow: panel under the photo; callouts become a numbered list under the photo. */
+  @container product-spotlight (width < 860px) {
+    .product-spotlight__frame {
+      width: 100%;
+    }
+
+    .product-spotlight__layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .product-spotlight__callouts {
+      display: grid;
+      gap: 0;
+      background: var(--surface);
+    }
+
+    .product-spotlight__callout,
+    .product-spotlight__callout--start {
+      position: static;
+      width: auto;
+      padding: var(--space-12) 0;
+      border-top: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+      translate: none;
+      text-align: left;
+    }
+
+    .product-spotlight__callout--end {
+      padding-left: 0;
+    }
+
+    .product-spotlight__callout--start {
+      padding-right: 0;
+    }
+
+    .product-spotlight__callout--up,
+    .product-spotlight__callout--down {
+      display: block;
+      height: auto;
+      padding: var(--space-12) 0;
+      border-left: none;
+    }
+
+    .product-spotlight__callout-text {
+      color: var(--text-secondary);
+    }
+  }
+
+  /* Tablet: the stacked photo keeps a sane height (the volt stage fills the sides) instead of a full-width 4:5 wall. */
+  @container product-spotlight (min-width: 560px) and (width < 860px) {
+    .product-spotlight__frame {
+      --frame-max-height: 620px; /* token-lint-ignore: tallest stacked photo on a tablet */
+      width: min(100%, calc(var(--frame-max-height) * var(--ratio)));
+    }
+
+    .product-spotlight__callouts {
+      padding-inline: var(--space-16);
+    }
+  }
+</style>

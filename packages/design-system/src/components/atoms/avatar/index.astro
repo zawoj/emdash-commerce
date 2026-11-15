@@ -1,0 +1,42 @@
+---
+import Image from '../image/index.astro'
+// Avatar — one round image in two sizes (40px, 24px).
+export const avatarSizes = {
+  sm: 'sm',
+  md: 'md',
+} as const
+export type AvatarSize = (typeof avatarSizes)[keyof typeof avatarSizes]
+
+const avatarDimensionBySize: Record<AvatarSize, number> = {
+  sm: 24,
+  md: 40,
+}
+
+interface Props {
+  src: string
+  alt: string
+  size?: AvatarSize
+}
+
+const { src, alt, size = avatarSizes.md } = Astro.props
+const dimension = avatarDimensionBySize[size]
+---
+
+<Image class="avatar" src={src} alt={alt} width={dimension} height={dimension} data-size={size} />
+
+<style>
+  .avatar {
+    border-radius: var(--radius-full);
+    object-fit: cover;
+  }
+
+  .avatar[data-size='sm'] {
+    width: 24px;
+    height: 24px;
+  }
+
+  .avatar[data-size='md'] {
+    width: 40px;
+    height: 40px;
+  }
+</style>
