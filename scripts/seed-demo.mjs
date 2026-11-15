@@ -5,7 +5,7 @@
  * spotlight callouts). Dependency-free (Node >= 24), idempotent: everything is matched by slug or name, so running it
  * again updates in place.
  *
- * Usage:  pnpm seed [-- --only apparel,accessory,membership,home]
+ * Usage:  pnpm seed [-- --only site,apparel,accessory,membership,home]
  * Env:    EMDASH_URL  base URL of the running storefront (default http://localhost:4360)
  *
  * Needs the dev server running (dev login) on a database that already has the schema: see "Fresh clone" in README.md.
@@ -517,6 +517,16 @@ const seedMembership = async (v) => {
 	console.log("membership club-membership");
 };
 
+// ---------------------------------------------------------------- site identity
+const SITE_TITLE = "EmDash Commerce";
+const SITE_TAGLINE = "Demo sportswear shop on EmDash and Stripe";
+
+/** The shop identity (a partial settings update merges, so re-running changes nothing). */
+const seedSiteIdentity = async () => {
+	await call("POST", "/settings", { body: { title: SITE_TITLE, tagline: SITE_TAGLINE } });
+	console.log("site identity: title and tagline");
+};
+
 // ---------------------------------------------------------------- homepage
 /** The Homepage entry: CTA band (with the cyclists campaign photo), shop-the-look points, spotlight callouts. */
 const seedHome = async () => {
@@ -558,6 +568,7 @@ const main = async () => {
 	const only = flag === -1 ? null : process.argv[flag + 1].split(",");
 	const wants = (name) => only === null || only.includes(name);
 	await login();
+	if (wants("site")) await seedSiteIdentity();
 	if (wants("apparel") || wants("accessory") || wants("membership")) {
 		const v = await seedVocabulary();
 		console.log("vocabulary ok");

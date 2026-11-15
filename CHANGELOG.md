@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-15 (QA fixes)
+
+### fix: PDP gallery and mini-cart never empty; neutral shop identity — Claude Code
+- The PDP gallery rendered only the photos of the colour chosen at page load, all tagged with that colour, so picking
+  another colour hid every slide. It now renders every photo with its real colour (product photos untagged) and the
+  client filter (`visiblePhotoIndexes`) shows the chosen colour's photos, else the untagged ones, else all.
+- Cart lines had no thumbnail (always the placeholder). The cart summary now picks the variant's photo, else the
+  product's first photo (`pickLineImage`).
+- Site identity: `seed.json`, the fallback in `site-identity.ts` and `pnpm seed` (new `site` step, a settings merge, so
+  idempotent) set title "EmDash Commerce" and tagline "Demo sportswear shop on EmDash and Stripe". An existing database
+  gets it by re-running `pnpm seed`.
+
 ## 2026-11-15 (wireframe skin)
 
 ### feat: blue wireframe skin for the storefront — Claude Code
