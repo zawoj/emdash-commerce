@@ -1,0 +1,13 @@
+node_modules
+.nx/
+dist
+.astro
+*.tsbuildinfo
+.DS_Store
+
+**/.env
+**/.env.*
+!**/.env.example
+
+# Demo seed: Unsplash photos downloaded on demand by scripts/seed-demo.mjs
+.cache/
