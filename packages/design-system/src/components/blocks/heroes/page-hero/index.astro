@@ -21,11 +21,11 @@ const hasPhoto = Boolean(image)
     <section class="page-hero page-hero--photo" data-surface="dark">
       <Image class="page-hero__img" {...image} isEager />
       <div class="page-hero__copy">
-        {eyebrow && <p class="page-hero__eyebrow" style="--rise: 0">{eyebrow}</p>}
-        <h1 class="page-hero__title" style="--rise: 1">{title}</h1>
-        {lead && <p class="page-hero__lead" style="--rise: 2">{lead}</p>}
+        {eyebrow && <p class="page-hero__eyebrow">{eyebrow}</p>}
+        <h1 class="page-hero__title">{title}</h1>
+        {lead && <p class="page-hero__lead">{lead}</p>}
         {(action || secondaryAction) && (
-          <div class="page-hero__actions" style="--rise: 3">
+          <div class="page-hero__actions">
             {action && <Button variant={buttonVariants.accent} size={buttonSizes.lg} href={action.href}>{action.label}</Button>}
             {secondaryAction && <Button variant={buttonVariants.inverse} size={buttonSizes.lg} href={secondaryAction.href}>{secondaryAction.label}</Button>}
           </div>
@@ -134,7 +134,6 @@ const hasPhoto = Boolean(image)
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: brightness(0.82); /* token-lint-ignore: dims a light photo so the copy reads */
   }
 
   .page-hero__copy {
@@ -171,24 +170,6 @@ const hasPhoto = Boolean(image)
   }
 
   /* Copy rises in once on load, one line after the other. */
-  @media (prefers-reduced-motion: no-preference) {
-    .page-hero--photo .page-hero__copy > * {
-      animation: page-hero-rise var(--duration-slow) var(--ease-out) both;
-      animation-delay: calc(var(--rise, 0) * var(--duration-fast) / 2);
-    }
-  }
-
-  @keyframes page-hero-rise {
-    from {
-      opacity: 0;
-      transform: translateY(var(--space-16));
-    }
-
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
 
   @media (max-width: 1100px) {
     .page-hero--photo .page-hero__title {

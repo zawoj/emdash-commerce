@@ -1,7 +1,7 @@
 {
   "name": "@emdash-commerce/design-system",
   "version": "0.0.1",
-  "description": "Shop storefront design system (volt sportswear skin, de-branded): design tokens and every visual component as props-driven Astro components — no app logic, no imports from any app.",
+  "description": "Shop storefront design system: a blue wireframe with no decoration \u2014 design tokens and every visual component as props-driven Astro components, no app logic, no imports from any app.",
   "private": true,
   "type": "module",
   "exports": {
@@ -50,7 +50,6 @@
     "test": "node scripts/token-lint.mjs src"
   },
   "dependencies": {
-    "@fontsource-variable/archivo": "^5.3.0",
     "astro": "7.3.2"
   },
   "devDependencies": {

@@ -73,18 +73,11 @@ const isSlider = slides.length > 1
     min-height: 600px; /* token-lint-ignore: photo-led hero height */
     visibility: hidden;
     opacity: 0;
-    transition: opacity var(--duration-slow) var(--ease-out), visibility var(--duration-slow);
   }
 
   .lead-slider__slide[data-active] {
     visibility: visible;
     opacity: 1;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .lead-slider__slide {
-      transition: none;
-    }
   }
 
   /* The photo fills the whole card; the scrim darkens its lower part under the copy. */
@@ -164,7 +157,7 @@ const isSlider = slides.length > 1
     -webkit-line-clamp: 2;
   }
 
-  /* Thin bars: white on the photo, volt for the active slide. */
+  /* Thin bars: white on the photo, ink for the active slide. */
   .lead-slider__progress {
     position: absolute;
     right: var(--space-32);
@@ -192,7 +185,6 @@ const isSlider = slides.length > 1
     border-radius: 0;
     background: color-mix(in srgb, var(--ink-0) 40%, transparent);
     cursor: pointer;
-    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .lead-slider__dot::before {
@@ -202,7 +194,7 @@ const isSlider = slides.length > 1
   }
 
   .lead-slider__dot[data-active] {
-    background: var(--accent);
+    background: var(--ink-0);
   }
 
   @media (max-width: 1100px) {

@@ -224,7 +224,6 @@ const secondary: ChromeLink[] = [...(account ? [{ label: account.label, href: ac
     width: 44px; /* token-lint-ignore: touch target */
     margin-left: auto;
     border-radius: var(--radius-control);
-    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .site-drawer__close:hover {
@@ -255,16 +254,10 @@ const secondary: ChromeLink[] = [...(account ? [{ label: account.label, href: ac
     padding: var(--space-8) var(--drawer-inset) var(--space-48);
     background: var(--surface);
     visibility: hidden;
-    transform: translateX(100%);
   }
 
   .site-drawer__level[data-state='active'] {
     visibility: visible;
-    transform: none;
-  }
-
-  .site-drawer__level[data-state='left'] {
-    transform: translateX(-30%);
   }
 
   .site-drawer__list,
@@ -384,54 +377,6 @@ const secondary: ChromeLink[] = [...(account ? [{ label: account.label, href: ac
     gap: var(--space-12);
     padding-top: var(--space-16);
     border-top: var(--stroke-thin) solid var(--border);
-  }
-
-  /* The slide: a level moves in from the right, the one it covers drifts left; the page behind cannot scroll. */
-  @media (prefers-reduced-motion: no-preference) {
-    .site-drawer__level {
-      transition:
-        transform 320ms var(--ease-out), /* token-lint-ignore: slide */
-        visibility 0s linear 320ms; /* token-lint-ignore: slide */
-    }
-
-    .site-drawer__level[data-state='active'] {
-      transition-delay: 0s;
-    }
-
-    .site-drawer:not([data-static]) {
-      transition:
-        transform var(--duration-base) var(--ease-in),
-        overlay var(--duration-base) allow-discrete,
-        display var(--duration-base) allow-discrete;
-      transform: translateX(100%);
-    }
-
-    .site-drawer[open]:not([data-static]) {
-      transform: none;
-      transition-timing-function: var(--ease-out);
-    }
-
-    .site-drawer:not([data-static])::backdrop {
-      background: transparent;
-      transition:
-        background-color var(--duration-base) var(--ease-in),
-        overlay var(--duration-base) allow-discrete,
-        display var(--duration-base) allow-discrete;
-    }
-
-    .site-drawer[open]:not([data-static])::backdrop {
-      background: color-mix(in srgb, var(--ink-1000) 40%, transparent);
-    }
-
-    @starting-style {
-      .site-drawer[open]:not([data-static]) {
-        transform: translateX(100%);
-      }
-
-      .site-drawer[open]:not([data-static])::backdrop {
-        background: transparent;
-      }
-    }
   }
 
   /* A gallery specimen: open, inline, the height of a phone screen, without the close button. */

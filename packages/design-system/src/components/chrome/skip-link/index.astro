@@ -14,7 +14,7 @@ const { href, label } = Astro.props
   .skip-link {
     position: absolute;
     top: var(--space-16);
-    left: var(--space-16);
+    left: -9999px;
     z-index: 100;
     padding: var(--space-8) var(--space-16);
     border-radius: var(--radius-control);
@@ -22,10 +22,9 @@ const { href, label } = Astro.props
     color: var(--on-control-solid);
     font: var(--type-button-sm);
     text-decoration: none;
-    transform: translateY(calc(-100% - var(--space-16)));
   }
 
   .skip-link:focus {
-    transform: none;
+    left: var(--space-16);
   }
 </style>

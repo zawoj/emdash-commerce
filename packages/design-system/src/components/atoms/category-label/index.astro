@@ -51,7 +51,7 @@ const pillColor = categoryColor({ color, key: category })
   }
 
   :global([data-surface='dark']) .category-label:not(.category-label--inverted) {
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink-0) 40%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ink-0) 40%, transparent);
   }
 
   .category-label--s {

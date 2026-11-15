@@ -127,7 +127,7 @@ const slots = tiles.slice(0, COLLECTION_BENTO_SLOTS.length).map((tile, index) =>
     position: absolute;
     z-index: 1;
     inset: 0;
-    background: var(--image-scrim), var(--image-scrim); /* doubled: bright photos still carry the copy */
+    background: var(--image-scrim);
     content: '';
   }
 
@@ -229,16 +229,6 @@ const slots = tiles.slice(0, COLLECTION_BENTO_SLOTS.length).map((tile, index) =>
 
   .collection-bento__link:focus-visible {
     outline: none;
-  }
-
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .collection-bento__frame :global(img) {
-      transition: transform var(--duration-slow) var(--ease-out);
-    }
-
-    .collection-bento__tile:hover .collection-bento__frame :global(img) {
-      transform: scale(var(--hover-zoom));
-    }
   }
 
   @container content-tile (width < 760px) {

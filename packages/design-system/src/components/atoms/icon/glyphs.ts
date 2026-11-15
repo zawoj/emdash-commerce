@@ -38,6 +38,8 @@ export type Glyph = StrokeGlyph | PathGlyph | NestedGlyph
 export const glyphs: Record<IconName, Glyph> = {
   // Figma lucide/chevron-down (select trigger), box 14
   [iconNames.chevronDown]: { kind: 'stroke', box: 14, strokeWidth: 1.5, d: 'M3.5 5.25 7 8.75l3.5-3.5' },
+  // The open state of a disclosure: a second glyph instead of a rotated one.
+  [iconNames.chevronUp]: { kind: 'stroke', box: 14, strokeWidth: 1.5, d: 'M3.5 8.75 7 5.25l3.5 3.5' },
   // Figma lucide/chevron-left / chevron-right (pagination), box 14
   [iconNames.chevronLeft]: { kind: 'stroke', box: 14, strokeWidth: 1, d: 'M8.75 10.5 5.25 7l3.5-3.5' },
   [iconNames.chevronRight]: { kind: 'stroke', box: 14, strokeWidth: 1, d: 'M5.25 10.5 8.75 7 5.25 3.5' },

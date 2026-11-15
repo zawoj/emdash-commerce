@@ -96,7 +96,6 @@ const extras = await Promise.all(options.map(async (option) => (Astro.slots.has(
     border: var(--stroke-thin) solid var(--border);
     border-radius: var(--radius-panel);
     background: var(--surface);
-    transition: border-color var(--duration-fast) var(--ease-out);
   }
 
   .choice-list__item:hover {
@@ -106,7 +105,8 @@ const extras = await Promise.all(options.map(async (option) => (Astro.slots.has(
   .choice-list__item:has(.choice-list__input:checked),
   .choice-list__item:has(.choice-list__input:checked):hover {
     border-color: var(--text-primary);
-    box-shadow: inset 0 0 0 1px var(--text-primary); /* token-lint-ignore: 2px selected outline without a layout shift */
+    outline: 1px solid var(--text-primary); /* the second pixel of the 2px selected outline, inside the border */
+    outline-offset: -2px;
   }
 
   .choice-list__item:has(.choice-list__input:focus-visible) {
@@ -230,7 +230,7 @@ const extras = await Promise.all(options.map(async (option) => (Astro.slots.has(
     align-items: center;
     gap: var(--space-8);
     margin: 0;
-    color: var(--hot);
+    color: var(--text-primary);
     font: var(--type-text-medium-sm);
   }
 

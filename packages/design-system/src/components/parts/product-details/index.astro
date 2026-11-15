@@ -52,7 +52,7 @@ const hasDelivery = hasRows(delivery)
                 </div>
                 <button type="button" class="product-details__toggle" aria-expanded="false" aria-controls={clipId} data-pd-toggle data-more-label={readMoreLabel} data-less-label={readLessLabel} hidden>
                   <span data-pd-label>{readMoreLabel}</span>
-                  <span class="product-details__toggle-icon" aria-hidden="true"><Icon name={iconNames.chevronDown} /></span>
+                  <span class="product-details__toggle-icon" aria-hidden="true"><span class="product-details__glyph product-details__glyph--more"><Icon name={iconNames.chevronDown} /></span><span class="product-details__glyph product-details__glyph--less"><Icon name={iconNames.chevronUp} /></span></span>
                 </button>
               </div>
             </div>
@@ -114,7 +114,7 @@ const hasDelivery = hasRows(delivery)
     min-width: 0;
   }
 
-  /* The key points: a quiet muted panel with volt square markers (volt as a fill only). */
+  /* The key points: a quiet muted panel with ink square markers. */
   .product-details__highlights {
     display: flex;
     flex-direction: column;
@@ -155,7 +155,7 @@ const hasDelivery = hasRows(delivery)
     flex: none;
     width: var(--space-8);
     height: var(--space-8);
-    background: var(--accent);
+    background: var(--action-primary);
     content: '';
   }
 
@@ -203,19 +203,9 @@ const hasDelivery = hasRows(delivery)
     background: var(--surface-muted);
   }
 
-  /* Collapsed: the script caps the height; the fade is a mask, so it works on any background. */
+  /* Collapsed: the script caps the height; a hairline marks the cut. */
   .product-details__text[data-state='collapsed'] .product-details__clip {
-    mask-image: linear-gradient(to bottom, var(--ink-1000) 55%, transparent);
-  }
-
-  .product-details__text[data-state] .product-details__clip {
-    transition: max-height var(--duration-slow) var(--ease-out);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .product-details__text[data-state] .product-details__clip {
-      transition: none;
-    }
+    border-bottom: 1px solid var(--border);
   }
 
   .product-details__toggle {
@@ -250,11 +240,19 @@ const hasDelivery = hasRows(delivery)
 
   .product-details__toggle-icon {
     display: inline-flex;
-    transition: transform var(--duration-base) var(--ease-out);
   }
 
-  .product-details__text[data-state='expanded'] .product-details__toggle-icon {
-    transform: rotate(180deg);
+  .product-details__glyph {
+    display: inline-flex;
+  }
+
+  .product-details__glyph--less,
+  .product-details__text[data-state='expanded'] .product-details__glyph--more {
+    display: none;
+  }
+
+  .product-details__text[data-state='expanded'] .product-details__glyph--less {
+    display: inline-flex;
   }
 
   /* Fact tables: label / value rows between hairlines on a comfortable measure. */

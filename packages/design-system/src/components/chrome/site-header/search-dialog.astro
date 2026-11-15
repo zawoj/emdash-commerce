@@ -71,50 +71,6 @@ const { search, id } = Astro.props
     background: color-mix(in srgb, var(--ink-1000) 60%, transparent);
   }
 
-  /* The search panel drops in under the bar and lifts out again; the backdrop fades. `display` and the
-     top layer transition discretely, so the close is animated too (older browsers just toggle). */
-  @media (prefers-reduced-motion: no-preference) {
-    .site-header__search-dialog {
-      opacity: 0;
-      transform: translateY(calc(-1 * var(--space-8)));
-      transition:
-        opacity var(--duration-fast) var(--ease-in),
-        transform var(--duration-fast) var(--ease-in),
-        overlay var(--duration-fast) allow-discrete,
-        display var(--duration-fast) allow-discrete;
-    }
-
-    .site-header__search-dialog[open] {
-      opacity: 1;
-      transform: none;
-      transition-duration: var(--duration-base);
-      transition-timing-function: var(--ease-out);
-    }
-
-    .site-header__search-dialog::backdrop {
-      background: transparent;
-      transition:
-        background-color var(--duration-fast) var(--ease-in),
-        overlay var(--duration-fast) allow-discrete,
-        display var(--duration-fast) allow-discrete;
-    }
-
-    .site-header__search-dialog[open]::backdrop {
-      background: color-mix(in srgb, var(--ink-1000) 60%, transparent);
-    }
-
-    @starting-style {
-      .site-header__search-dialog[open] {
-        opacity: 0;
-        transform: translateY(calc(-1 * var(--space-8)));
-      }
-
-      .site-header__search-dialog[open]::backdrop {
-        background: transparent;
-      }
-    }
-  }
-
   @media (max-width: 640px) {
     .site-header__search-dialog {
       margin-top: var(--space-16);

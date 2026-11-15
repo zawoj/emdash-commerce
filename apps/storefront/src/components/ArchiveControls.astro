@@ -225,36 +225,30 @@ const viewLinks = [
 		border: 0;
 		border-radius: var(--radius-full);
 		background: var(--color-surface);
-		box-shadow:
-			inset 0 0 0 1px var(--color-border),
-			var(--shadow-sm);
+		outline: 1px solid var(--color-border);
+		outline-offset: -1px;
 		color: var(--color-text);
 		font: inherit;
 		font-size: var(--font-size-sm);
 		text-overflow: ellipsis;
 		cursor: pointer;
-		transition: box-shadow var(--transition-fast);
 	}
 
 	.archive-controls__select:hover {
-		box-shadow:
-			inset 0 0 0 1px var(--color-border-strong),
-			var(--shadow-sm);
+		outline: 1px solid var(--color-border-strong);
+		outline-offset: -1px;
 	}
 
 	/* A filter or sort that is in use: a stronger outline and weight, so it is clear what narrows the list */
 	.archive-controls__select[data-active] {
-		box-shadow:
-			inset 0 0 0 1.5px var(--color-brand),
-			var(--shadow-sm);
+		outline: 1.5px solid var(--color-brand);
+		outline-offset: -1.5px;
 		font-weight: 500;
 	}
 
 	.archive-controls__select:focus-visible {
-		outline: 2px solid transparent;
-		box-shadow:
-			inset 0 0 0 1.5px var(--color-brand),
-			0 0 0 3px var(--color-brand-ring);
+		outline: 2px solid var(--color-brand);
+		outline-offset: 2px;
 	}
 
 	.archive-controls__chevron {
@@ -299,7 +293,6 @@ const viewLinks = [
 	.archive-controls__view-link[aria-current="true"] {
 		background: var(--color-brand);
 		color: var(--color-on-brand);
-		box-shadow: none;
 	}
 
 	@media (max-width: 720px) {

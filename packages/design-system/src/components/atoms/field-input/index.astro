@@ -128,7 +128,6 @@ const hasToggle = type === fieldInputTypes.password && passwordToggle !== undefi
     /* Figma's stroke is inside the box: content starts 8px/12px from the outer edge. */
     padding: 0 calc(var(--space-16) - 1px);
     color: var(--text-body);
-    transition: border-color var(--duration-fast) var(--ease-out);
   }
 
   @media (hover: hover) {
@@ -182,12 +181,12 @@ const hasToggle = type === fieldInputTypes.password && passwordToggle !== undefi
   }
 
   .field-input input[aria-invalid='true'] {
-    border: var(--stroke-bold) solid var(--hot);
+    border: var(--stroke-bold) solid var(--text-primary);
     padding: 0 calc(var(--space-16) - var(--space-2));
   }
 
   .field-input input[aria-invalid='true']:focus-visible {
-    outline-color: var(--hot);
+    outline-color: var(--text-primary);
   }
 
   .field-input__error {
@@ -195,7 +194,7 @@ const hasToggle = type === fieldInputTypes.password && passwordToggle !== undefi
     align-items: flex-start;
     gap: var(--space-6);
     margin: 0;
-    color: var(--hot);
+    color: var(--text-primary);
     font: var(--type-text-medium-sm);
   }
 
@@ -216,11 +215,11 @@ const hasToggle = type === fieldInputTypes.password && passwordToggle !== undefi
 
   .field-input input:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 
   /* A control the visitor filled in wrong, or left empty and tried to submit (native validation). */
   .field-input input:user-invalid {
-    border: var(--stroke-bold) solid var(--hot);
+    border: var(--stroke-bold) solid var(--text-primary);
   }
 </style>

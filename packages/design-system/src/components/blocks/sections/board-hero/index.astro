@@ -1,9 +1,9 @@
 ---
-// The board hero: a tight mosaic (4px gaps on the grey frame) of the campaign photo with the huge
-// headline and the volt call to action, a volt block with the first half of the brand line, a black
+// The board hero: a tight mosaic (4px gaps on the muted frame) of the campaign photo with the
+// headline and the call to action, an accent block with the first half of the brand line, a dark
 // block with the second half and the site wordmark, and one product as a packshot tile. It breaks out
 // of the page column; its height leaves a slice of the next section visible. Phone: photo first, the
-// volt and black blocks side by side, then the product.
+// accent and dark blocks side by side, then the product.
 import Button from '../../../atoms/button/index.astro'
 import SiteWordmark from '../../../atoms/site-wordmark/index.astro'
 import { buttonSizes, buttonVariants } from '../../../atoms/button/variants'
@@ -23,9 +23,9 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
     <div class="board-hero__tile board-hero__photo" data-surface="dark">
       <Image class="board-hero__photo-img" {...image} isEager />
       <div class="board-hero__copy">
-        {eyebrow && <p class="board-hero__eyebrow" style="--rise: 0">{eyebrow}</p>}
-        <h1 id={headingId} class="board-hero__heading" style="--rise: 1">{heading}</h1>
-        <div class="board-hero__actions" style="--rise: 2">
+        {eyebrow && <p class="board-hero__eyebrow">{eyebrow}</p>}
+        <h1 id={headingId} class="board-hero__heading">{heading}</h1>
+        <div class="board-hero__actions">
           <Button variant={buttonVariants.accent} size={buttonSizes.lg} href={action.href}>{action.label}</Button>
         </div>
       </div>
@@ -85,7 +85,7 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
     min-width: 0;
     min-height: 0;
     overflow: hidden;
-    container-type: size;
+    border: 1px solid var(--border);
     border-radius: var(--radius-card);
   }
 
@@ -96,7 +96,7 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
     flex-direction: column;
     justify-content: flex-end;
     background: var(--surface);
-    color: var(--text-body);
+    color: var(--ink-50);
   }
 
   .board-hero__photo::after {
@@ -115,7 +115,6 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
     height: 100%;
     object-fit: cover;
     object-position: 60% 50%;
-    filter: brightness(0.86); /* token-lint-ignore: dims the photo so the headline reads */
   }
 
   .board-hero__copy {
@@ -128,21 +127,15 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
 
   .board-hero__eyebrow {
     margin: 0;
-    color: var(--text-primary);
+    color: var(--ink-50);
     font: var(--type-label-caps-xs);
-    font-stretch: var(--label-stretch);
-    letter-spacing: var(--tracking-label);
-    text-transform: var(--label-case);
   }
 
   .board-hero__heading {
     margin: 0;
-    max-width: 8ch; /* token-lint-ignore: two lines, "GO / KEEP GOING" */
-    color: var(--text-primary);
-    font: 700 clamp(64px, 23cqw, 190px) / 0.84 var(--font-display); /* token-lint-ignore: fluid hero size with the tile */
-    font-stretch: var(--display-stretch);
-    letter-spacing: var(--tracking-display);
-    text-transform: var(--text-case);
+    max-width: 14ch; /* token-lint-ignore: a short headline wraps on a measure */
+    color: var(--ink-50);
+    font: var(--type-display-3xl);
     text-wrap: balance;
   }
 
@@ -150,10 +143,11 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
     padding-top: var(--space-8);
   }
 
-  /* Volt block: the first half of the brand line, as big as the block allows. */
+  /* Accent block: the first half of the brand line. */
   .board-hero__volt {
     grid-column: 2;
     grid-row: 1;
+    padding: var(--space-24);
     background: var(--accent);
     color: var(--on-accent);
   }
@@ -171,25 +165,8 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
 
   .board-hero__line {
     margin: 0;
-    box-sizing: border-box;
-    max-width: calc(100% - var(--space-48));
-    font: 700 min(54cqw, 40cqh) / 0.8 var(--font-display); /* token-lint-ignore: fills the block like the board's type */
-    font-stretch: var(--display-stretch);
-    letter-spacing: var(--tracking-display);
-    text-transform: var(--text-case);
+    font: var(--type-display-2xl);
     white-space: pre-line;
-  }
-
-  .board-hero__volt .board-hero__line {
-    position: absolute;
-    z-index: 1;
-    inset: var(--space-24) var(--space-24) auto;
-    max-width: min(3ch, calc(100% - var(--space-48))); /* token-lint-ignore: stacks "ALL / IN" */
-    font-size: min(66cqw, 50cqh, 42cqw); /* token-lint-ignore: two stacked words fill the block */
-  }
-
-  .board-hero__black .board-hero__line {
-    font-size: min(36cqw, 64cqh); /* token-lint-ignore: one line in the wide block */
   }
 
   .board-hero__brand {
@@ -200,7 +177,7 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
   }
 
   .board-hero__wordmark {
-    width: min(46cqw, 320px); /* token-lint-ignore: the wordmark's own width */
+    width: min(100%, 320px); /* token-lint-ignore: the wordmark's own width */
     height: auto;
   }
 
@@ -220,8 +197,8 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
   .board-hero__product {
     grid-column: 3;
     grid-row: 1;
-    background: #efefef; /* token-lint-ignore: the packshots' own backdrop */
-    color: var(--ink-950);
+    background: var(--surface-muted);
+    color: var(--text-primary);
   }
 
   .board-hero__product-img {
@@ -240,14 +217,11 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
     top: var(--space-16);
     left: var(--space-16);
     margin: 0;
-    padding: var(--space-4) var(--space-8);
+    padding: var(--space-2) var(--space-8);
     border-radius: var(--radius-chip);
-    background: var(--accent);
-    color: var(--on-accent);
-    font: var(--type-label-caps-2xs);
-    font-stretch: var(--label-stretch);
-    letter-spacing: var(--tracking-label-caps-2xs);
-    text-transform: var(--label-case);
+    background: var(--action-primary);
+    color: var(--on-color);
+    font: var(--type-label-semibold-xs);
   }
 
   .board-hero__product-caption {
@@ -299,46 +273,12 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
     width: var(--space-40);
     height: var(--space-40);
     border-radius: var(--radius-full);
-    background: var(--ink-1000);
-    color: var(--ink-0);
-    transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+    background: var(--action-primary);
+    color: var(--on-color);
   }
 
-  .board-hero__product:hover .board-hero__product-arrow {
-    background: var(--accent);
-    color: var(--on-accent);
-  }
-
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .board-hero__photo-img,
-    .board-hero__product-img {
-      transition: transform var(--duration-slow) var(--ease-out);
-    }
-
-    .board-hero__photo:hover .board-hero__photo-img,
-    .board-hero__product:hover .board-hero__product-img {
-      transform: scale(var(--hover-zoom));
-    }
-  }
-
-  /* The copy rises in once on load, one line after the other. */
-  @media (prefers-reduced-motion: no-preference) {
-    .board-hero__copy > * {
-      animation: board-hero-rise var(--duration-slow) var(--ease-out) both;
-      animation-delay: calc(var(--rise, 0) * var(--duration-fast) / 2);
-    }
-  }
-
-  @keyframes board-hero-rise {
-    from {
-      opacity: 0;
-      transform: translateY(var(--space-16));
-    }
-
-    to {
-      opacity: 1;
-      transform: none;
-    }
+  .board-hero__product:hover .board-hero__product-link {
+    text-decoration: underline;
   }
 
   @media (max-width: 900px) {
@@ -382,18 +322,15 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
     }
 
     .board-hero__heading {
-      font-size: clamp(64px, 26cqw, 128px); /* token-lint-ignore: fluid phone size */
+      font: var(--type-display-xl);
     }
 
-    .board-hero__volt .board-hero__line {
-      inset: var(--space-16) var(--space-16) auto;
-      max-width: min(3ch, calc(100% - var(--space-32))); /* token-lint-ignore: stacks "ALL / IN" */
-      font-size: min(38cqw, 32cqh, 30cqw); /* token-lint-ignore: stacked words fill the square */
+    .board-hero__volt {
+      padding: var(--space-16);
     }
 
-    .board-hero__black .board-hero__line {
-      max-width: min(4ch, calc(100% - var(--space-32))); /* token-lint-ignore: stacks "ALL / OUT" */
-      font-size: min(32cqw, 26cqh, 22cqw); /* token-lint-ignore: stacked words fill the square */
+    .board-hero__line {
+      font: var(--type-display-lg);
     }
 
     .board-hero__wordmark {
@@ -424,15 +361,6 @@ const { heading, headingId = 'board-hero-heading', eyebrow, image, action, voltT
       aspect-ratio: 4 / 5;
     }
 
-    .board-hero__volt .board-hero__line,
-    .board-hero__black .board-hero__line {
-      max-width: min(3ch, calc(100% - var(--space-32))); /* token-lint-ignore: stacked words in the tile */
-      font-size: min(40cqw, 34cqh); /* token-lint-ignore: stacked words fill the tile */
-    }
-
-    .board-hero__black .board-hero__line {
-      max-width: none;
-    }
   }
 
   @media (pointer: coarse) {

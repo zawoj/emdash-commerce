@@ -74,7 +74,6 @@ const { orders, label, dateLabel, totalLabel, viewLabel } = Astro.props
   @media (hover: hover) {
     .order-list__item:hover .order-list__arrow {
       color: var(--text-primary);
-      transform: translateX(var(--space-4));
     }
   }
 
@@ -135,9 +134,6 @@ const { orders, label, dateLabel, totalLabel, viewLabel } = Astro.props
   .order-list__arrow {
     display: inline-flex;
     color: var(--text-secondary);
-    transition:
-      transform var(--duration-fast) var(--ease-out),
-      color var(--duration-fast) var(--ease-out);
   }
 
   @media (max-width: 640px) {

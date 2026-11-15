@@ -14,7 +14,10 @@ const Heading = headingLevel ? (`h${headingLevel}` as const) : 'span'
 <details class="disclosure" open={isOpen} name={group} data-details-motion>
   <summary class="disclosure__summary">
     <Heading class="disclosure__title">{summary}</Heading>
-    <span class="disclosure__chevron" aria-hidden="true"><Icon name={iconNames.chevronDown} /></span>
+    <span class="disclosure__chevron" aria-hidden="true">
+      <span class="disclosure__glyph disclosure__glyph--closed"><Icon name={iconNames.chevronDown} /></span>
+      <span class="disclosure__glyph disclosure__glyph--open"><Icon name={iconNames.chevronUp} /></span>
+    </span>
   </summary>
   <div class="disclosure__content"><slot /></div>
 </details>
@@ -75,14 +78,19 @@ const Heading = headingLevel ? (`h${headingLevel}` as const) : 'span'
     height: 32px; /* token-lint-ignore: hover disc around the chevron */
     border-radius: var(--radius-full);
     color: var(--text-secondary);
-    transition:
-      transform var(--duration-collapse) var(--ease-out),
-      background var(--duration-fast) var(--ease-out),
-      color var(--duration-fast) var(--ease-out);
   }
 
-  .disclosure[open]:not([data-closing]) .disclosure__chevron {
-    transform: rotate(180deg);
+  .disclosure__glyph {
+    display: inline-flex;
+  }
+
+  .disclosure__glyph--open,
+  .disclosure[open]:not([data-closing]) .disclosure__glyph--closed {
+    display: none;
+  }
+
+  .disclosure[open]:not([data-closing]) .disclosure__glyph--open {
+    display: inline-flex;
   }
 
   .disclosure__content {

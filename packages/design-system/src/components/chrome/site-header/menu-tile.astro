@@ -90,13 +90,4 @@ const { image } = tile
     outline-offset: 2px;
   }
 
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .menu-tile :global(img) {
-      transition: transform var(--duration-slow) var(--ease-out);
-    }
-
-    .menu-tile:hover :global(img) {
-      transform: scale(var(--hover-zoom));
-    }
-  }
 </style>

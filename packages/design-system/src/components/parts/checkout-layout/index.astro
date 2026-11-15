@@ -29,7 +29,8 @@ const { heading, action = '#', method = 'post', id, back, summaryToggle } = Astr
             <span class="checkout-layout__toggle-label">
               <span class="checkout-layout__when-closed">{summaryToggle.label}</span>
               <span class="checkout-layout__when-open">{summaryToggle.openLabel}</span>
-              <Icon name={iconNames.chevronDown} size={16} />
+              <span class="checkout-layout__glyph checkout-layout__glyph--closed"><Icon name={iconNames.chevronDown} size={16} /></span>
+              <span class="checkout-layout__glyph checkout-layout__glyph--open"><Icon name={iconNames.chevronUp} size={16} /></span>
             </span>
             <span class="checkout-layout__toggle-total">{summaryToggle.total}</span>
           </summary>
@@ -119,12 +120,17 @@ const { heading, action = '#', method = 'post', id, back, summaryToggle } = Astr
     display: none;
   }
 
-  .checkout-layout__toggle-label :global(svg) {
-    transition: transform var(--duration-collapse) var(--ease-out);
+  .checkout-layout__glyph {
+    display: inline-flex;
   }
 
-  .checkout-layout__details[open]:not([data-closing]) .checkout-layout__toggle-label :global(svg) {
-    transform: rotate(180deg);
+  .checkout-layout__glyph--open,
+  .checkout-layout__details[open]:not([data-closing]) .checkout-layout__glyph--closed {
+    display: none;
+  }
+
+  .checkout-layout__details[open]:not([data-closing]) .checkout-layout__glyph--open {
+    display: inline-flex;
   }
 
   .checkout-layout__actions {
@@ -163,7 +169,6 @@ const { heading, action = '#', method = 'post', id, back, summaryToggle } = Astr
       cursor: pointer;
       font: var(--type-text-medium-md);
       list-style: none;
-      transition: background var(--duration-fast) var(--ease-out);
     }
 
     @media (hover: hover) {

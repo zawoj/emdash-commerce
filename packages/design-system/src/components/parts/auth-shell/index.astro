@@ -137,7 +137,7 @@ const links = Astro.slots.has('links') ? (await Astro.slots.render('links')).tri
     content: '';
   }
 
-  /* The board's volt block, a parallelogram cut like the wordmark's A. */
+  /* The board's accent block: a flat rectangle. */
   .auth-shell__block {
     position: absolute;
     top: 0;
@@ -145,7 +145,6 @@ const links = Astro.slots.has('links') ? (await Astro.slots.render('links')).tri
     width: 46%; /* token-lint-ignore: board block share */
     height: 38%; /* token-lint-ignore: board block share */
     background: var(--accent);
-    clip-path: polygon(24% 0, 100% 0, 100% 100%, 0 100%);
   }
 
   .auth-shell__brand,

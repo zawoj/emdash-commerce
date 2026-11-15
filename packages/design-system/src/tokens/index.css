@@ -1,109 +1,98 @@
 /*
- * Design tokens as CSS custom properties — a black / white / grey neutral scale
- * with one brand colour (volt lime), one variable family (Archivo) used in three widths — condensed
- * uppercase headlines, normal-width body and UI, expanded uppercase labels that echo the wide
- * wordmark — pill buttons, square photos shown in their own colours, flat surfaces (no shadows
- * except on floating panels, no gradients except the scrim that keeps copy legible on a photo).
- * Every component reads only these tokens, so a project re-skins the whole design system here
- * (palette, fonts, radii) without touching a component. Each text style is one `--type-*` token.
+ * Design tokens as CSS custom properties — a blue wireframe with no decoration: one ink ramp
+ * (blue-tinted, 13 steps), system font stacks, square corners, 1px outlines, no shadows, no
+ * gradients, no motion, no hue besides ink. State is told by outline, border width, underline and
+ * fill inversion — never by colour alone. Photos are tinted into the ink family by one global
+ * filter. Every component reads only these tokens, so a project re-skins the whole design system
+ * here without touching a component. Each text style is one `--type-*` token.
  *
  * Semantic colors resolve through a `surface` theme axis (light | dark). Consumers set
  * `[data-surface="dark"]` on a container to flip every semantic token under it (and
  * `[data-surface="light"]` to flip back inside a dark one); never
  * recolor children by hand.
+ *
+ * A few tokens are kept only so components keep compiling and are neutral on purpose (`--text-case`,
+ * `--label-case`, `--tracking-*`, `--*-stretch`, `--duration-collapse`, the semantic radii): they
+ * are `none`, `0`, `100%` or `0ms`.
  */
 
 :root {
-  /* Neutral scale — the ramp every grey, black and white comes from. 400 is the lightest grey that
-     still holds 3:1 on white (form-control borders); 500 the lightest that holds 4.5:1 (text). */
+  /* Ink scale — the blue ramp every tint, dark and white comes from. 500 is the lightest step that holds 3:1 on white
+     (form-control borders); 600 the lightest that holds 4.5:1 (text). 400 is for disabled text only. */
   --ink-0: #ffffff;
-  --ink-50: #f5f5f5;
-  --ink-100: #ebebeb;
-  --ink-200: #e0e0e0;
-  --ink-300: #c9c9c9;
-  --ink-400: #8f8f8f;
-  --ink-500: #707072;
-  --ink-600: #5e5e5e;
-  --ink-700: #3d3d3d;
-  --ink-800: #2b2b2b;
-  --ink-900: #1a1a1a;
-  --ink-950: #111111;
-  --ink-1000: #000000;
-
-  /* Brand volt lime. It is a FILL colour: black text on
-     it (18:1), never volt text or strokes on a light surface (1.1:1 on white). */
-  --volt: #dcff0d;
-  --volt-strong: #c6e600;
-  --on-volt: var(--ink-1000);
+  --ink-50: #f4f7ff;
+  --ink-100: #eaf0ff;
+  --ink-200: #d6e2ff;
+  --ink-300: #b4c9fb;
+  --ink-400: #84a5f2;
+  --ink-500: #5680e6;
+  --ink-600: #3a63d1;
+  --ink-700: #2c4fb3;
+  --ink-800: #253f8f;
+  --ink-900: #1f3472;
+  --ink-950: #172756;
+  --ink-1000: #0f1b3d;
 
   /* Fixed semantic tokens (do not flip with the surface theme). */
-  --page-bg: var(--ink-0);
-  /* The brand fill: badges, highlights, the hero CTA, active markers. Text on it is `--on-accent`. */
-  --accent: var(--volt);
-  --accent-hover: var(--volt-strong);
-  --on-accent: var(--on-volt);
+  --page-bg: var(--ink-50);
+  /* The accent fill: a solid ink. Text on it is `--on-accent`. */
+  --accent: var(--ink-700);
+  --accent-hover: var(--ink-800);
+  --on-accent: var(--on-color);
   /* Text on the dark fills (`--action-primary`, category tones). */
   --on-color: var(--ink-0);
-  /* The default solid button / selected control: black, grey on hover (inverted on dark). */
-  --action-primary: var(--ink-1000);
+  /* The default solid button / selected control: ink, a lighter ink on hover (inverted on dark). */
+  --action-primary: var(--ink-900);
   --action-primary-hover: var(--ink-700);
   /* Pull-quote mark and in-text highlighter. */
-  --quote-mark: var(--ink-1000);
-  --highlight: var(--volt);
-  /* Photos keep their own colours; a skin that wants duotone sets a filter here. */
-  --image-filter: none;
-  /* The scrim under copy that sits on a photo (hero, campaign tiles): the only gradient allowed. */
-  --image-scrim: linear-gradient(180deg, rgb(0 0 0 / 0) 40%, rgb(0 0 0 / 0.55) 100%);
-  /* Partner logos drawn as one-colour silhouettes: black, or a mid grey on dark bands. */
-  --logo-filter-ink: brightness(0);
-  --logo-filter-muted: brightness(0) invert(0.6);
-  /* Floating panels only (mini-cart, menus, popovers) — everything in the page flow is flat. */
-  --shadow-overlay: 0 12px 40px rgb(0 0 0 / 0.16);
+  --quote-mark: var(--ink-400);
+  --highlight: var(--ink-200);
+  /* Sale price, errors, "low stock": no hue — told by strike-through, border width, icon and words. */
+  --hot: var(--ink-700);
+  /* Every photo is tinted into the ink colour (grayscale, then the warm sepia ramp swung to blue).
+     `none` shows photos as shot. */
+  --image-filter: grayscale(1) sepia(1) hue-rotate(180deg) saturate(3);
+  /* The scrim under copy that sits on a photo (hero, campaign tiles): one flat ink layer. */
+  --image-scrim: color-mix(in srgb, var(--ink-1000) 55%, transparent);
+  /* Partner logos drawn as one-colour silhouettes: ink, or a mid ink on dark bands. */
+  --logo-filter-ink: brightness(0) invert(0.12) sepia(1) hue-rotate(180deg) saturate(4);
+  --logo-filter-muted: brightness(0) invert(0.55) sepia(1) hue-rotate(180deg) saturate(3);
 
   /* Category palette — eight tones (a category's own CMS colour overrides them). Each keeps white
      label text at AA contrast. */
-  --category-tone-1: #000000;
-  --category-tone-2: #2b2b2b;
-  --category-tone-3: #424242;
-  --category-tone-4: #0b5e7a;
-  --category-tone-5: #b3261e;
-  --category-tone-6: #5b2a86;
-  --category-tone-7: #0f5132;
-  --category-tone-8: #7a4a00;
+  --category-tone-1: #0f1b3d;
+  --category-tone-2: #172756;
+  --category-tone-3: #1f3472;
+  --category-tone-4: #253f8f;
+  --category-tone-5: #2c4fb3;
+  --category-tone-6: #3a63d1;
+  --category-tone-7: #1e40af;
+  --category-tone-8: #1d4ed8;
 
-  /* Typography — one variable family (Archivo, weight 100–900, width 62–125%, loaded in
-     `fonts.css`) in three voices: condensed display, normal body/UI, expanded labels. */
-  --font-body: 'Archivo Variable', 'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif;
+  /* Typography — system font stacks, nothing is loaded (see `fonts.css`). */
+  --font-body: system-ui, sans-serif;
   --font-display: var(--font-body);
-  /* Text case of headings (display styles). */
-  --text-case: uppercase;
-  /* Text case of small labels, eyebrows, badges and table heads (with `--label-stretch` and
-     `--tracking-label`). */
-  --label-case: uppercase;
+  /* Text case of headings (display styles): as written. */
+  --text-case: none;
+  /* Text case of small labels, eyebrows, badges and table heads: as written. */
+  --label-case: none;
   /* Text case of buttons and links styled as buttons — sentence case, as written. */
   --button-case: none;
 
   /* Font-size scale — every size used by the text styles. */
   --font-size-10: 10px;
-  --font-size-11: 11px;
   --font-size-12: 12px;
   --font-size-14: 14px;
   --font-size-16: 16px;
   --font-size-18: 18px;
   --font-size-20: 20px;
-  --font-size-22: 22px;
   --font-size-24: 24px;
-  --font-size-28: 28px;
   --font-size-36: 36px;
   --font-size-40: 40px;
-  --font-size-44: 44px;
   --font-size-48: 48px;
   --font-size-56: 56px;
   --font-size-64: 64px;
-  --font-size-72: 72px;
   --font-size-88: 88px;
-  --font-size-96: 96px;
-  --font-size-128: 128px;
 
   /* Text styles, one token each: `font: var(--type-<name>)` (+ `letter-spacing:
      var(--tracking-<name>)` where the style tracks). Line heights are ratio × size rounded to whole
@@ -111,22 +100,22 @@
      text-wrap: balance; font-stretch: var(--display-stretch[-card])` next to it (the `font`
      shorthand resets `font-stretch`). Condensed uppercase sets solid: line height ≈ 0.9–1.0. */
   /* code-only: campaign hero / newsletter heading */
-  --type-display-5xl: 700 128px / 112px var(--font-display);
-  --type-display-4xl: 700 96px / 86px var(--font-display);
-  --type-display-3xl: 700 72px / 66px var(--font-display);
-  --type-display-2xl: 700 64px / 58px var(--font-display);
-  --type-display-xl: 700 56px / 52px var(--font-display);
-  --type-display-lg: 700 44px / 42px var(--font-display);
-  --type-display-md: 700 36px / 36px var(--font-display);
-  --type-display-sm: 700 28px / 28px var(--font-display);
-  --type-display-xs: 700 22px / 24px var(--font-display);
-  --type-display-2xs: 700 18px / 20px var(--font-display);
+  --type-display-5xl: 700 88px / 84px var(--font-display);
+  --type-display-4xl: 700 88px / 84px var(--font-display);
+  --type-display-3xl: 700 64px / 67px var(--font-display);
+  --type-display-2xl: 700 56px / 56px var(--font-display);
+  --type-display-xl: 700 48px / 48px var(--font-display);
+  --type-display-lg: 700 40px / 44px var(--font-display);
+  --type-display-md: 700 36px / 40px var(--font-display);
+  --type-display-sm: 700 24px / 26px var(--font-display);
+  --type-display-xs: 700 20px / 22px var(--font-display);
+  --type-display-2xs: 700 16px / 18px var(--font-display);
   --type-display-3xs: 600 14px / 17px var(--font-body);
   --type-title-2: 800 20px / 22px var(--font-display);
   /* code-only: 24px date numbers */
   --type-numeric-lg: 800 24px / 26px var(--font-display);
   /* code-only: article pull quote */
-  --type-quote: 700 28px / 32px var(--font-display);
+  --type-quote: 700 24px / 31px var(--font-display);
   /* Product and card titles in normal width and case (a product name is never condensed caps). */
   --type-title-md: 500 16px / 22px var(--font-body);
   --type-title-sm: 500 14px / 20px var(--font-body);
@@ -142,12 +131,11 @@
   --type-label-semibold-xs: 600 12px / 12px var(--font-body);
   --type-label-medium-sm: 500 12px / 14px var(--font-body);
   --type-label-regular-xs: 400 12px / 14px var(--font-body);
-  /* Expanded caps labels: eyebrows, badges, table heads — set with `font-stretch:
-     var(--label-stretch); text-transform: var(--label-case); letter-spacing: var(--tracking-label)`. */
-  --type-label-caps-xs: 700 12px / 14px var(--font-body);
-  --type-label-caps-2xs: 700 11px / 12px var(--font-body);
-  --type-button-lg: 600 16px / 20px var(--font-body);
-  --type-button-sm: 600 14px / 18px var(--font-body);
+  /* Small labels: eyebrows, badges, table heads (the name is legacy; the style is plain semibold). */
+  --type-label-caps-xs: 600 12px / 14px var(--font-body);
+  --type-label-caps-2xs: 600 12px / 12px var(--font-body);
+  --type-button-lg: 600 16px / 19px var(--font-body);
+  --type-button-sm: 600 14px / 17px var(--font-body);
   --type-button-sm-md: 500 14px / 17px var(--font-body);
   --type-button-medium-xs: 500 12px / 14px var(--font-body);
   --type-button-regular-xs: 400 12px / 14px var(--font-body);
@@ -159,30 +147,20 @@
   --tracking-display-3xs: 0;
   --tracking-text-medium-sm: 0;
   --tracking-label-semibold-xs: 0;
-  --tracking-label-caps-2xs: 0.08em;
-  /* Every expanded caps label tracks out a little. */
-  --tracking-label: 0.06em;
-  /* Large condensed caps tighten slightly. */
-  --tracking-display: -0.005em;
+  --tracking-label-caps-2xs: 0;
+  --tracking-label: 0;
+  --tracking-display: 0;
 
-  /* Width axis of the variable family: condensed headlines, a little less condensed in cards,
-     expanded labels (the wordmark's voice). */
-  --display-stretch: 72%;
-  --display-stretch-card: 80%;
-  --label-stretch: 125%;
+  /* No width axis in the system fonts: every stretch is normal. */
+  --display-stretch: 100%;
+  --display-stretch-card: 100%;
+  --label-stretch: 100%;
 
-  /* Motion — short and decisive; components wrap it in `prefers-reduced-motion: no-preference`. */
-  --duration-fast: 150ms;
-  --duration-base: 250ms;
-  --duration-slow: 450ms;
-  /* Height + fade of a collapsible (details-motion); read by the script through getComputedStyle. */
-  --duration-collapse: 280ms;
+  /* No motion: the wireframe has no transition, transform or animation. The collapse duration is
+     read by details-motion through getComputedStyle; 0ms makes it skip the animation. */
+  --duration-collapse: 0ms;
+  /* JS fallback easing (read by the scripts); no CSS uses it. */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
-  /* Exits that leave the screen (drawers closing): slow start, fast finish. */
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  /* Photo zoom on card hover. */
-  --hover-zoom: 1.04;
 
   /* Spacing scale */
   --space-2: 2px;
@@ -243,23 +221,18 @@
   --tile-breakpoint-xl: 760px;
   --tile-breakpoint-2xl: 1000px;
 
-  /* Radius scale. */
-  --radius-xs: 2px;
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 16px;
-  --radius-full: 999px;
+  /* Radius scale: square everywhere, circles included. */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-full: 0;
   /* Semantic radii — what components read: */
-  /* Buttons, icon buttons, search fields, pill filters: a pill. */
-  --radius-control: var(--radius-full);
-  /* Text inputs, selects, textareas, steppers. */
-  --radius-field: var(--radius-sm);
-  /* Size / option chips, badges, small tags. */
-  --radius-chip: var(--radius-sm);
-  /* Cards, photos, tiles, banners: square, like the brand board. */
+  --radius-control: 0;
+  --radius-field: 0;
+  --radius-chip: 0;
   --radius-card: 0;
-  /* Floating panels (mini-cart, popovers, dialogs, cookie banner). */
-  --radius-panel: var(--radius-md);
+  --radius-panel: 0;
 }
 
 /* Semantic tokens — surface: light (the default, and `[data-surface="light"]` to switch back to it
@@ -268,46 +241,44 @@
 [data-surface='light'] {
   --surface: var(--ink-0);
   /* Photo backdrop, skeletons, quiet bands. */
-  --surface-muted: var(--ink-50);
+  --surface-muted: var(--ink-100);
   /* Hover fill of quiet controls (rows, chips). */
-  --surface-hover: var(--ink-100);
-  --border: var(--ink-200);
-  /* Form-control borders and the selected outline: 3:1 on the surface. */
-  --border-strong: var(--ink-400);
+  --surface-hover: var(--ink-200);
+  --border: var(--ink-300);
+  /* Form-control borders and the selected outline: 3:1 on the surface (ink-500; zavcode's ink-400 is 2.4:1). */
+  --border-strong: var(--ink-500);
   --text-primary: var(--ink-950);
   --text-body: var(--ink-900);
-  --text-secondary: var(--ink-500);
-  --text-muted: var(--ink-500);
+  --text-secondary: var(--ink-600);
+  --text-muted: var(--ink-600);
   --text-subtle: var(--ink-400);
   --link: var(--ink-950);
-  --tag-bg: var(--ink-100);
-  --tag-border: var(--ink-200);
-  --tag-text: var(--ink-900);
-  /* Sale price, errors, "low stock". */
-  --hot: #d7261e;
-  --focus-ring: var(--ink-1000);
-  /* The solid control flips with the surface: black on light, white on dark. */
-  --control-solid: var(--ink-1000);
+  --tag-bg: var(--ink-200);
+  --tag-border: var(--ink-300);
+  --tag-text: var(--ink-700);
+  --focus-ring: var(--ink-950);
+  /* The solid control flips with the surface: ink on light, white on dark. */
+  --control-solid: var(--ink-900);
   --on-control-solid: var(--ink-0);
 }
 
 [data-surface='dark'] {
   --surface: var(--ink-1000);
-  --surface-muted: var(--ink-900);
-  --surface-hover: var(--ink-800);
+  --surface-muted: var(--ink-800);
+  --surface-hover: var(--ink-700);
   --border: var(--ink-800);
-  --border-strong: var(--ink-600);
-  --text-primary: var(--ink-0);
-  --text-body: var(--ink-100);
+  --border-strong: var(--ink-700);
+  --text-primary: var(--ink-50);
+  --text-body: var(--ink-200);
   --text-secondary: var(--ink-300);
   --text-muted: var(--ink-400);
-  --text-subtle: var(--ink-500);
-  --link: var(--ink-0);
+  --text-subtle: var(--ink-400);
+  --link: var(--ink-50);
   --tag-bg: var(--ink-900);
   --tag-border: var(--ink-800);
-  --tag-text: var(--ink-100);
-  --hot: #ff4d3d;
-  --focus-ring: var(--volt);
+  --tag-text: var(--ink-200);
+  /* zavcode leaves the ring dark on dark; ink-50 is visible on the dark surface. */
+  --focus-ring: var(--ink-50);
   --control-solid: var(--ink-0);
   --on-control-solid: var(--ink-1000);
 }

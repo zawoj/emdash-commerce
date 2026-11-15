@@ -126,16 +126,6 @@ const isFeature = variant === articleCardVariants.feature
     object-fit: cover;
   }
 
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .article-card__media :global(img) {
-      transition: transform var(--duration-slow) var(--ease-out);
-    }
-
-    .article-card:hover .article-card__media :global(img) {
-      transform: scale(var(--hover-zoom));
-    }
-  }
-
   .article-card__label {
     position: absolute;
     z-index: 1;

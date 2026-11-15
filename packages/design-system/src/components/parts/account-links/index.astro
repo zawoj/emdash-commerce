@@ -72,15 +72,11 @@ const { links, label } = Astro.props
   .account-links__arrow {
     display: inline-flex;
     color: var(--text-secondary);
-    transition:
-      transform var(--duration-fast) var(--ease-out),
-      color var(--duration-fast) var(--ease-out);
   }
 
   @media (hover: hover) {
     .account-links__link:hover .account-links__arrow {
       color: var(--text-primary);
-      transform: translateX(var(--space-4));
     }
   }
 </style>

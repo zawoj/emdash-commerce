@@ -6,13 +6,19 @@ for what changed in the package itself and why.
 
 The package is **de-branded**: no logos or brand photos; site chrome uses a text wordmark from `siteName`.
 
-The look is the **volt sportswear skin**: a neutral black / white / grey ramp (`--ink-0`…`--ink-1000`) with
-one brand colour, the volt lime `--accent`, used only as a fill with black `--on-accent` text; one variable
-family, Archivo, in three widths — condensed uppercase headlines, normal-width body and UI, expanded
-uppercase labels; pill buttons and controls, square cards and photos shown in their own colours, flat
-surfaces (a shadow only on floating panels, a gradient only as the scrim under copy on a photo). Tokens
-live in `src/tokens/index.css` and `src/tokens/fonts.css`; shared glyphs live in `src/assets/` (play icon,
-social SVGs).
+The look is a **blue wireframe with no decoration**, taken from the zavcode design system: one blue-tinted ink
+ramp (`--ink-0`…`--ink-1000`, no hue besides ink), system font stacks (nothing is loaded), square corners
+everywhere (circles included), 1px outlines (2px for emphasis: selected, invalid, danger), no shadow, no gradient, no
+blur, no transition, transform or animation, and sentence case in normal width. State is told by outline, border
+width, underline, strike-through, marker shape and fill inversion, never by colour alone: a sale price is a `<del>`
+plus the ink price, an error is a 2px ink border with an icon. Every photo is tinted into the ink colour by one global
+filter (`--image-filter` on `img, video, picture` in `reset.css`); the scrim under copy on a photo is one flat ink
+layer. Tokens live in `src/tokens/index.css`; shared glyphs live in `src/assets/` (play icon, social SVGs).
+
+A few tokens exist only so components keep compiling and are neutral on purpose (`--text-case`, `--label-case`,
+`--tracking-*`, `--*-stretch`, the semantic `--radius-*`, `--duration-collapse`): `none`, `0`, `100%`, `0ms`.
+Deviations from zavcode, for contrast: form borders use `--ink-500` (zavcode's `--ink-400` is 2.4:1 on white) and the
+focus ring on a dark surface is `--ink-50`.
 
 ## Why this package exists
 
@@ -144,24 +150,28 @@ after `font`):
 
 `--accent` is a fill with `--on-accent` text — never text or a stroke on a light surface.
 
+`wireframe-lint` (`scripts/wireframe-lint.mjs`, also run by `test`, over this package and `apps/storefront/src`) fails on
+anything that decorates: a `border-radius` other than `0` or a token, any `box-shadow`, gradients, blur, uppercase,
+non-zero tracking, rotate / skew / scale, `transform` other than centring, `@keyframes` / `animation` / `transition`,
+raw colours outside the tokens, webfonts and a `filter` on a photo. `scripts/wireframe-lint.test.mjs` proves each rule
+against the fixtures in `scripts/fixtures/wireframe/`. A line ending in `/* wireframe-ignore: <reason> */` is skipped
+(only the one-colour logo silhouette uses it).
+
 `token-lint` (this package's bin, `scripts/token-lint.mjs`) enforces it on `.astro` styles and CSS:
 the package's `test` script runs it, so `pnpm test` / CI fail on a raw value that has a token. A value with genuinely no token stays raw with a trailing
 `/* token-lint-ignore: <reason> */` on that line.
 
 ## Re-skinning
 
-1. Palette (`--ink-*`, `--volt`), the semantic radii, borders, the three case tokens,
-   `--image-filter`, `--image-scrim`, `--shadow-overlay` and the `--logo-filter-*` silhouettes in
-   `src/tokens/index.css` (`--accent` / `--on-accent`, `--control-solid`, `--hot`, `--link`,
-   `--category-tone-*` and the surface aliases are the semantic layer every component reads).
-2. Fonts: `src/tokens/fonts.css` imports the face (today Archivo Variable through
-   `@fontsource-variable/archivo/wdth.css`); point `--font-display` / `--font-body` at it and set the
-   width axis through `--display-stretch*` / `--label-stretch` (a face without a width axis sets them
-   to `100%`).
-3. Artwork: replace the files in `src/assets/` (keep the exported sizes, or update them in
-   `artwork.ts`). Site chrome uses `SiteWordmark` (text from `siteName`); optional logo SVGs can return
-   through `artwork.ts` if a brand supplies masters. Decoration (patterns, backdrops, watermarks) stays
-   out; a decorated skin adds it back in the components that need it.
+1. Palette (`--ink-*`), the semantic radii, borders, `--image-filter`, `--image-scrim` and the `--logo-filter-*`
+   silhouettes in `src/tokens/index.css` (`--accent` / `--on-accent`, `--control-solid`, `--hot`, `--link`,
+   `--category-tone-*` and the surface aliases are the semantic layer every component reads). A skin that wants a hue
+   or a decoration has to relax `wireframe-lint` first.
+2. Fonts: `src/tokens/fonts.css` is empty on purpose; to load a webfont import it there and point `--font-display` /
+   `--font-body` at it.
+3. Artwork: replace the files in `src/assets/` (keep the exported sizes, or update them in `artwork.ts`). Site chrome
+   uses `SiteWordmark` (text from `siteName`).
+4. Never put a `filter:` on a photo in a component: a class rule beats the reset's tint and the photo shows untinted.
 
 ## Consuming
 

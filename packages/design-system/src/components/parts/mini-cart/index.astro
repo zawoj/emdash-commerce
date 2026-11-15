@@ -70,8 +70,8 @@ const hasLines = lines.length > 0
     padding: 0;
     overflow: hidden;
     border: 0;
+    border-left: 1px solid var(--border-strong);
     border-radius: var(--radius-panel);
-    box-shadow: var(--shadow-overlay);
     background: var(--surface);
     color: var(--text-body);
   }
@@ -82,46 +82,6 @@ const hasLines = lines.length > 0
 
   .mini-cart::backdrop {
     background: color-mix(in srgb, var(--ink-1000) 60%, transparent);
-  }
-
-  /* The drawer slides in from the right and back out; the backdrop fades. `display` and the top layer
-     transition discretely, so the close is animated as well (older browsers just toggle). */
-  @media (prefers-reduced-motion: no-preference) {
-    .mini-cart {
-      transform: translateX(calc(100% + var(--space-16)));
-      transition:
-        transform var(--duration-base) var(--ease-in),
-        overlay var(--duration-base) allow-discrete,
-        display var(--duration-base) allow-discrete;
-    }
-
-    .mini-cart[open] {
-      transform: none;
-      transition-duration: var(--duration-collapse);
-      transition-timing-function: var(--ease-out);
-    }
-
-    .mini-cart::backdrop {
-      background: transparent;
-      transition:
-        background-color var(--duration-base) var(--ease-in),
-        overlay var(--duration-base) allow-discrete,
-        display var(--duration-base) allow-discrete;
-    }
-
-    .mini-cart[open]::backdrop {
-      background: color-mix(in srgb, var(--ink-1000) 60%, transparent);
-    }
-
-    @starting-style {
-      .mini-cart[open] {
-        transform: translateX(calc(100% + var(--space-16)));
-      }
-
-      .mini-cart[open]::backdrop {
-        background: transparent;
-      }
-    }
   }
 
   .mini-cart__panel {
@@ -160,7 +120,6 @@ const hasLines = lines.length > 0
     background: none;
     color: var(--text-primary);
     cursor: pointer;
-    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .mini-cart__close:hover {

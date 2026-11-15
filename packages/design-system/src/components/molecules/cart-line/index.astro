@@ -83,6 +83,7 @@ const totalCompareAt = line.previousLinePrice ?? (hasMany ? undefined : line.pre
   .cart-line__media {
     grid-area: media;
     aspect-ratio: 4 / 5;
+    border: 1px solid var(--border);
     background: var(--surface-muted);
   }
 
@@ -128,7 +129,7 @@ const totalCompareAt = line.previousLinePrice ?? (hasMany ? undefined : line.pre
   }
 
   .cart-line__changed {
-    color: var(--hot);
+    color: var(--text-primary);
     font-weight: 600;
   }
 
@@ -159,7 +160,7 @@ const totalCompareAt = line.previousLinePrice ?? (hasMany ? undefined : line.pre
 
   .cart-line__savings {
     margin: 0;
-    color: var(--hot);
+    color: var(--text-primary);
     font: var(--type-text-medium-xs);
   }
 

@@ -101,7 +101,6 @@ const { label, items } = Astro.props
     text-decoration: none;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: color var(--duration-fast) var(--ease-out);
   }
 
   /* The short bar over the current tab. */
@@ -112,9 +111,9 @@ const { label, items } = Astro.props
     left: 50%;
     width: var(--space-24);
     height: var(--stroke-bold);
+    margin-left: calc(var(--space-24) / -2);
     background: var(--text-primary);
-    transform: translateX(-50%) scaleX(0);
-    transition: transform var(--duration-fast) var(--ease-out);
+    visibility: hidden;
   }
 
   .tab-bar__item--current {
@@ -122,7 +121,7 @@ const { label, items } = Astro.props
   }
 
   .tab-bar__item--current::before {
-    transform: translateX(-50%) scaleX(1);
+    visibility: visible;
   }
 
   .tab-bar__item:active {
@@ -174,17 +173,4 @@ const { label, items } = Astro.props
     white-space: nowrap;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .tab-bar {
-      transition:
-        transform var(--duration-base) var(--ease-out),
-        visibility var(--duration-base);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .tab-bar__item::before {
-      transition: none;
-    }
-  }
 </style>

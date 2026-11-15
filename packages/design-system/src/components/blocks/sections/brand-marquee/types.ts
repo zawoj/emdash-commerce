@@ -1,8 +1,8 @@
 import type { BrandMarqueeTone } from './variants'
 
-/** A full-bleed band with one slogan scrolling slowly past in condensed caps. */
+/** A full-bleed static band with one slogan. */
 export interface BrandMarqueeProps {
-  /** The line that repeats ("TRAIN HARD — GO FAR"); screen readers read it once. */
+  /** The slogan line. */
   readonly text: string
   readonly tone?: BrandMarqueeTone
 }

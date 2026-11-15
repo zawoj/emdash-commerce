@@ -162,7 +162,6 @@ const hidden = people.slice(max).map((person) => person.name);
 		border-radius: var(--radius-full);
 		object-fit: cover;
 		background: var(--color-fill);
-		box-shadow: 0 0 0 2px var(--avatar-ring, var(--color-surface));
 		outline: 1px solid var(--color-media-outline);
 		outline-offset: -1px;
 	}
@@ -176,7 +175,6 @@ const hidden = people.slice(max).map((person) => person.name);
 		place-items: center;
 		font-size: calc(var(--avatar-size) * 0.38);
 		font-weight: 600;
-		letter-spacing: 0;
 		line-height: 1;
 		color: var(--color-text-secondary);
 	}
@@ -204,10 +202,6 @@ const hidden = people.slice(max).map((person) => person.name);
 		align-items: center;
 		gap: var(--spacing-3);
 		min-width: 0;
-	}
-
-	.byline-list .byline__avatar {
-		box-shadow: none;
 	}
 
 	.byline-list__text {

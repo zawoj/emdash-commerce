@@ -119,16 +119,6 @@ const isDetail = variant === dealCardVariants.detail
     object-fit: cover;
   }
 
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .deal-card__photo {
-      transition: transform var(--duration-slow) var(--ease-out);
-    }
-
-    .deal-card:hover .deal-card__photo {
-      transform: scale(var(--hover-zoom));
-    }
-  }
-
   /* Figma keeps the mark centered on the frame, 0.83px right of true center. */
   .deal-card__mark {
     position: absolute;

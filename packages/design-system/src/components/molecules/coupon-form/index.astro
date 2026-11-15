@@ -65,15 +65,16 @@ const isOpen = Boolean(error)
     list-style: none;
   }
 
-  /* An applied code: a volt chip (a saving is good news) that says what it took off and can be removed. */
+  /* An applied code: an outlined chip that says what it took off and can be removed. */
   .coupon-form__tag {
     display: inline-flex;
     align-items: center;
     gap: var(--space-8);
     padding: var(--space-2) var(--space-2) var(--space-2) var(--space-12);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-control);
-    background: var(--accent);
-    color: var(--on-accent);
+    background: var(--surface-muted);
+    color: var(--text-primary);
     font: var(--type-text-medium-sm);
   }
 
@@ -83,9 +84,6 @@ const isOpen = Boolean(error)
 
   .coupon-form__code {
     font: var(--type-label-caps-xs);
-    font-stretch: var(--label-stretch);
-    letter-spacing: var(--tracking-label);
-    text-transform: var(--label-case);
   }
 
   .coupon-form__description {
@@ -102,13 +100,12 @@ const isOpen = Boolean(error)
     border: 0;
     border-radius: var(--radius-full);
     background: none;
-    color: var(--on-accent);
+    color: var(--text-primary);
     cursor: pointer;
-    transition: background var(--duration-fast) var(--ease-out);
   }
 
   .coupon-form__remove:hover {
-    background: var(--accent-hover);
+    background: var(--surface-hover);
   }
 
   .coupon-form__remove:focus-visible {

@@ -109,16 +109,6 @@ const avatarStyle = avatar
     background: var(--ink-1000);
   }
 
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .video-card__photo {
-      transition: transform var(--duration-slow) var(--ease-out);
-    }
-
-    .video-card:hover .video-card__photo {
-      transform: scale(var(--hover-zoom));
-    }
-  }
-
   .video-card__photo {
     position: absolute;
     z-index: 0;

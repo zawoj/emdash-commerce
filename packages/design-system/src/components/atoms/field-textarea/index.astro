@@ -58,7 +58,6 @@ const descriptionId = description ? `${id}-description` : undefined
     /* Figma's stroke is inside the box: content starts 8px/12px from the outer edge. */
     padding: calc(var(--space-12) - 1px) calc(var(--space-16) - 1px);
     color: var(--text-body);
-    transition: border-color var(--duration-fast) var(--ease-out);
   }
 
   @media (hover: hover) {
@@ -85,11 +84,11 @@ const descriptionId = description ? `${id}-description` : undefined
 
   .field-textarea textarea:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 
   /* A control the visitor filled in wrong, or left empty and tried to submit (native validation). */
   .field-textarea textarea:user-invalid {
-    border: var(--stroke-bold) solid var(--hot);
+    border: var(--stroke-bold) solid var(--text-primary);
   }
 </style>

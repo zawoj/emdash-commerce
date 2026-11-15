@@ -133,9 +133,8 @@ const json = JSON.stringify(config).replace(/</g, '\\u003c')
     margin: auto;
     padding: 0;
     overflow: hidden;
-    border: 0;
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-panel);
-    box-shadow: var(--shadow-overlay);
     background: var(--surface);
     color: var(--text-body);
   }
@@ -147,48 +146,6 @@ const json = JSON.stringify(config).replace(/</g, '\\u003c')
 
   .look-dialog::backdrop {
     background: color-mix(in srgb, var(--ink-1000) 60%, transparent);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .look-dialog {
-      opacity: 0;
-      transform: translateY(var(--space-16));
-      transition:
-        opacity var(--duration-fast) var(--ease-in),
-        transform var(--duration-fast) var(--ease-in),
-        overlay var(--duration-fast) allow-discrete,
-        display var(--duration-fast) allow-discrete;
-    }
-
-    .look-dialog[open] {
-      opacity: 1;
-      transform: none;
-      transition-duration: var(--duration-base);
-      transition-timing-function: var(--ease-out);
-    }
-
-    .look-dialog::backdrop {
-      background: transparent;
-      transition:
-        background-color var(--duration-fast) var(--ease-in),
-        overlay var(--duration-fast) allow-discrete,
-        display var(--duration-fast) allow-discrete;
-    }
-
-    .look-dialog[open]::backdrop {
-      background: color-mix(in srgb, var(--ink-1000) 60%, transparent);
-    }
-
-    @starting-style {
-      .look-dialog[open] {
-        opacity: 0;
-        transform: translateY(var(--space-16));
-      }
-
-      .look-dialog[open]::backdrop {
-        background: transparent;
-      }
-    }
   }
 
   /* The page behind a phone's sheet does not scroll (an overlay scrollbar means no layout jump). */
@@ -253,7 +210,6 @@ const json = JSON.stringify(config).replace(/</g, '\\u003c')
     background: none;
     color: var(--text-primary);
     cursor: pointer;
-    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .look-dialog__close:hover {
@@ -262,6 +218,7 @@ const json = JSON.stringify(config).replace(/</g, '\\u003c')
 
   .look-dialog__close:focus-visible {
     outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
   }
 
   .look-dialog__progress {
@@ -276,12 +233,6 @@ const json = JSON.stringify(config).replace(/</g, '\\u003c')
     width: calc(var(--look-ratio, 0) * 100%);
     height: 100%;
     background: var(--control-solid);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .look-dialog__progress-fill {
-      transition: width var(--duration-base) var(--ease-out);
-    }
   }
 
   /* ----- scroll area and a product's panel ----- */
@@ -314,6 +265,7 @@ const json = JSON.stringify(config).replace(/</g, '\\u003c')
     grid-area: media;
     align-self: start;
     overflow: hidden;
+    border: 1px solid var(--border);
     border-radius: var(--radius-card);
     background: var(--surface-muted);
   }
@@ -377,7 +329,9 @@ const json = JSON.stringify(config).replace(/</g, '\\u003c')
 
   .look-dialog__missing {
     margin: 0;
-    color: var(--hot);
+    padding-left: var(--space-8);
+    border-left: 2px solid var(--text-primary);
+    color: var(--text-primary);
     font: var(--type-text-medium-sm);
   }
 
@@ -418,7 +372,7 @@ const json = JSON.stringify(config).replace(/</g, '\\u003c')
   }
 
   .look-dialog__row[data-state='skipped'] .look-dialog__thumb {
-    opacity: 0.45; /* token-lint-ignore: a skipped product is dimmed */
+    opacity: 0.55; /* token-lint-ignore: a skipped product is dimmed */
   }
 
   .look-dialog__thumb {
@@ -454,8 +408,9 @@ const json = JSON.stringify(config).replace(/</g, '\\u003c')
   }
 
   .look-dialog__row-status[data-tone='error'] {
-    color: var(--hot);
+    color: var(--text-primary);
     font: var(--type-text-medium-sm);
+    font-weight: 600;
   }
 
   .look-dialog__row-status[hidden] {
@@ -523,7 +478,7 @@ const json = JSON.stringify(config).replace(/</g, '\\u003c')
   .look-dialog__result {
     margin: var(--space-16) 0 0;
     padding: var(--space-12) var(--space-16);
-    border: var(--stroke-thin) solid var(--hot);
+    border: var(--stroke-bold) solid var(--text-primary);
     border-radius: var(--radius-field);
     color: var(--text-primary);
     font: var(--type-text-medium-sm);
@@ -565,31 +520,6 @@ const json = JSON.stringify(config).replace(/</g, '\\u003c')
       margin: auto 0 0;
       max-height: calc(100dvh - var(--space-48));
       border-radius: var(--radius-panel) var(--radius-panel) 0 0;
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-      .look-dialog {
-        transform: translateY(100%);
-      }
-
-      @starting-style {
-        .look-dialog[open] {
-          transform: translateY(100%);
-        }
-      }
-    }
-
-    /* The grab handle is decoration: the sheet closes with the button, the backdrop or Escape. */
-    .look-dialog__bar::before {
-      position: absolute;
-      top: var(--space-8);
-      left: 50%;
-      width: var(--space-32);
-      height: var(--space-4);
-      border-radius: var(--radius-full);
-      background: var(--border-strong);
-      content: '';
-      transform: translateX(-50%);
     }
 
     .look-dialog__bar {

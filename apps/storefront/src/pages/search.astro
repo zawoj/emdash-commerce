@@ -209,15 +209,11 @@ const countLabel = nextCursor
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-full);
 		background: var(--color-surface);
-		box-shadow: var(--shadow-sm);
 		color: var(--color-text);
 		font: inherit;
 		font-size: var(--font-size-base);
 		-webkit-appearance: none;
 		appearance: none;
-		transition:
-			border-color var(--transition-fast),
-			box-shadow var(--transition-fast);
 	}
 
 	.search-field__input::placeholder {
@@ -226,7 +222,6 @@ const countLabel = nextCursor
 
 	.search-field__input::-webkit-search-cancel-button {
 		margin-inline-start: var(--spacing-2);
-		filter: grayscale(1);
 		cursor: pointer;
 	}
 
@@ -236,11 +231,9 @@ const countLabel = nextCursor
 
 	/* Transparent rather than none so forced-colors mode still draws a ring */
 	.search-field__input:focus {
-		outline: 2px solid transparent;
 		border-color: var(--color-muted);
-		box-shadow:
-			0 0 0 3px var(--color-brand-ring),
-			var(--shadow-sm);
+		outline: 2px solid var(--color-brand);
+		outline-offset: 2px;
 	}
 
 	.search-field__submit {
@@ -276,7 +269,6 @@ const countLabel = nextCursor
 		padding: var(--card-padding);
 		border-radius: var(--radius-xl);
 		background: var(--color-surface);
-		box-shadow: var(--shadow-card);
 	}
 
 	.result {
@@ -288,7 +280,6 @@ const countLabel = nextCursor
 		padding: var(--spacing-5);
 		border-radius: var(--radius-lg);
 		counter-increment: result;
-		transition: background-color var(--transition-fast);
 	}
 
 	.result::before {
@@ -306,7 +297,6 @@ const countLabel = nextCursor
 		top: 0;
 		inset-inline: var(--spacing-5);
 		border-top: 1px solid var(--color-border);
-		transition: opacity var(--transition-fast);
 	}
 
 	.result:hover,
@@ -386,28 +376,16 @@ const countLabel = nextCursor
 		width: 16px;
 		height: 16px;
 		color: var(--color-muted);
-		transition:
-			color var(--transition-fast),
-			translate var(--transition-fast);
 	}
 
 	.result:hover .result__arrow {
 		color: var(--color-text);
-		translate: 2px 0;
-	}
-
-	.result__arrow:dir(rtl) {
-		scale: -1 1;
-	}
-
-	.result:hover .result__arrow:dir(rtl) {
-		translate: -2px 0;
 	}
 
 	/* FTS wraps matched terms in <mark> */
 	.results :global(mark) {
 		padding-inline: 2px;
-		border-radius: 3px;
+		border-radius: 0;
 		background: var(--color-fill-strong);
 		background: color-mix(in srgb, var(--color-text) 10%, transparent);
 		color: var(--color-text);

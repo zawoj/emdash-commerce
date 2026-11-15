@@ -14,14 +14,12 @@
   body:has([data-action-bar][data-state='shown']) [data-tab-bar],
   body:has(details[data-listing-filters][open]:not([data-closing])) [data-tab-bar] {
     visibility: hidden;
-    transform: translateY(100%);
   }
 
   /* A focused text field means the on-screen keyboard is up: the bars step aside instead of covering
      the field (and the keyboard hides them on iOS anyway). Focus scrolling keeps clear of a bar that is up. */
   body:has(:is(input:not([type='checkbox'], [type='radio'], [type='button'], [type='submit'], [type='hidden']), textarea, select):focus) :is([data-tab-bar], [data-action-bar]) {
     visibility: hidden;
-    transform: translateY(100%);
   }
 
   html {

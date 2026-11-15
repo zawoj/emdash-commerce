@@ -75,6 +75,7 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
     display: flex;
     flex-direction: column;
     height: 100%;
+    border: 1px solid var(--border);
   }
 
   .product-card:focus-within {
@@ -84,9 +85,10 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
 
   .product-card__frame {
     position: relative;
-    isolation: isolate; /* the zooming photo gets its own layer; badges and sizes stay above it */
+    isolation: isolate; /* the photo gets its own layer; badges and sizes stay above it */
     aspect-ratio: 4 / 5;
     overflow: hidden;
+    border-bottom: 1px solid var(--border);
     border-radius: var(--radius-card);
     background: var(--surface-muted);
   }
@@ -105,39 +107,13 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
     pointer-events: none;
   }
 
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .product-card__img {
-      transition: transform var(--duration-slow) var(--ease-out);
-    }
-
-    .product-card:hover .product-card__img {
-      transform: scale(var(--hover-zoom));
-    }
-
-    .product-card--has-hover .product-card__img--hover {
-      transform: scale(calc(1 + (var(--hover-zoom) - 1) / 2));
-      transition:
-        opacity var(--duration-slow) var(--ease-out),
-        transform var(--duration-slow) var(--ease-out);
-    }
-
-    .product-card--has-hover:hover .product-card__img--hover {
-      transform: scale(1);
-    }
-
-    /* With a second photo the cross-fade is the motion; the first one stays still. */
-    .product-card--has-hover:hover .product-card__img:not(.product-card__img--hover) {
-      transform: none;
-    }
-  }
-
   @media (hover: hover) {
     .product-card:hover .product-card__img--hover {
       opacity: 1;
     }
   }
 
-  /* The size row: hidden on touch, slides up over the photo bottom on a desktop hover. */
+  /* The size row: hidden on touch, shown over the photo bottom on a desktop hover. */
   .product-card__sizes {
     display: none;
   }
@@ -155,19 +131,17 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
       gap: var(--space-4) var(--space-12);
       margin: 0;
       padding: var(--space-12);
-      background: rgb(255 255 255 / 0.82); /* token-lint-ignore: frosted bar over the photo */
+      border-top: 1px solid var(--border);
+      background: var(--surface);
       color: var(--text-primary);
-      backdrop-filter: blur(8px); /* token-lint-ignore: frosted bar over the photo */
       list-style: none;
       opacity: 0;
-      transform: translateY(100%);
       pointer-events: none;
     }
 
     .product-card:hover .product-card__sizes,
     .product-card:focus-within .product-card__sizes {
       opacity: 1;
-      transform: none;
     }
 
     .product-card__size {
@@ -181,20 +155,12 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
     }
   }
 
-  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-    .product-card__sizes {
-      transition:
-        transform var(--duration-base) var(--ease-out),
-        opacity var(--duration-base) var(--ease-out);
-    }
-  }
-
   .product-card__badges {
     position: absolute;
     z-index: 2;
     pointer-events: none; /* the stretched title link stays the target under the badge */
-    top: var(--space-12);
-    left: var(--space-12);
+    top: var(--space-8);
+    left: var(--space-8);
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-4);
@@ -204,21 +170,24 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
   }
 
   .product-card__badge {
-    padding: var(--space-4) var(--space-8);
+    padding: var(--space-2) var(--space-8);
     border-radius: var(--radius-chip);
-    background: var(--ink-0);
-    color: var(--ink-1000);
-    font: var(--type-label-caps-2xs);
-    font-stretch: var(--label-stretch);
-    letter-spacing: var(--tracking-label);
-    text-transform: var(--label-case);
+    background: var(--action-primary);
+    color: var(--on-color);
+    font: var(--type-label-semibold-xs);
   }
 
-  /* Nike's coloured marker line above the title: "New · -23%" as text, not a sticker on the photo. */
+  .product-card__badge--sold-out {
+    border: 1px solid var(--action-primary);
+    background: var(--surface);
+    color: var(--text-primary);
+  }
+
+  /* The marker line above the title: "New · -23%" as text, not a sticker on the photo. */
   .product-card__markers {
     min-height: 20px; /* token-lint-ignore: one line of text-medium-sm, reserved when empty */
     margin: 0;
-    color: var(--hot);
+    color: var(--text-primary);
     font: var(--type-text-medium-sm);
   }
 
@@ -232,7 +201,7 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
     flex: 1;
     flex-direction: column;
     gap: var(--space-2);
-    padding-top: var(--space-12);
+    padding: var(--space-16);
   }
 
   .product-card__title {
@@ -263,7 +232,6 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
     text-decoration: underline;
     text-decoration-color: transparent;
     text-underline-offset: 3px;
-    transition: text-decoration-color var(--duration-fast) var(--ease-out);
   }
 
   .product-card:hover .product-card__link {

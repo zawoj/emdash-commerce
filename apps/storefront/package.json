@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@emdash-commerce/design-system": "workspace:*",
-    "@fontsource-variable/archivo": "^5.3.0",
     "@emdash-commerce/plugin-image-hotspots": "workspace:*",
     "@emdash-commerce/plugin-stripe": "workspace:*",
     "@astrojs/node": "^11.1.5",

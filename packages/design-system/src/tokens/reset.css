@@ -63,11 +63,17 @@ img {
   height: auto;
 }
 
-/* A skin may tint every photo (`--image-filter`, see index.css); the default skin shows them as shot. */
+/* The wireframe tints every photo into the ink colour (`--image-filter`, see index.css). */
 img,
 video,
 picture {
   filter: var(--image-filter);
+}
+
+/* One focus ring for every interactive element; components that need an inset ring override it. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 /* Text for assistive technology only (a form label the design shows as a placeholder, a status

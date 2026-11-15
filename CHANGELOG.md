@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-15 (wireframe skin)
+
+### feat: blue wireframe skin for the storefront — Claude Code
+- `packages/design-system` and `apps/storefront` take the look of the zavcode design system: a blue wireframe with no
+  decoration (see `packages/design-system/CHANGELOG.md` and `.ai/decisions/2026-11-15-wireframe-skin.md`). Visuals only:
+  no change to layouts, props, copy, data flow or the admin.
+- The `design-system` `test` target now also runs `wireframe-lint` over the package and `apps/storefront/src`, plus a
+  fixture test for it. The Archivo dependency is gone from both packages.
+- Blog pages: the template's radii, shadows and tracking are zeroed in `src/styles/theme.css`; the unused
+  `components/ProductCard.astro` is deleted. Blog colours are still the template's neutral greys.
+- Why: one coherent, accessible, decoration-free look that can be linted instead of reviewed by eye.
+
 ## 2026-11-15
 
 ### feat: first public version, extracted from a private monorepo — Claude Code

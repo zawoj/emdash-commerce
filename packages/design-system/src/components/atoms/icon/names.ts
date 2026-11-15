@@ -3,6 +3,7 @@
 
 export const iconNames = {
   chevronDown: 'chevron-down',
+  chevronUp: 'chevron-up',
   chevronLeft: 'chevron-left',
   chevronRight: 'chevron-right',
   ellipsis: 'ellipsis',

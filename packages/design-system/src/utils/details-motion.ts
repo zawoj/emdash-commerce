@@ -3,13 +3,17 @@
 // height, the content fades and rises 8px, and `[data-closing]` is set for the closing run so CSS can
 // turn the chevron back at once (`[open]:not([data-closing])`). A second click mid-animation reverses
 // from the current height. `name`-grouped accordions close their siblings with the same animation.
-// Under `prefers-reduced-motion: reduce`, and without this script, the native instant toggle runs.
+// Under `prefers-reduced-motion: reduce`, with `--duration-collapse: 0ms` (the wireframe skin), and without
+// this script, the native instant toggle runs.
 import { closedHeight, contentKeyframes, heightKeyframes, motionActions, nextAction, parseDurationMs, scaledDuration } from './details-motion-core'
 
 const selector = 'details[data-details-motion]'
 const running = new WeakMap<HTMLDetailsElement, Animation[]>()
 
-const isReduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+// The wireframe sets `--duration-collapse: 0ms`: nothing animates, the native instant toggle runs.
+const isStatic = () => parseDurationMs(getComputedStyle(document.documentElement).getPropertyValue('--duration-collapse')) === 0
+
+const isReduced = () => isStatic() || window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const isBusy = (details: HTMLDetailsElement) => running.has(details)
 

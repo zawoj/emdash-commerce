@@ -83,9 +83,8 @@ const { heading, headingId, more, events, variant = eventListVariants.sidebar } 
     overflow: hidden;
     padding: var(--space-16) 0;
     background: var(--surface);
-    box-shadow:
-      inset 0 1px 0 var(--border),
-      inset 0 -1px 0 var(--border);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
   }
 
   /* Figma: the rows' frame has gap -1, so each row's top separator covers the previous bottom one. */

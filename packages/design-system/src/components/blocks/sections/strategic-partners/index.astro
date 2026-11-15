@@ -1,7 +1,6 @@
 ---
-// Strategic-partners strip (main column): the heading next to a partner-logo row. Figma lays the row out
-// as two identical copies (944:29296, 944:29368) running off the tile's right edge — the seamless
-// marquee pattern of the header/footer tickers, so the track scrolls by one copy. Renders nothing
+// Strategic-partners strip (main column): the heading next to a partner-logo row. The row used to be a
+// scrolling marquee; the wireframe has no motion, so it is one static row that wraps. Renders nothing
 // without partners.
 import type { StrategicPartnersProps } from './types'
 import Image from '../../../atoms/image/index.astro'
@@ -9,7 +8,7 @@ import Image from '../../../atoms/image/index.astro'
 type Props = StrategicPartnersProps
 
 const { heading, headingId, partners } = Astro.props
-const rowCopies = [false, true] as const
+const rowCopies = [false] as const
 ---
 
 {
@@ -54,6 +53,7 @@ const rowCopies = [false, true] as const
     align-items: center;
     gap: var(--space-32);
     padding: var(--space-32) var(--space-24);
+    border: 1px solid var(--border);
     border-radius: var(--radius-card);
     background: var(--accent);
     color: var(--on-accent);
@@ -72,38 +72,20 @@ const rowCopies = [false, true] as const
     width: min-content;
     margin: 0;
     font: var(--type-display-lg);
-    font-stretch: var(--display-stretch);
-    letter-spacing: var(--tracking-display);
     color: var(--on-accent);
-    text-transform: var(--text-case);
   }
 
   .strategic-partners__logos {
     position: relative;
     flex: 1 1 0;
     min-width: 0;
-    /* the logo row runs under the tile's right padding up to its clipped edge */
-    margin-right: calc(-1 * var(--space-24));
-  }
-
-  .strategic-partners__viewport {
-    overflow: hidden;
-  }
-
-  .strategic-partners__track {
-    display: flex;
-    flex-direction: row;
-    gap: var(--space-40);
-    width: max-content;
-    animation: strategic-partners-marquee 30s linear infinite;
   }
 
   .strategic-partners__row {
     display: flex;
-    flex-direction: row;
+    flex-flow: row wrap;
     align-items: center;
-    gap: var(--space-40);
-    height: 24px;
+    gap: var(--space-16) var(--space-40);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -117,7 +99,7 @@ const rowCopies = [false, true] as const
     display: block;
   }
 
-  /* Every logo is a flat black silhouette on the volt band. */
+  /* Every logo is a flat ink silhouette. */
   .strategic-partners__row :global(img) {
     display: block;
     width: auto;
@@ -125,21 +107,6 @@ const rowCopies = [false, true] as const
     height: 24px;
     object-fit: contain;
     filter: var(--logo-filter-ink);
-  }
-
-  @keyframes strategic-partners-marquee {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(calc(-50% - var(--space-40) / 2));
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .strategic-partners__track {
-      animation: none;
-    }
   }
 
   @media (max-width: 640px) {
@@ -151,7 +118,6 @@ const rowCopies = [false, true] as const
 
     .strategic-partners__logos {
       flex: none;
-      margin-inline: calc(-1 * var(--space-24));
     }
   }
 </style>

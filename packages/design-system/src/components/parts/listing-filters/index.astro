@@ -42,7 +42,7 @@ const activeCount = activeFilters.length
 <details class="listing-filters" id={id} open data-details-motion data-listing-filters data-active-count={activeCount}>
   <summary class="listing-filters__summary">
     <span class="listing-filters__title">{title}{activeCount > 0 && <span class="listing-filters__active-count"> ({activeCount})</span>}</span>
-    <span class="listing-filters__chevron" aria-hidden="true"><Icon name={iconNames.chevronDown} /></span>
+    <span class="listing-filters__chevron" aria-hidden="true"><span class="listing-filters__glyph listing-filters__glyph--closed"><Icon name={iconNames.chevronDown} /></span><span class="listing-filters__glyph listing-filters__glyph--open"><Icon name={iconNames.chevronUp} /></span></span>
   </summary>
 
   <form class="listing-filters__form" action={action} method="get" data-auto-submit>
@@ -53,7 +53,7 @@ const activeCount = activeFilters.length
         <details class="listing-filters__group" open={group.isOpen ?? true} data-details-motion>
           <summary class="listing-filters__group-summary">
             <span id={`${group.id}-label`}>{group.label}</span>
-            <span class="listing-filters__chevron" aria-hidden="true"><Icon name={iconNames.chevronDown} /></span>
+            <span class="listing-filters__chevron" aria-hidden="true"><span class="listing-filters__glyph listing-filters__glyph--closed"><Icon name={iconNames.chevronDown} /></span><span class="listing-filters__glyph listing-filters__glyph--open"><Icon name={iconNames.chevronUp} /></span></span>
           </summary>
           <fieldset class="listing-filters__fieldset" aria-labelledby={`${group.id}-label`}>
             {group.kind === filterGroupKinds.checkbox && (
@@ -184,15 +184,21 @@ const activeCount = activeFilters.length
     height: 32px; /* token-lint-ignore: hover disc around the chevron */
     border-radius: var(--radius-full);
     color: var(--text-secondary);
-    transition:
-      transform var(--duration-collapse) var(--ease-out),
-      background var(--duration-fast) var(--ease-out),
-      color var(--duration-fast) var(--ease-out);
   }
 
-  .listing-filters[open]:not([data-closing]) > .listing-filters__summary .listing-filters__chevron,
-  .listing-filters__group[open]:not([data-closing]) > .listing-filters__group-summary .listing-filters__chevron {
-    transform: rotate(180deg);
+  .listing-filters__glyph {
+    display: inline-flex;
+  }
+
+  .listing-filters__glyph--open,
+  .listing-filters[open]:not([data-closing]) > .listing-filters__summary .listing-filters__glyph--closed,
+  .listing-filters__group[open]:not([data-closing]) > .listing-filters__group-summary .listing-filters__glyph--closed {
+    display: none;
+  }
+
+  .listing-filters[open]:not([data-closing]) > .listing-filters__summary .listing-filters__glyph--open,
+  .listing-filters__group[open]:not([data-closing]) > .listing-filters__group-summary .listing-filters__glyph--open {
+    display: inline-flex;
   }
 
   @media (hover: hover) {
@@ -239,7 +245,6 @@ const activeCount = activeFilters.length
     color: var(--text-primary);
     font: var(--type-text-regular-sm);
     text-decoration: none;
-    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .listing-filters__chip:hover {

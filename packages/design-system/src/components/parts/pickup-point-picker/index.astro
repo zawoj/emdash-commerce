@@ -217,8 +217,7 @@ const typeLabel = (type: string) => labels.typeLabels?.[type]
   }
 
   .pickup-point-picker__button:active {
-    background: var(--ink-950);
-    transform: translateY(1px);
+    background: var(--ink-1000);
   }
 
   .pickup-point-picker__button {
@@ -234,7 +233,6 @@ const typeLabel = (type: string) => labels.typeLabels?.[type]
     font: var(--type-button-sm);
     text-transform: var(--button-case);
     cursor: pointer;
-    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .pickup-point-picker__button:hover {
@@ -336,9 +334,6 @@ const typeLabel = (type: string) => labels.typeLabels?.[type]
     border-radius: var(--radius-field);
     background: var(--surface-muted);
     cursor: pointer;
-    transition:
-      background-color var(--duration-fast) var(--ease-out),
-      border-color var(--duration-fast) var(--ease-out);
   }
 
   .pickup-point-picker__option:hover {
@@ -348,7 +343,8 @@ const typeLabel = (type: string) => labels.typeLabels?.[type]
   .pickup-point-picker__option:has(.pickup-point-picker__radio:checked) {
     border-color: var(--text-primary);
     background: var(--surface);
-    box-shadow: inset 0 0 0 1px var(--text-primary); /* token-lint-ignore: 2px selected outline without a layout shift */
+    outline: 1px solid var(--text-primary); /* the second pixel of the 2px selected outline, inside the border */
+    outline-offset: -2px;
   }
 
   .pickup-point-picker__option:has(.pickup-point-picker__radio:focus-visible) {

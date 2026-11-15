@@ -127,9 +127,6 @@ const sizes = {
 		display: flex;
 		flex-direction: column;
 		min-width: 0;
-		transition:
-			box-shadow var(--transition-base),
-			outline-color var(--transition-fast);
 	}
 
 	.post:has(.post__link:focus-visible) {
@@ -173,23 +170,11 @@ const sizes = {
 		height: 100%;
 		max-height: none;
 		object-fit: cover;
-		transition: scale 500ms var(--ease-out);
-	}
-
-	.post:has(.post__link:hover, .post__media:hover) .post__image :global(img) {
-		scale: 1.03;
 	}
 
 	.post__placeholder {
 		position: absolute;
 		inset: 0;
-		background-image: radial-gradient(
-			circle,
-			var(--color-border-strong) 1px,
-			transparent 1.5px
-		);
-		background-size: 14px 14px;
-		mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
 	}
 
 	/* Text */
@@ -233,7 +218,6 @@ const sizes = {
 		text-decoration-thickness: 1px;
 		text-decoration-color: transparent;
 		text-underline-offset: 0.18em;
-		transition: text-decoration-color var(--transition-fast);
 	}
 
 	.post__excerpt {
@@ -276,11 +260,6 @@ const sizes = {
 		padding: var(--card-padding);
 		border-radius: var(--radius-xl);
 		background: var(--color-surface);
-		box-shadow: var(--shadow-card);
-	}
-
-	.post--card:has(.post__link:hover, .post__media:hover) {
-		box-shadow: var(--shadow-card-hover);
 	}
 
 	.post--card:has(.post__link:focus-visible) {
@@ -306,11 +285,6 @@ const sizes = {
 		padding: var(--card-padding);
 		border-radius: var(--radius-xl);
 		background: var(--color-surface);
-		box-shadow: var(--shadow-card);
-	}
-
-	.post--feature:has(.post__link:hover, .post__media:hover) {
-		box-shadow: var(--shadow-card-hover);
 	}
 
 	.post--feature:has(.post__link:focus-visible) {
@@ -339,7 +313,6 @@ const sizes = {
 		font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
 		line-height: var(--leading-tight);
 		font-weight: var(--font-weight-display);
-		letter-spacing: var(--tracking-tight);
 	}
 
 	.post--feature .post__excerpt {
@@ -350,14 +323,6 @@ const sizes = {
 	.post--feature .post__cta {
 		margin-top: var(--spacing-2);
 		color: var(--color-text);
-	}
-
-	.post--feature:has(.post__link:hover) .post__cta :global(svg) {
-		translate: 2px 0;
-	}
-
-	.post--feature:has(.post__link:hover) .post__cta :global(svg:dir(rtl)) {
-		translate: -2px 0;
 	}
 
 	.post--feature .post__footer {

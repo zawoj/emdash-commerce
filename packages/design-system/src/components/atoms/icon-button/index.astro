@@ -38,14 +38,10 @@ const Tag = href ? 'a' : 'button'
     color: var(--text-primary);
     cursor: pointer;
     text-decoration: none;
-    transition:
-      background-color var(--duration-fast) var(--ease-out),
-      transform var(--duration-fast) var(--ease-out);
   }
 
   .icon-button:active {
     background: var(--border);
-    transform: translateY(1px);
   }
 
   @media (hover: hover) {
@@ -62,7 +58,7 @@ const Tag = href ? 'a' : 'button'
   .icon-button[disabled],
   .icon-button[aria-disabled='true'] {
     cursor: not-allowed;
-    opacity: 0.4;
+    opacity: 0.5;
     pointer-events: none;
   }
 

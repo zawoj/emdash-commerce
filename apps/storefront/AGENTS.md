@@ -70,8 +70,8 @@ Site settings have `title` and `tagline`. The title renders in the header, the h
 
 ## Visual character
 
-Public chrome comes from `@emdash-commerce/design-system`: volt lime accent on a black / white / grey
-scale, **Archivo Variable** (condensed display caps, normal body), pill controls, and the sportswear
+Public chrome comes from `@emdash-commerce/design-system`: a blue wireframe (one blue-tinted ink ramp, system
+fonts, square corners, 1px outlines, no shadow, gradient or motion, every photo tinted into the ink colour), and the
 header/footer/tab bar composed in `src/layouts/Base.astro`. Site name renders as a text wordmark (no
 logo SVG). Shell copy is in `src/features/shell/copy.ts` (en / pl from `getSiteLocale()`).
 

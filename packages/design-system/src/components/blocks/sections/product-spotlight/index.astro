@@ -80,7 +80,8 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
 
   .product-spotlight__stage {
     min-width: 0;
-    background: var(--accent);
+    border: 1px solid var(--border);
+    background: var(--surface-muted);
   }
 
   .product-spotlight__frame {
@@ -104,51 +105,23 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
     object-fit: cover;
   }
 
-  /* Markers: black discs with a volt number, on the photo whatever the surface is. */
+  /* Markers: square, numbered, ink-outlined boxes on the photo whatever the surface is. */
   .product-spotlight__marker {
     position: absolute;
     top: var(--y);
     left: var(--x);
-    z-index: 1;
+    z-index: 3; /* above the callout leader, which starts at the marker centre */
     display: grid;
     width: 28px;
     height: 28px;
     place-items: center;
     translate: -50% -50%;
-    border-radius: var(--radius-full);
-    background: var(--ink-1000);
-    color: var(--accent);
-    font: var(--type-label-caps-2xs);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: var(--tracking-label);
-  }
-
-  .product-spotlight__marker::after {
-    position: absolute;
-    inset: -6px;
     border: 1px solid var(--ink-1000);
     border-radius: var(--radius-full);
-    content: '';
-    opacity: 0.35;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .product-spotlight__marker::after {
-      animation: spotlight-ping 2.8s var(--ease-out) infinite;
-    }
-  }
-
-  @keyframes spotlight-ping {
-    0% {
-      opacity: 0.6;
-      scale: 0.7;
-    }
-
-    70%,
-    100% {
-      opacity: 0;
-      scale: 1.35;
-    }
+    background: var(--ink-0);
+    color: var(--ink-1000);
+    font: var(--type-label-semibold-xs);
+    font-variant-numeric: tabular-nums;
   }
 
   /* Callout: the label block starts at its marker's centre; its top edge is the hairline leader. */
@@ -176,8 +149,8 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
   }
 
   .product-spotlight__callout--start {
+    left: calc(var(--x) - var(--leader));
     padding-right: var(--space-24);
-    translate: -100% 0;
     text-align: right;
   }
 
@@ -204,14 +177,14 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
 
   .product-spotlight__callout-title,
   .product-spotlight__callout-text {
+    width: fit-content;
     margin: 0;
+    padding: var(--space-2) var(--space-8);
+    background: var(--surface);
   }
 
   .product-spotlight__callout-title {
     font: var(--type-label-caps-xs);
-    font-stretch: var(--label-stretch);
-    letter-spacing: var(--tracking-label);
-    text-transform: var(--label-case);
   }
 
   .product-spotlight__callout-text {
@@ -219,10 +192,16 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
     font: var(--type-text-regular-xs);
   }
 
+  .product-spotlight__callout--start .product-spotlight__callout-title,
+  .product-spotlight__callout--start .product-spotlight__callout-text {
+    margin-left: auto;
+  }
+
   .product-spotlight__panel {
     display: flex;
     flex-direction: column;
     padding: var(--space-32);
+    border: 1px solid var(--border);
     background: var(--surface-muted);
   }
 
@@ -356,7 +335,7 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
     }
   }
 
-  /* Tablet: the stacked photo keeps a sane height (the volt stage fills the sides) instead of a full-width 4:5 wall. */
+  /* Tablet: the stacked photo keeps a sane height (the muted stage fills the sides) instead of a full-width 4:5 wall. */
   @container product-spotlight (min-width: 560px) and (width < 860px) {
     .product-spotlight__frame {
       --frame-max-height: 620px; /* token-lint-ignore: tallest stacked photo on a tablet */

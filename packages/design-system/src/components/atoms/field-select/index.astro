@@ -68,7 +68,6 @@ const descriptionId = description ? `${id}-description` : undefined
     background: var(--surface);
     padding: 0 var(--space-40) 0 calc(var(--space-16) - 1px);
     color: var(--text-body);
-    transition: border-color var(--duration-fast) var(--ease-out);
   }
 
   @media (hover: hover) {
@@ -105,11 +104,11 @@ const descriptionId = description ? `${id}-description` : undefined
 
   .field-select select:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 
   /* A control the visitor filled in wrong, or left empty and tried to submit (native validation). */
   .field-select select:user-invalid {
-    border: var(--stroke-bold) solid var(--hot);
+    border: var(--stroke-bold) solid var(--text-primary);
   }
 </style>

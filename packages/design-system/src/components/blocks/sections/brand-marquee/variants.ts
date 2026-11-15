@@ -1,4 +1,4 @@
-// The band's colours: `volt` = the brand fill with black type, `dark` = the black band, `light` = the quiet grey band.
+// The band's colours: `volt` (legacy name, kept for the prop) = the accent ink fill with white type, `dark` = the dark band, `light` = the quiet muted band.
 export const brandMarqueeTones = {
   light: 'light',
   volt: 'volt',
@@ -6,5 +6,3 @@ export const brandMarqueeTones = {
 } as const
 export type BrandMarqueeTone = (typeof brandMarqueeTones)[keyof typeof brandMarqueeTones]
 
-/** How often the line repeats in one loop; enough to fill an ultra-wide screen. */
-export const BRAND_MARQUEE_REPEATS = 8

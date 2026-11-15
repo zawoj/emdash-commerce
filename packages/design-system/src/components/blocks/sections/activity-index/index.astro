@@ -107,7 +107,6 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
     padding-block: var(--space-16);
     color: var(--text-primary);
     text-decoration: none;
-    transition: color var(--duration-base) var(--ease-out);
   }
 
   .activity-index__row:focus-visible {
@@ -125,11 +124,7 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
   }
 
   .activity-index__label {
-    font: var(--type-display-4xl);
-    font-stretch: var(--display-stretch);
-    letter-spacing: var(--tracking-display);
-    text-transform: var(--text-case);
-    transition: translate var(--duration-base) var(--ease-out);
+    font: var(--type-display-2xl);
   }
 
   .activity-index__count {
@@ -143,11 +138,6 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
   .activity-index__arrow {
     display: flex;
     justify-content: flex-end;
-    opacity: 0;
-    translate: calc(var(--space-16) * -1) 0;
-    transition:
-      opacity var(--duration-base) var(--ease-out),
-      translate var(--duration-base) var(--ease-out);
   }
 
   .activity-index__arrow :global(svg) {
@@ -188,42 +178,14 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
       color: var(--text-subtle);
     }
 
-    .activity-index__row:hover .activity-index__arrow {
-      opacity: 1;
-      translate: 0 0;
-    }
-
     .activity-index__row:hover .activity-index__label {
-      translate: var(--space-16) 0;
-    }
-  }
-
-  .activity-index__row:focus-visible .activity-index__arrow {
-    opacity: 1;
-    translate: 0 0;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .activity-index__photo {
-      transition: clip-path var(--duration-slow) var(--ease-out);
-    }
-
-    .activity-index__photo :global(img) {
-      scale: 1.12;
-      transition: scale var(--duration-slow) var(--ease-out);
-    }
-
-    .activity-index__item:has(.activity-index__row:hover, .activity-index__row:focus-visible) .activity-index__photo :global(img),
-    .activity-index__list:not(:has(.activity-index__row:hover, .activity-index__row:focus-visible)) .activity-index__item:first-child .activity-index__photo :global(img) {
-      scale: 1;
+      text-decoration: underline;
     }
   }
 
   @container activity-index (width < 1100px) {
     .activity-index__label {
-      font: var(--type-display-2xl);
-      font-stretch: var(--display-stretch);
-      letter-spacing: var(--tracking-display);
+      font: var(--type-display-xl);
     }
   }
 
@@ -257,8 +219,6 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
     .activity-index__label {
       grid-area: label;
       font: var(--type-display-lg);
-      font-stretch: var(--display-stretch);
-      letter-spacing: var(--tracking-display);
     }
 
     .activity-index__count {
@@ -267,8 +227,6 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
 
     .activity-index__arrow {
       grid-area: arrow;
-      opacity: 1;
-      translate: 0 0;
     }
 
     .activity-index__arrow :global(svg) {
@@ -292,8 +250,5 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
       clip-path: none;
     }
 
-    .activity-index__photo :global(img) {
-      scale: 1;
-    }
   }
 </style>

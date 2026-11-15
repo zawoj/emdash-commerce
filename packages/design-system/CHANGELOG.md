@@ -2,6 +2,27 @@
 
 Newest on top. Each entry says what changed in the package and why.
 
+## 2026-11-15
+
+### feat: blue wireframe skin, no decoration (replaces the volt sportswear skin)
+- Look taken from the zavcode design system: a blue-tinted ink ramp, system fonts, square corners, 1px outlines, no shadow,
+  gradient, blur, transition, transform or animation, sentence case. Tokens keep their names; values are overwritten and
+  the extra tokens (`--text-case`, `--tracking-*`, `--*-stretch`, semantic radii) are neutral. Removed: `--volt*`,
+  `--shadow-overlay`, `--ease-in*`, `--hover-zoom`, the oversized font sizes; `--hot` is ink (no red).
+- Photos: one global `--image-filter` tint on `img, video, picture`; the scrim is one flat ink layer. Every local
+  `filter: brightness()` that overrode the tint is gone.
+- Sale price is `<del>` plus the ink price; errors are a 2px ink border and an icon, never red. Badges, status badge, count
+  badge, promo card and coupon chip are flat outlined or inverted boxes.
+- Hero and banner use the normal type scale (no oversized or stacked display type); marquees and partner rows are static;
+  disclosure chevrons swap a `chevron-up` glyph instead of rotating (new `iconNames.chevronUp`).
+- Hotspot and spotlight markers are square numbered ink-outline boxes that invert when active. The look dialog and mini-cart
+  have a 1px border and no radius, shadow, slide animation or grab handle.
+- The Archivo webfont dependency is removed. `details-motion` skips the animation when `--duration-collapse` is `0ms`.
+- New `scripts/wireframe-lint.mjs` (run by `test`, with a fixture test) fails on any of the above coming back.
+- Deviations from zavcode, for contrast: `--border-strong` is `--ink-500` (form borders 3:1), the dark-surface focus ring
+  is `--ink-50`.
+- Prop and tone names are unchanged (`voltText`, `brandMarqueeTones.volt`, `collectionTileTones.volt`): they are API.
+
 ## 2026-11-13
 
 ### fix: LookDialog kit steps for products without variant axes

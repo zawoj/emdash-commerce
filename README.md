@@ -1,14 +1,14 @@
 # emdash-commerce
 
 Commerce for [EmDash](https://github.com/emdash-cms/emdash) (the Astro-based CMS): a Stripe plugin, an image-with-points
-field widget, a sportswear design system, and a demo storefront that uses all three. One Nx + pnpm monorepo.
+field widget, a blue wireframe design system, and a demo storefront that uses all three. One Nx + pnpm monorepo.
 
 | Path | Package | What |
 |---|---|---|
 | `apps/storefront` | `@emdash-commerce/storefront` | The demo shop: Astro 7 SSR on EmDash (Node + SQLite + local uploads). Home, shop, product page, cart, Stripe Checkout. |
 | `packages/plugin-stripe` | `@emdash-commerce/plugin-stripe` | Backend-only commerce plugin (id `stripe-commerce`): catalog with variants and prices mirrored to Stripe, carts, Checkout Sessions, orders, refunds, disputes, subscriptions, a durable webhook pipeline. [README](packages/plugin-stripe/README.md) |
 | `packages/plugin-image-hotspots` | `@emdash-commerce/plugin-image-hotspots` | React field widget `image-hotspots:hotspots`: an image with points (a product per point, or a title and text). [README](packages/plugin-image-hotspots/README.md) |
-| `packages/design-system` | `@emdash-commerce/design-system` | Tokens and props-driven Astro components (volt sportswear skin, no brand assets). [README](packages/design-system/README.md) |
+| `packages/design-system` | `@emdash-commerce/design-system` | Tokens and props-driven Astro components (blue wireframe, no decoration, no brand assets). [README](packages/design-system/README.md) |
 
 Plugin ids (`stripe-commerce`, `image-hotspots`) and the widget reference (`image-hotspots:hotspots`) are stored in content
 and schema, so they are part of the contract.

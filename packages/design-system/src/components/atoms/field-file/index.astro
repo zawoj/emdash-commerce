@@ -45,7 +45,6 @@ const descriptionId = description ? `${id}-description` : undefined
     background: var(--surface);
     padding: calc(var(--space-8) - 1px) calc(var(--space-16) - 1px);
     color: var(--text-body);
-    transition: border-color var(--duration-fast) var(--ease-out);
   }
 
   .field-file input:focus-visible {
@@ -73,6 +72,6 @@ const descriptionId = description ? `${id}-description` : undefined
 
   .field-file input:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 </style>

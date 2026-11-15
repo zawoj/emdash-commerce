@@ -26,28 +26,23 @@ const { promo, comingSoonLabel } = Astro.props
 </a>
 
 <style>
-  /* The brand-board look: a volt panel with black copy; the "coming soon" card is a quiet dark one. */
+  /* An outlined panel; the "coming soon" card has a dashed outline. */
   .promo-card {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     height: 160px; /* token-lint-ignore: promo card height */
     padding: var(--space-20);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-card);
-    background: var(--accent);
-    color: var(--on-accent);
-    text-decoration: none;
-    transition: background-color var(--duration-fast) var(--ease-out);
-  }
-
-  .promo-card:hover {
-    background: var(--accent-hover);
-  }
-
-  .promo-card--soon,
-  .promo-card--soon:hover {
-    background: var(--surface-muted);
+    background: var(--surface);
     color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .promo-card--soon {
+    border-style: dashed;
+    background: var(--surface-muted);
   }
 
   .promo-card__head {
@@ -60,16 +55,12 @@ const { promo, comingSoonLabel } = Astro.props
   .promo-card__eyebrow,
   .promo-card__soon {
     font: var(--type-label-caps-2xs);
-    font-stretch: var(--label-stretch);
-    text-transform: var(--label-case);
-    letter-spacing: var(--tracking-label);
   }
 
   .promo-card__soon {
-    padding: var(--space-4) var(--space-8);
+    padding: var(--space-2) var(--space-8);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-chip);
-    background: var(--accent);
-    color: var(--on-accent);
   }
 
   .promo-card__text {
@@ -86,8 +77,8 @@ const { promo, comingSoonLabel } = Astro.props
   }
 
   .promo-card__description {
+    color: var(--text-secondary);
     font: var(--type-text-medium-xs);
-    opacity: 0.8;
   }
 
   .promo-card:hover .promo-card__name {

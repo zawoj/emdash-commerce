@@ -140,7 +140,7 @@ const labelOf = (title: string, index: number) => hotspotLabelTemplate.replace('
     object-fit: cover;
   }
 
-  /* The hotspot: a white disc with the item's number, centred on its point. */
+  /* The hotspot: a square, numbered ink-outlined box centred on its point; active inverts the fill. */
   .look__hotspot {
     position: absolute;
     top: var(--y);
@@ -149,16 +149,14 @@ const labelOf = (title: string, index: number) => hotspotLabelTemplate.replace('
     place-items: center;
     width: var(--space-32);
     height: var(--space-32);
+    border: 1px solid var(--ink-1000);
     border-radius: var(--radius-full);
     background: var(--ink-0);
     color: var(--ink-1000);
-    font: var(--type-label-caps-xs);
+    font: var(--type-label-semibold-xs);
+    font-variant-numeric: tabular-nums;
     text-decoration: none;
-    transform: translate(-50%, -50%);
-    transition:
-      background var(--duration-fast) var(--ease-out),
-      color var(--duration-fast) var(--ease-out),
-      scale var(--duration-fast) var(--ease-out);
+    transform: translate(-50%, -50%); /* positioning only */
   }
 
   /* A larger invisible target for fingers. */
@@ -170,37 +168,13 @@ const labelOf = (title: string, index: number) => hotspotLabelTemplate.replace('
 
   .look__hotspot:hover,
   .look__hotspot[aria-current='true'] {
-    background: var(--accent);
-    color: var(--on-accent);
-    scale: 1.15; /* token-lint-ignore: a small pop of the active marker */
+    background: var(--ink-1000);
+    color: var(--ink-0);
   }
 
   .look__hotspot:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 3px; /* token-lint-ignore: clears the disc */
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .look__hotspot::after {
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      box-shadow: 0 0 0 0 var(--ink-0);
-      content: '';
-      animation: look-ping 2.4s var(--ease-out) infinite; /* token-lint-ignore: a slow idle pulse */
-      pointer-events: none;
-    }
-
-    @keyframes look-ping {
-      0% {
-        box-shadow: 0 0 0 0 rgb(255 255 255 / 0.6); /* token-lint-ignore: the pulse ring */
-      }
-
-      70%,
-      100% {
-        box-shadow: 0 0 0 var(--space-12) rgb(255 255 255 / 0);
-      }
-    }
+    outline: 2px solid var(--ink-1000);
+    outline-offset: 2px;
   }
 
   .look__panel {
@@ -236,10 +210,10 @@ const labelOf = (title: string, index: number) => hotspotLabelTemplate.replace('
     grid-template-columns: var(--space-24) var(--space-64) minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--space-16);
-    padding: var(--space-16) var(--space-12);
+    padding: var(--space-16) var(--space-12) var(--space-16) calc(var(--space-12) - var(--stroke-bar));
     border-bottom: var(--stroke-thin) solid var(--border);
+    border-left: var(--stroke-bar) solid transparent;
     scroll-margin-block: var(--space-96);
-    transition: background var(--duration-fast) var(--ease-out);
   }
 
   .look__row:focus {
@@ -247,8 +221,8 @@ const labelOf = (title: string, index: number) => hotspotLabelTemplate.replace('
   }
 
   .look__row[data-active='true'] {
+    border-left-color: var(--text-primary);
     background: var(--surface-muted);
-    box-shadow: inset var(--stroke-bar) 0 0 var(--text-primary);
   }
 
   .look__number {

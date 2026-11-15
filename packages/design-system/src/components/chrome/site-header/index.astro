@@ -322,7 +322,6 @@ const linkTarget = (link: ChromeLink): string | undefined => (link.isNewTab ? '_
     border: none;
     border-radius: var(--radius-control);
     cursor: pointer;
-    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .site-header__search:hover,
@@ -339,7 +338,6 @@ const linkTarget = (link: ChromeLink): string | undefined => (link.isNewTab ? '_
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-control);
-    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .site-header__search:focus-visible,
@@ -348,7 +346,7 @@ const linkTarget = (link: ChromeLink): string | undefined => (link.isNewTab ? '_
     outline-offset: 2px;
   }
 
-  /* The count badge (volt fill, black text) sits on the glyph's corner. */
+  /* The count badge (ink fill, white text) sits on the glyph's corner. */
   .site-header__cart-count {
     position: absolute;
     top: 0;
@@ -372,7 +370,6 @@ const linkTarget = (link: ChromeLink): string | undefined => (link.isNewTab ? '_
     background: none;
     color: var(--text-primary);
     cursor: pointer;
-    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .site-header__nav-toggle:hover {
@@ -394,14 +391,6 @@ const linkTarget = (link: ChromeLink): string | undefined => (link.isNewTab ? '_
     background: color-mix(in srgb, var(--ink-1000) 45%, transparent);
   }
 
-  /* Where the browser can blur what is behind, the page is dimmed less and softened instead. */
-  @supports (backdrop-filter: blur(1px)) {
-    .site-header__scrim {
-      background: color-mix(in srgb, var(--ink-1000) 32%, transparent);
-      backdrop-filter: blur(6px); /* token-lint-ignore: scrim blur */
-    }
-  }
-
   .site-header[data-mega-open] .site-header__scrim {
     visibility: visible;
     opacity: 1;
@@ -410,18 +399,6 @@ const linkTarget = (link: ChromeLink): string | undefined => (link.isNewTab ? '_
   /* A gallery specimen of the open panel does not dim the gallery. */
   .site-header[data-mega-static] .site-header__scrim {
     display: none;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .site-header__scrim {
-      transition:
-        opacity 220ms var(--ease-out), /* token-lint-ignore: panel motion, matches the sheet */
-        visibility 0s linear 220ms; /* token-lint-ignore: panel motion */
-    }
-
-    .site-header[data-mega-open] .site-header__scrim {
-      transition-delay: 0s;
-    }
   }
 
   @media (max-width: 1100px) {

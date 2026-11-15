@@ -82,10 +82,9 @@ const panelId = (tabKey: string) => `${id}-panel-${tabKey}`
     text-transform: var(--label-case);
     white-space: nowrap;
     cursor: pointer;
-    transition: color var(--duration-fast) var(--ease-out);
   }
 
-  /* The solid underline of the open tab grows from the left; it sits on the bar's hairline. */
+  /* The solid underline of the open tab; it sits on the bar's hairline. */
   .tabs__tab::after {
     position: absolute;
     right: 0;
@@ -94,9 +93,7 @@ const panelId = (tabKey: string) => `${id}-panel-${tabKey}`
     height: var(--stroke-bold);
     background: var(--text-primary);
     content: '';
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform var(--duration-base) var(--ease-out);
+    visibility: hidden;
   }
 
   .tabs__tab[aria-selected='true'] {
@@ -104,7 +101,7 @@ const panelId = (tabKey: string) => `${id}-panel-${tabKey}`
   }
 
   .tabs__tab[aria-selected='true']::after {
-    transform: scaleX(1);
+    visibility: visible;
   }
 
   @media (hover: hover) {
@@ -123,13 +120,6 @@ const panelId = (tabKey: string) => `${id}-panel-${tabKey}`
   @media (max-width: 479px) {
     .tabs__tab {
       font-stretch: normal;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .tabs__tab,
-    .tabs__tab::after {
-      transition: none;
     }
   }
 

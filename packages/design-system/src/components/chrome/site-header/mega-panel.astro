@@ -142,7 +142,6 @@ const isFlat = columns.length === 1 && !columns[0]?.label
   .mega a {
     color: var(--text-secondary);
     text-decoration: none;
-    transition: color var(--duration-fast) var(--ease-out);
   }
 
   .mega__links a {
@@ -176,43 +175,4 @@ const isFlat = columns.length === 1 && !columns[0]?.label
     opacity: 1;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .mega {
-      transition:
-        grid-template-rows 120ms var(--ease-out), /* token-lint-ignore: quick close */
-        opacity 100ms linear, /* token-lint-ignore: quick close */
-        visibility 0s linear 120ms; /* token-lint-ignore: quick close */
-    }
-
-    :global([data-site-menu-item][data-open]) > .mega {
-      transition:
-        grid-template-rows 260ms var(--ease-out), /* token-lint-ignore: panel motion */
-        opacity 180ms var(--ease-out), /* token-lint-ignore: panel motion */
-        visibility 0s;
-    }
-
-    .mega__column,
-    .mega__tile {
-      opacity: 0;
-      transform: translateY(var(--space-8));
-      transition: none;
-    }
-
-    :global([data-site-menu-item][data-open]) > .mega .mega__column,
-    :global([data-site-menu-item][data-open]) > .mega .mega__tile {
-      opacity: 1;
-      transform: none;
-      transition:
-        opacity 240ms var(--ease-out), /* token-lint-ignore: panel motion */
-        transform 240ms var(--ease-out); /* token-lint-ignore: panel motion */
-      transition-delay: calc(80ms + var(--i, 0) * 30ms); /* token-lint-ignore: stagger */
-    }
-
-    /* Moving between two top items swaps the sheets at once: no second fade, no flash. */
-    :global([data-mega-switching]) .mega,
-    :global([data-mega-switching]) .mega__column,
-    :global([data-mega-switching]) .mega__tile {
-      transition: none !important;
-    }
-  }
 </style>

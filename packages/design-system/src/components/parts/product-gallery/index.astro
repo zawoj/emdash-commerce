@@ -68,7 +68,6 @@ const thumbLabel = (index: number) => thumbnailLabelTemplate.replace('{index}', 
     grid-area: track;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
     scrollbar-width: none;
     gap: var(--space-8);
     min-width: 0;
@@ -87,6 +86,7 @@ const thumbLabel = (index: number) => thumbnailLabelTemplate.replace('{index}', 
     flex: 0 0 100%;
     aspect-ratio: 4 / 5;
     margin: 0;
+    border: 1px solid var(--border);
     border-radius: var(--radius-card);
     background: var(--surface-muted);
     scroll-snap-align: start;
@@ -119,17 +119,13 @@ const thumbLabel = (index: number) => thumbnailLabelTemplate.replace('{index}', 
   .product-gallery__thumb {
     display: block;
     aspect-ratio: 1;
-    border: var(--stroke-thin) solid transparent;
+    border: var(--stroke-thin) solid var(--border);
     border-radius: var(--radius-card);
     background: var(--surface-muted);
-    opacity: 0.7;
-    transition:
-      border-color var(--duration-fast) var(--ease-out),
-      opacity var(--duration-fast) var(--ease-out);
   }
 
   .product-gallery__thumb:hover {
-    opacity: 1;
+    border-color: var(--text-primary);
   }
 
   .product-gallery__thumb :global(img) {
@@ -139,8 +135,7 @@ const thumbLabel = (index: number) => thumbnailLabelTemplate.replace('{index}', 
   }
 
   .product-gallery__thumb[aria-current='true'] {
-    border-color: var(--text-primary);
-    opacity: 1;
+    border: var(--stroke-bold) solid var(--action-primary);
   }
 
   .product-gallery__thumb:focus-visible {

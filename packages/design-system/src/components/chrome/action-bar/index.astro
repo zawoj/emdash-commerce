@@ -68,10 +68,9 @@ const isWatching = Boolean(watch)
     }
   }
 
-  /* The bar is hidden by sliding it out of the screen (and out of the tab order). */
+  /* The bar is hidden outright (and out of the tab order). */
   .action-bar[data-state='hidden'] {
     visibility: hidden;
-    transform: translateY(100%);
   }
 
   .action-bar__summary {
@@ -101,11 +100,4 @@ const isWatching = Boolean(watch)
     min-width: 0;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .action-bar {
-      transition:
-        transform var(--duration-base) var(--ease-out),
-        visibility var(--duration-base);
-    }
-  }
 </style>

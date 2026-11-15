@@ -21,14 +21,20 @@
   Example:
 
   :root {
-    --color-brand: light-dark(#0f766e, #2dd4bf);
-    --color-brand-hover: light-dark(#115e59, #5eead4);
-    --color-on-brand: light-dark(#ffffff, #0a0a0a);
-    --font-heading: "Iowan Old Style", Georgia, serif;
-    --radius-lg: 18px;
-    --radius-xl: 24px;
-  }
-*/
-
-:root {
+  /* The wireframe skin: square corners, no shadows, no tracking. The blog template's tokens
+     (src/styles/tokens.css) define rounded corners, shadows and tracking; these beat them. */
+  --radius-sm: 0;
+  --radius: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-full: 0;
+  --shadow-sm: none;
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-lg: none;
+  --tracking-tight: 0;
+  --tracking-snug: 0;
+  --tracking-wide: 0;
+  --tracking-wider: 0;
+  --color-brand-ring: transparent;
 }

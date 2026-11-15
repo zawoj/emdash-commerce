@@ -37,7 +37,8 @@ const toggleLabel = (item: ChromeLink): string => (subMenuLabelTemplate ? subMen
             <a href={item.href} target={linkTarget(item)} rel={linkRel(item)} aria-current={item.isCurrent ? 'true' : undefined} data-site-menu-link>{item.label}</a>
             {hasPanel && (
               <button type="button" class="site-header__sub-toggle" aria-expanded={isOpen ? 'true' : 'false'} aria-controls={panelId} aria-label={toggleLabel(item)} data-site-submenu-toggle>
-                <Icon name={iconNames.chevronDown} size={16} />
+                <span class="site-header__glyph site-header__glyph--closed"><Icon name={iconNames.chevronDown} size={16} /></span>
+                <span class="site-header__glyph site-header__glyph--open"><Icon name={iconNames.chevronUp} size={16} /></span>
               </button>
             )}
             {hasPanel && <MegaPanel item={item} id={panelId} />}
@@ -121,12 +122,17 @@ const toggleLabel = (item: ChromeLink): string => (subMenuLabelTemplate ? subMen
     outline-offset: 2px;
   }
 
-  .site-header__sub-toggle :global(svg) {
-    transition: transform var(--duration-fast) var(--ease-out);
+  .site-header__glyph {
+    display: inline-flex;
   }
 
-  .site-header__sub-toggle[aria-expanded='true'] :global(svg) {
-    transform: scaleY(-1);
+  .site-header__glyph--open,
+  .site-header__sub-toggle[aria-expanded='true'] .site-header__glyph--closed {
+    display: none;
+  }
+
+  .site-header__sub-toggle[aria-expanded='true'] .site-header__glyph--open {
+    display: inline-flex;
   }
 
   /* Below a desktop the drawer carries the menu. */

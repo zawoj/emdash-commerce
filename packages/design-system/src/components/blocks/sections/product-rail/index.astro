@@ -100,7 +100,6 @@ const { heading, headingId, products, tabs = [], tabsLabel, more, label, prevLab
     color: var(--text-secondary);
     font: var(--type-text-medium-sm);
     text-decoration: none;
-    transition: color var(--duration-fast) var(--ease-out);
   }
 
   .product-rail__tab {
@@ -144,9 +143,6 @@ const { heading, headingId, products, tabs = [], tabsLabel, more, label, prevLab
     width: 40px;
     height: 40px;
     background: transparent;
-    transition:
-      background-color var(--duration-fast) var(--ease-out),
-      border-color var(--duration-fast) var(--ease-out);
   }
 
   .product-rail__controls :global(.product-rail__button:hover) {
