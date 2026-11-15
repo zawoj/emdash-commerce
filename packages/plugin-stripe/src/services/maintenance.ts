@@ -63,7 +63,7 @@ const transition = async (container: CommerceContainer, cartId: string, expected
 };
 
 /** Best-effort refresh of the admin-visible cart mirror after a status change. */
-const refreshMirror = async (container: CommerceContainer, cart: Cart): Promise<void> => {
+export const refreshMirror = async (container: CommerceContainer, cart: Cart): Promise<void> => {
 	try {
 		const priced = await loadPricedCart(container, createExtensionContext(container), cart);
 		await mirrorCart(container, priced);

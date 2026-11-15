@@ -3,7 +3,7 @@ import type { CommerceContainer } from "../plugin/container.js";
 import type { CheckoutSnapshot } from "../ports/repositories.js";
 import { RECORD_INDEX_KEY } from "../ports/repositories.js";
 import { errorMessage } from "./payments/async.js";
-import { MAINTENANCE } from "./maintenance.js";
+import { MAINTENANCE, refreshMirror } from "./maintenance.js";
 
 /**
  * The sweep of checkouts nobody paid. Stripe's `checkout.session.expired` event and the reservation expiry sweep
@@ -94,12 +94,15 @@ const sweepAbandoned = async (container: CommerceContainer, snapshot: CheckoutSn
 	const isOwnCheckout = stored?.status === CART_STATUS.checkoutOpen && (stored.checkout?.sessionId === snapshot.sessionId || stored.checkout?.reservationId === snapshot.reservationId);
 	const isIdleAnonymous = stored && !stored.email && stored.updatedAt < scope.idleCutoff && (stored.status === CART_STATUS.active || isOwnCheckout);
 	if (stored && isIdleAnonymous) {
+		// The admin mirror outlives the storage row, so it is closed first instead of staying `checkout_open` for good.
+		await refreshMirror(container, { ...stored, status: CART_STATUS.expired, checkout: null });
 		await container.carts.delete(stored.id);
 		result.carts += 1;
 	} else if (stored && isOwnCheckout) {
 		const loaded = await container.carts.get(stored.id);
 		if (loaded?.value.status === CART_STATUS.checkoutOpen) {
-			await container.carts.put({ ...loaded.value, status: CART_STATUS.active, checkout: null, updatedAt: container.clock.now().toISOString() }, loaded.revision);
+			const reopened = { ...loaded.value, status: CART_STATUS.active, checkout: null, updatedAt: container.clock.now().toISOString() };
+			if ((await container.carts.put(reopened, loaded.revision)).applied) await refreshMirror(container, reopened);
 		}
 	}
 	await container.snapshots.delete(snapshot.checkoutId);

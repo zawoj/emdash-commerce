@@ -37,6 +37,8 @@
   their release time (`updatedAt`) instead of the hold's expiry.
 - A checkout whose creation failed (for example `NOT_CONFIGURED` on a fresh database) leaves a snapshot with no session
   after releasing its hold; the sweep removes such a snapshot ten minutes after it was written.
+- The admin `carts` mirror of a cart the sweep deletes is set to `expired` first (it stayed `checkout_open` for good), and
+  a reopened cart's mirror is refreshed.
 
 ### feat: sweep of abandoned checkouts — Claude Code
 - Verified with a sandbox session expired through the Stripe API: `checkout.session.expired` arrives through

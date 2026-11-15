@@ -34,6 +34,8 @@ describe("sweepCheckouts", () => {
 		expect(await sweepCheckouts(h.container)).toMatchObject({ holdRecords: 1 });
 		expect(await h.container.inventory.getReservation(seeded.reservationId)).toBeNull();
 		expect(await h.container.carts.get(seeded.cartId)).toBeNull();
+		// the admin mirror of the deleted cart is closed, not left as an open checkout
+		expect(h.world.cartMirror.mirrored.get(seeded.cartId)?.cart.status).toBe(CART_STATUS.expired);
 		expect(await h.container.inventory.get(seeded.sellable)).toMatchObject({ reserved: 0, available: 10 });
 	});
 

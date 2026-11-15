@@ -30,6 +30,9 @@ stripe listen --forward-to localhost:4360/_emdash/api/plugins/stripe-commerce/we
 pnpm seed                                              # demo catalog, Homepage, and the Stripe catalog sync
 ```
 
+After the very first seed on an empty database restart the server once (`npx astro dev stop` in `apps/storefront`, then
+`pnpm dev`): EmDash reads the site URL at startup and checkout needs it.
+
 Open <http://localhost:4360/shop>, add a product and pay with test card `4242 4242 4242 4242`. The admin is at
 `/_emdash/admin`; sign in once with `http://localhost:4360/_emdash/api/setup/dev-bypass?redirect=/_emdash/admin`.
 Reset by stopping the server and deleting `apps/storefront/data.db*` and `apps/storefront/uploads/`.
