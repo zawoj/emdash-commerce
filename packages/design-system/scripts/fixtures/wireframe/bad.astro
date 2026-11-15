@@ -1,0 +1,30 @@
+---
+---
+
+<p class="bad">Everything the wireframe forbids.</p>
+
+<style>
+  .radius { border-radius: 8px; }
+  .shadow { box-shadow: 0 4px 12px black; }
+  .ring { box-shadow: inset 0 0 0 1px var(--border); }
+  .gradient { background: linear-gradient(180deg, transparent, black); }
+  .blur { backdrop-filter: blur(8px); }
+  .case { text-transform: uppercase; }
+  .tracking { letter-spacing: 0.06em; }
+  .stretch { font-stretch: 72%; }
+  .rotate { transform: rotate(45deg); }
+  .skew { transform: skewX(10deg); }
+  .scale { scale: 1.1; }
+  .slide { transform: translateY(100%); }
+  .keyframes { animation: pulse 1s infinite; }
+  @keyframes pulse { to { opacity: 0.5; } }
+  .transition { transition: opacity 200ms; }
+  .start { @starting-style { opacity: 0; } }
+  .zoom { width: calc(100% * var(--hover-zoom)); }
+  .hex { color: #d7261e; }
+  .rgb { background: rgb(255 255 255 / 0.82); }
+  .named { color: red; }
+  .volt { background: var(--volt); }
+  .font { font-family: 'Archivo Variable', sans-serif; }
+  .photo { filter: brightness(0.7); }
+</style>

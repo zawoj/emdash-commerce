@@ -43,11 +43,12 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "token-lint": "./scripts/token-lint.mjs"
+    "token-lint": "./scripts/token-lint.mjs",
+    "wireframe-lint": "./scripts/wireframe-lint.mjs"
   },
   "scripts": {
     "typecheck": "astro check",
-    "test": "node scripts/token-lint.mjs src"
+    "test": "node scripts/token-lint.mjs src && node scripts/wireframe-lint.mjs src ../../apps/storefront/src && node --test scripts/wireframe-lint.test.mjs"
   },
   "dependencies": {
     "astro": "7.3.2"

@@ -1,0 +1,8 @@
+:root {
+  --radius-md: 8px;
+  --tracking-label: 0.06em;
+  --text-case: uppercase;
+  --hot: #d7261e;
+  --ink-500: #4caf50;
+  --image-scrim: linear-gradient(180deg, transparent, black);
+}

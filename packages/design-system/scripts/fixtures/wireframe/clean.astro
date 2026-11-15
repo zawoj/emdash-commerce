@@ -1,0 +1,29 @@
+---
+---
+
+<p class="ok">Square, flat, outlined.</p>
+
+<style>
+  .ok {
+    border: 1px solid var(--border-strong);
+    border-radius: 0;
+    background: color-mix(in srgb, var(--ink-1000) 55%, transparent);
+    box-shadow: none;
+    color: var(--text-primary);
+    outline: 2px solid var(--focus-ring);
+    transform: translate(-50%, -50%);
+    transition: none;
+  }
+
+  .token-radius {
+    border-radius: var(--radius-card);
+  }
+
+  .logo {
+    filter: var(--logo-filter-ink);
+  }
+
+  .ignored {
+    filter: brightness(0) invert(1); /* wireframe-ignore: a flat white logo silhouette */
+  }
+</style>
