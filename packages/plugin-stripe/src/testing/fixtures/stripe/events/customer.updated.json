@@ -1,0 +1,47 @@
+{
+  "id": "evt_eD4yau94dGRcnhyF01FMeL9g",
+  "object": "event",
+  "api_version": "2026-10-28.endive",
+  "created": 1794500577,
+  "data": {
+    "object": {
+      "id": "cus_qI7knypclsRHfZ",
+      "object": "customer",
+      "address": null,
+      "balance": 0,
+      "created": 1794500576,
+      "currency": "usd",
+      "customer_account": null,
+      "default_source": null,
+      "delinquent": false,
+      "description": "(created by Stripe CLI)",
+      "discount": null,
+      "email": null,
+      "invoice_prefix": "HXDIKGAW",
+      "invoice_settings": {
+        "custom_fields": null,
+        "default_payment_method": null,
+        "footer": null,
+        "rendering_options": null
+      },
+      "livemode": false,
+      "metadata": {},
+      "name": null,
+      "phone": null,
+      "preferred_locales": [],
+      "shipping": null,
+      "tax_exempt": "none",
+      "test_clock": null
+    },
+    "previous_attributes": {
+      "currency": null
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 0,
+  "request": {
+    "id": "req_nRuBmOxoqGzFau",
+    "idempotency_key": null
+  },
+  "type": "customer.updated"
+}

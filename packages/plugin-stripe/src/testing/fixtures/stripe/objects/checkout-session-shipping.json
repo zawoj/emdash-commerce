@@ -1,0 +1,203 @@
+{
+  "id": "cs_test_fixture_shipping",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "allowed_payment_method_types": null,
+  "amount_subtotal": 360,
+  "amount_total": 939,
+  "automatic_tax": {
+    "address_collection_precision": null,
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": "required",
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "DEMO",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "http://localhost:4360/cart",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": {
+    "business_name": null,
+    "individual_name": null,
+    "shipping_details": {
+      "name": "Test Buyer",
+      "address": {
+        "line1": "2 Ship Street",
+        "line2": "Apt 4",
+        "city": "Krakow",
+        "postal_code": "30-001",
+        "state": null,
+        "country": "PL"
+      }
+    }
+  },
+  "consent": null,
+  "consent_collection": null,
+  "created": 1794487659,
+  "currency": "pln",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": "cus_MGTTaFcD4Yc0HJ",
+  "customer_account": null,
+  "customer_creation": "always",
+  "customer_details": {
+    "address": {
+      "line1": "1 Example Street",
+      "line2": null,
+      "city": "Warsaw",
+      "postal_code": "00-001",
+      "state": null,
+      "country": "PL"
+    },
+    "business_name": null,
+    "email": "buyer@example.com",
+    "individual_name": null,
+    "name": "Test Buyer",
+    "phone": null,
+    "tax_exempt": "none",
+    "tax_ids": []
+  },
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1794574059,
+  "integration_identifier": "emdash-stripe-trillvdx",
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "line_items": {
+    "object": "list",
+    "data": [
+      {
+        "id": "li_xKgyj9NT9JYeR2acSPK3aAnq",
+        "object": "item",
+        "adjustable_quantity": null,
+        "amount_discount": 36,
+        "amount_subtotal": 360,
+        "amount_tax": 22,
+        "amount_total": 346,
+        "currency": "pln",
+        "description": "Produkt demo",
+        "metadata": {},
+        "price": {
+          "id": "price_EgLXIRh3YHsgQzQtJ5WFYKiU",
+          "object": "price",
+          "active": true,
+          "billing_scheme": "per_unit",
+          "created": 1794487630,
+          "currency": "pln",
+          "custom_unit_amount": null,
+          "livemode": false,
+          "lookup_key": null,
+          "metadata": {
+            "emdash_product_id": "01M77V5WR0KPWZMACY7MBFHVK4"
+          },
+          "nickname": null,
+          "product": "prod_kj0B3ERo6HehjY",
+          "recurring": null,
+          "tax_behavior": "unspecified",
+          "tiers_mode": null,
+          "transform_quantity": null,
+          "type": "one_time",
+          "unit_amount": 120,
+          "unit_amount_decimal": "120"
+        },
+        "quantity": 3
+      }
+    ],
+    "has_more": false,
+    "url": "/v1/checkout/sessions/cs_test_sm9t28yAFEY2vHLX6NrivNUsBFgIQTVesm9t28yAFEY2vHLX6NrivNUsBF/line_items"
+  },
+  "livemode": false,
+  "locale": null,
+  "managed_payments": {
+    "enabled": false
+  },
+  "marketing_attributions": null,
+  "metadata": {
+    "cart_id": "vpBxundyPcATqzlu2vSsYrfoTSPnAio3"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": "pi_vGrN44iVK3e67bG3Cf640V7P",
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": {
+    "id": "pmc_dj1ilsGyx44tVLpzvbZxFswy",
+    "parent": null
+  },
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card",
+    "blik",
+    "link",
+    "klarna"
+  ],
+  "payment_status": "paid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": {
+    "allow_redisplay_filters": [
+      "always"
+    ],
+    "payment_method_remove": "disabled",
+    "payment_method_save": null
+  },
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": {
+    "amount_subtotal": 500,
+    "amount_tax": 93,
+    "amount_total": 615,
+    "shipping_rate": "shr_fixture",
+    "taxes": []
+  },
+  "shipping_options": [],
+  "status": "complete",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "http://localhost:4360/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 36,
+    "amount_shipping": 500,
+    "amount_tax": 115
+  },
+  "ui_mode": "hosted_page",
+  "url": null,
+  "wallet_options": null
+}

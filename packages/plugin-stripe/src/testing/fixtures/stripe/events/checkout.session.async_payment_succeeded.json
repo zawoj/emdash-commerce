@@ -1,0 +1,159 @@
+{
+  "id": "evt_fixture_checkout_session_async_payment_succeeded",
+  "object": "event",
+  "api_version": "2026-10-28.endive",
+  "created": 1794487682,
+  "data": {
+    "object": {
+      "id": "cs_test_sm9t28yAFEY2vHLX6NrivNUsBFgIQTVesm9t28yAFEY2vHLX6NrivNUsBF",
+      "object": "checkout.session",
+      "adaptive_pricing": {
+        "enabled": true
+      },
+      "after_expiration": null,
+      "allow_promotion_codes": null,
+      "allowed_payment_method_types": null,
+      "amount_subtotal": 360,
+      "amount_total": 360,
+      "automatic_tax": {
+        "address_collection_precision": null,
+        "enabled": false,
+        "liability": null,
+        "provider": null,
+        "status": null
+      },
+      "billing_address_collection": "required",
+      "branding_settings": {
+        "background_color": "#ffffff",
+        "border_style": "rounded",
+        "button_color": "#0074d4",
+        "display_name": "DEMO",
+        "font_family": "default",
+        "icon": null,
+        "logo": null
+      },
+      "cancel_url": "http://localhost:4360/cart",
+      "client_reference_id": null,
+      "client_secret": null,
+      "collected_information": {
+        "business_name": null,
+        "individual_name": null,
+        "shipping_details": null
+      },
+      "consent": null,
+      "consent_collection": null,
+      "created": 1794487659,
+      "currency": "pln",
+      "currency_conversion": null,
+      "custom_fields": [],
+      "custom_text": {
+        "after_submit": null,
+        "shipping_address": null,
+        "submit": null,
+        "terms_of_service_acceptance": null
+      },
+      "customer": "cus_MGTTaFcD4Yc0HJ",
+      "customer_account": null,
+      "customer_creation": "always",
+      "customer_details": {
+        "address": {
+          "city": "Warsaw",
+          "country": "PL",
+          "line1": "1 Example Street",
+          "line2": null,
+          "postal_code": "00-001",
+          "state": null
+        },
+        "business_name": null,
+        "email": "buyer@example.com",
+        "individual_name": null,
+        "name": "Test Buyer",
+        "phone": null,
+        "tax_exempt": "none",
+        "tax_ids": []
+      },
+      "customer_email": null,
+      "discounts": [],
+      "expires_at": 1794574059,
+      "integration_identifier": "emdash-stripe-trillvdx",
+      "invoice": null,
+      "invoice_creation": {
+        "enabled": false,
+        "invoice_data": {
+          "account_tax_ids": null,
+          "custom_fields": null,
+          "description": null,
+          "footer": null,
+          "issuer": null,
+          "metadata": {},
+          "rendering_options": null
+        }
+      },
+      "livemode": false,
+      "locale": null,
+      "managed_payments": {
+        "enabled": false
+      },
+      "marketing_attributions": null,
+      "metadata": {
+        "cart_id": "vpBxundyPcATqzlu2vSsYrfoTSPnAio3"
+      },
+      "mode": "payment",
+      "origin_context": null,
+      "payment_intent": "pi_vGrN44iVK3e67bG3Cf640V7P",
+      "payment_link": null,
+      "payment_method_collection": "if_required",
+      "payment_method_configuration_details": {
+        "id": "pmc_dj1ilsGyx44tVLpzvbZxFswy",
+        "parent": null
+      },
+      "payment_method_options": {
+        "card": {
+          "request_three_d_secure": "automatic"
+        }
+      },
+      "payment_method_types": [
+        "card",
+        "blik",
+        "link",
+        "klarna"
+      ],
+      "payment_status": "paid",
+      "permissions": null,
+      "phone_number_collection": {
+        "enabled": false
+      },
+      "recovered_from": null,
+      "saved_payment_method_options": {
+        "allow_redisplay_filters": [
+          "always"
+        ],
+        "payment_method_remove": "disabled",
+        "payment_method_save": null
+      },
+      "setup_intent": null,
+      "shipping_address_collection": null,
+      "shipping_cost": null,
+      "shipping_options": [],
+      "status": "complete",
+      "submit_type": null,
+      "subscription": null,
+      "success_url": "http://localhost:4360/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+      "total_details": {
+        "amount_discount": 0,
+        "amount_shipping": 0,
+        "amount_tax": 0
+      },
+      "ui_mode": "hosted_page",
+      "url": null,
+      "wallet_options": null
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 0,
+  "request": {
+    "id": null,
+    "idempotency_key": null
+  },
+  "type": "checkout.session.async_payment_succeeded"
+}

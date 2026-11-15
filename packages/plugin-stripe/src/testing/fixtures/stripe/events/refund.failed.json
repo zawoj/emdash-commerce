@@ -1,0 +1,55 @@
+{
+  "id": "evt_fixture_refund_failed",
+  "object": "event",
+  "api_version": "2026-10-28.endive",
+  "created": 1794500631,
+  "data": {
+    "object": {
+      "id": "re_p52tiWzn7pCL5h4kHwkPPiPl",
+      "object": "refund",
+      "amount": 500,
+      "application": null,
+      "balance_transaction": "txn_TLLOtboB0xxsbjIrYzGmRUnY",
+      "charge": "ch_candXPmIHTKIXVui7YxfY5PZ",
+      "created": 1794500630,
+      "currency": "eur",
+      "customer": null,
+      "customer_account": null,
+      "destination_details": {
+        "card": {
+          "reference": "5038026071423600",
+          "reference_status": "available",
+          "reference_type": "acquirer_reference_number",
+          "type": "refund"
+        },
+        "type": "card"
+      },
+      "metadata": {
+        "emdash_refund_id": "rf_fixture"
+      },
+      "payment_intent": "pi_8tfhk5yKG3d2I6VTkLOmsuWD",
+      "payment_method": "pm_6oRXbpdV9CPyM6ukSNOrcnLa",
+      "reason": "requested_by_customer",
+      "receipt_number": null,
+      "source_transfer_reversal": null,
+      "status": "failed",
+      "transfer_reversal": null,
+      "failure_reason": "lost_or_stolen_card"
+    },
+    "previous_attributes": {
+      "destination_details": {
+        "card": {
+          "reference": null,
+          "reference_status": "pending"
+        }
+      }
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 0,
+  "request": {
+    "id": null,
+    "idempotency_key": null
+  },
+  "type": "refund.failed"
+}

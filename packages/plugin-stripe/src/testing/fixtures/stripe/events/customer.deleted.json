@@ -1,0 +1,46 @@
+{
+  "id": "evt_VeENacrg9EdwufRcIgT7IFC5",
+  "object": "event",
+  "api_version": "2026-10-28.endive",
+  "created": 1794500743,
+  "data": {
+    "object": {
+      "id": "cus_WzNbrFG94K08bO",
+      "object": "customer",
+      "address": null,
+      "balance": 0,
+      "created": 1794500548,
+      "currency": null,
+      "customer_account": null,
+      "default_source": null,
+      "delinquent": false,
+      "description": null,
+      "discount": null,
+      "email": "buyer@example.com",
+      "invoice_prefix": "YEZ5GBRC",
+      "invoice_settings": {
+        "custom_fields": null,
+        "default_payment_method": null,
+        "footer": null,
+        "rendering_options": null
+      },
+      "livemode": false,
+      "metadata": {
+        "probe": "1"
+      },
+      "name": null,
+      "phone": null,
+      "preferred_locales": [],
+      "shipping": null,
+      "tax_exempt": "none",
+      "test_clock": null
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 0,
+  "request": {
+    "id": "req_trxBaOvhFkG7vp",
+    "idempotency_key": null
+  },
+  "type": "customer.deleted"
+}
