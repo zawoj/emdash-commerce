@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { formatMoney } from "../../lib/money";
 import { LOCALES } from "../../lib/i18n";
+import { homeStructure } from "./config";
 import { homeCopy } from "./copy";
 import { loadHomeConfig } from "./load-config";
 
@@ -9,14 +10,14 @@ describe("loadHomeConfig", () => {
 	it("serves English hero copy for en", () => {
 		const config = loadHomeConfig(LOCALES.en);
 		expect(config.hero.heading).toBe(homeCopy.en.hero.heading);
-		expect(config.hero.voltText).toBe("GO.");
+		expect(config.hero.voltText).toBe("SHIP.");
 		expect(config.rails[0]?.title).toBe("Featured");
 	});
 
 	it("serves Polish hero copy for pl", () => {
 		const config = loadHomeConfig(LOCALES.pl);
-		expect(config.hero.heading).toContain("TRENUJ");
-		expect(config.faq[0]?.question).toContain("dostawa");
+		expect(config.hero.heading).toContain("WDRAŻAJ");
+		expect(config.faq[1]?.question).toContain("dostawa");
 	});
 });
 
@@ -27,5 +28,25 @@ describe("formatMoney", () => {
 		expect(enLabel).toMatch(/129/);
 		expect(plLabel).toContain("zł");
 		expect(plLabel).toMatch(/129,00|129\s*00/);
+	});
+});
+
+describe("home structure and copy", () => {
+	it.each([LOCALES.en, LOCALES.pl])("names every rail, tab and index entry in the copy (%s)", (locale) => {
+		const strings = homeCopy[locale];
+		for (const rail of homeStructure.rails) {
+			expect(strings.railTitles, `title of rail ${rail.key}`).toHaveProperty(rail.key);
+			if ("moreHref" in rail) expect(strings.railMore, `more of rail ${rail.key}`).toHaveProperty(rail.key);
+			for (const slug of "tabCategorySlugs" in rail ? rail.tabCategorySlugs : []) {
+				expect(strings.tabCategories, `tab ${slug}`).toHaveProperty(slug);
+			}
+		}
+		for (const item of homeStructure.activityCategories) expect(strings.activity).toHaveProperty(item.slug);
+	});
+
+	it("names the index entries from the copy, not from the slug", () => {
+		const config = loadHomeConfig(LOCALES.en);
+		expect(config.activityCategories.map((item) => item.name)).toEqual(["Apparel", "Desk setup", "Drinkware", "Bundles"]);
+		expect(config.rails.find((rail) => rail.key === "bundles")?.moreLabel).toBe("Shop bundles");
 	});
 });

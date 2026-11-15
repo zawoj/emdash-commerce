@@ -35,7 +35,7 @@ describe("dedupeRails", () => {
 				rail("featured", ["a", "b", "c"]),
 				rail("new", ["hero", "d", "e"]),
 				rail("sale", ["spotlight", "f", "g"]),
-				rail("running", ["d", "hero", "h", "i"]),
+				rail("apparel", ["d", "hero", "h", "i"]),
 			],
 			reserved,
 		);
@@ -43,7 +43,7 @@ describe("dedupeRails", () => {
 		expect(byKey.featured).toEqual(["a", "b", "c"]);
 		expect(byKey.new).toEqual(["d", "e"]);
 		expect(byKey.sale).toEqual(["f", "g"]);
-		expect(byKey.running).toEqual(["d", "h", "i"]);
+		expect(byKey.apparel).toEqual(["d", "h", "i"]);
 	});
 
 	it("does not dedupe category rails against each other", () => {

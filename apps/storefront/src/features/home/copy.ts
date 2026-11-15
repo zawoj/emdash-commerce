@@ -23,161 +23,175 @@ export interface HomeLookCopy {
 	listHeading: string;
 }
 
-export interface HomeActivityCopy {
-	readonly running: string;
-	readonly cycling: string;
-	readonly triathlon: string;
+/** The home categories shown as rails, tabs and the index; each key is a product category slug. */
+export interface HomeCategoryCopy {
+	readonly apparel: string;
+	readonly desk: string;
+	readonly drinkware: string;
+	readonly bundles: string;
 }
 
-export interface HomeRailTitles {
+export interface HomeRailTitles extends HomeCategoryCopy {
 	readonly featured: string;
 	readonly new: string;
 	readonly sale: string;
-	readonly running: string;
-	readonly cycling: string;
-	readonly triathlon: string;
 }
 
 export interface HomeLocaleCopy {
 	hero: HomeHeroCopy;
 	railTitles: HomeRailTitles;
-	railMore: {
+	railMore: HomeCategoryCopy & {
 		readonly new: string;
 		readonly sale: string;
-		readonly running: string;
-		readonly cycling: string;
-		readonly triathlon: string;
 	};
-	tabCategories: HomeActivityCopy & { training: string };
+	tabCategories: HomeCategoryCopy;
 	spotlight: HomeSpotlightCopy;
 	look: HomeLookCopy;
-	activity: HomeActivityCopy;
+	activity: HomeCategoryCopy;
 	faq: readonly HomeFaqItem[];
 	marquee: string;
 }
 
 const en: HomeLocaleCopy = {
 	hero: {
-		eyebrow: "Triathlon · Running · Cycling · Training",
-		heading: "TRAIN HARD. GIVE YOUR BEST.",
-		voltText: "GO.",
-		blackText: "KEEP\nGOING",
+		eyebrow: "Apparel · Desk setup · Drinkware · Bundles",
+		heading: "MERCH FOR PEOPLE WHO SHIP AT THE EDGE.",
+		voltText: "SHIP.",
+		blackText: "AT THE\nEDGE",
 		ctaLabel: "New arrivals",
-		secondaryLabel: "Shop cycling",
-		productLabel: "Running tee",
+		secondaryLabel: "Shop bundles",
+		productLabel: "Workers tee",
 	},
 	railTitles: {
 		featured: "Featured",
 		new: "New arrivals",
 		sale: "Sale",
-		running: "Running",
-		cycling: "Cycling",
-		triathlon: "Triathlon",
+		bundles: "Bundles",
+		apparel: "Apparel",
+		desk: "Desk setup",
+		drinkware: "Drinkware",
 	},
 	railMore: {
 		new: "View all",
 		sale: "View sale",
-		running: "Shop running",
-		cycling: "Shop cycling",
-		triathlon: "Shop triathlon",
+		bundles: "Shop bundles",
+		apparel: "Shop apparel",
+		desk: "Shop desk setup",
+		drinkware: "Shop drinkware",
 	},
 	tabCategories: {
-		running: "Running",
-		cycling: "Cycling",
-		triathlon: "Triathlon",
-		training: "Training",
+		apparel: "Apparel",
+		desk: "Desk setup",
+		drinkware: "Drinkware",
+		bundles: "Bundles",
 	},
 	spotlight: {
-		eyebrow: "Cycling",
+		eyebrow: "Outerwear",
 		specs: [
-			{ label: "Sport", value: "Cycling" },
+			{ label: "Category", value: "Outerwear" },
 			{ label: "Layer", value: "Windproof" },
 		],
 	},
 	look: {
-		eyebrow: "Running",
-		heading: "Shop the kit",
-		ctaLabel: "Shop the kit",
-		listHeading: "In this look",
+		eyebrow: "Desk setup",
+		heading: "Shop the desk setup",
+		ctaLabel: "Shop the desk setup",
+		listHeading: "In this setup",
 	},
 	activity: {
-		running: "Running",
-		cycling: "Cycling",
-		triathlon: "Triathlon",
+		apparel: "Apparel",
+		desk: "Desk setup",
+		drinkware: "Drinkware",
+		bundles: "Bundles",
 	},
 	faq: [
 		{
+			question: "Is this official Cloudflare merch?",
+			answer: [
+				"No. This is an unofficial demo storefront with fictional products and mock data, built to show what EmDash and Stripe can do. Nothing here ships.",
+			],
+		},
+		{
 			question: "How long does delivery take?",
-			answer: ["Usually 2–3 business days within Poland."],
+			answer: ["In a real shop: 3–5 business days, tracked. Here, nothing is delivered — use a Stripe test card."],
 		},
 		{
 			question: "Can I return a product?",
-			answer: ["Yes — you have 30 days to return without giving a reason."],
+			answer: ["Yes — in a real shop you would have 30 days to return without giving a reason."],
 		},
 	],
-	marquee: "TRAIN HARD — GO FAR",
+	marquee: "SHIP IT AT THE EDGE",
 };
 
 const pl: HomeLocaleCopy = {
 	hero: {
-		eyebrow: "Triathlon · Bieganie · Kolarstwo · Trening",
-		heading: "CIĘŻKO TRENUJ. PEŁNĄ PARĄ.",
-		voltText: "NA.",
-		blackText: "MAX.",
+		eyebrow: "Odzież · Biurko · Akcesoria do picia · Zestawy",
+		heading: "GADŻETY DLA LUDZI, KTÓRZY WDRAŻAJĄ NA EDGE'U.",
+		voltText: "WDRAŻAJ.",
+		blackText: "NA\nEDGE'U",
 		ctaLabel: "Nowości",
-		secondaryLabel: "Kupuj kolarstwo",
-		productLabel: "Koszulka do biegania",
+		secondaryLabel: "Kupuj zestawy",
+		productLabel: "Koszulka Workers",
 	},
 	railTitles: {
 		featured: "Wyróżnione",
 		new: "Nowości",
 		sale: "Wyprzedaż",
-		running: "Bieganie",
-		cycling: "Kolarstwo",
-		triathlon: "Triathlon",
+		bundles: "Zestawy",
+		apparel: "Odzież",
+		desk: "Biurko",
+		drinkware: "Do picia",
 	},
 	railMore: {
 		new: "Zobacz wszystkie",
 		sale: "Zobacz wyprzedaż",
-		running: "Kupuj bieganie",
-		cycling: "Kupuj kolarstwo",
-		triathlon: "Kupuj triathlon",
+		bundles: "Kupuj zestawy",
+		apparel: "Kupuj odzież",
+		desk: "Kupuj na biurko",
+		drinkware: "Kupuj do picia",
 	},
 	tabCategories: {
-		running: "Bieganie",
-		cycling: "Kolarstwo",
-		triathlon: "Triathlon",
-		training: "Trening",
+		apparel: "Odzież",
+		desk: "Biurko",
+		drinkware: "Do picia",
+		bundles: "Zestawy",
 	},
 	spotlight: {
-		eyebrow: "Kolarstwo",
+		eyebrow: "Okrycia wierzchnie",
 		specs: [
-			{ label: "Sport", value: "Kolarstwo" },
+			{ label: "Kategoria", value: "Okrycia wierzchnie" },
 			{ label: "Warstwa", value: "Wiatroszczelna" },
 		],
 	},
 	look: {
-		eyebrow: "Bieganie",
-		heading: "Kup cały strój",
-		ctaLabel: "Kup cały strój",
-		listHeading: "W tym looku",
+		eyebrow: "Biurko",
+		heading: "Kup całe biurko",
+		ctaLabel: "Kup całe biurko",
+		listHeading: "W tym zestawie",
 	},
 	activity: {
-		running: "Bieganie",
-		cycling: "Kolarstwo",
-		triathlon: "Triathlon",
+		apparel: "Odzież",
+		desk: "Biurko",
+		drinkware: "Do picia",
+		bundles: "Zestawy",
 	},
 	faq: [
 		{
+			question: "Czy to oficjalne gadżety Cloudflare?",
+			answer: [
+				"Nie. To nieoficjalny sklep demo z fikcyjnymi produktami i danymi testowymi, pokazujący możliwości EmDash i Stripe. Nic stąd nie jest wysyłane.",
+			],
+		},
+		{
 			question: "Jak długo trwa dostawa?",
-			answer: ["Standardowo 2–3 dni robocze na terenie Polski."],
+			answer: ["W prawdziwym sklepie: 3–5 dni roboczych, z numerem śledzenia. Tutaj nic nie jest dostarczane — użyj karty testowej Stripe."],
 		},
 		{
 			question: "Czy mogę zwrócić produkt?",
-			answer: ["Tak — masz 30 dni na zwrot bez podawania przyczyny."],
+			answer: ["Tak — w prawdziwym sklepie masz 30 dni na zwrot bez podawania przyczyny."],
 		},
 	],
-	marquee: "NA MAXA — DO KOŃCA",
+	marquee: "WDRAŻAJ NA EDGE'U",
 };
 
 export const homeCopy: Record<Locale, HomeLocaleCopy> = { en, pl };

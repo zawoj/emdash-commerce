@@ -1,7 +1,7 @@
 export const LOCALES = { en: "en", pl: "pl" } as const;
 export type Locale = (typeof LOCALES)[keyof typeof LOCALES];
 
-const INTL_LOCALE: Record<Locale, string> = { en: "en-GB", pl: "pl-PL" };
+const INTL_LOCALE: Record<Locale, string> = { en: "en-US", pl: "pl-PL" };
 
 export const intlLocaleOf = (locale: Locale): string => INTL_LOCALE[locale];
 

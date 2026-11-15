@@ -44,13 +44,13 @@ This template ships with `.mcp.json`, `.cursor/mcp.json`, and `.vscode/mcp.json`
 
 ## This Template
 
-A sportswear shop on top of the EmDash blog template: posts, pages, categories, tags, full-text search and RSS stay. Designed for personal writing, technical writing, indie newsletters, and anything where the writing is the product. Neutral editorial aesthetic: a framed layout with hairline rails, white cards on an off-white canvas, Inter with JetBrains Mono labels, and real article structure with bylines and reading time.
+An unofficial mock Cloudflare-merch shop (fictional products, USD, Stripe sandbox) on top of the EmDash blog template: posts, pages, categories, tags, full-text search and RSS stay. Designed for personal writing, technical writing, indie newsletters, and anything where the writing is the product. Neutral editorial aesthetic: a framed layout with hairline rails, white cards on an off-white canvas, Inter with JetBrains Mono labels, and real article structure with bylines and reading time.
 
 ## Pages
 
 | Page        | Path               | What it shows                                                                                                                  |
 | ----------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| Home        | `/`                | Sportswear storefront (hero, rails, spotlight, shop-the-look, FAQ); config in `src/features/home/config.ts`                  |
+| Home        | `/`                | Merch storefront (hero, rails, spotlight, shop-the-look on a desk setup, FAQ); config in `src/features/home/config.ts`                  |
 | All posts   | `/posts`           | Post rows with thumbnails, excerpts, bylines, and tag chips; cursor pagination                                                 |
 | Post detail | `/posts/[slug]`    | Tags, title, excerpt, featured image, then a three-column reading view: meta rail, body, table of contents and sidebar widgets |
 | Search      | `/search`          | Full-text search over posts; matching title terms are highlighted                                                              |
@@ -70,8 +70,8 @@ Site settings have `title` and `tagline`. The title renders in the header, the h
 
 ## Visual character
 
-Public chrome comes from `@emdash-commerce/design-system`: a blue wireframe (one blue-tinted ink ramp, system
-fonts, square corners, 1px outlines, no shadow, gradient or motion, every photo tinted into the ink colour), and the
+Public chrome comes from `@emdash-commerce/design-system`: a flat wireframe in the Cloudflare palette (a warm charcoal
+ink ramp plus an orange accent, system fonts, square corners, 1px outlines, no shadow, gradient or motion, photos shown as shot), and the
 header/footer/tab bar composed in `src/layouts/Base.astro`. Site name renders as a text wordmark (no
 logo SVG). Shell copy is in `src/features/shell/copy.ts` (en / pl from `getSiteLocale()`).
 

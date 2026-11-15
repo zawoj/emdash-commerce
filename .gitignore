@@ -9,5 +9,4 @@ dist
 **/.env.*
 !**/.env.example
 
-# Demo seed: Unsplash photos downloaded on demand by scripts/seed-demo.mjs
 .cache/

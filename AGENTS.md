@@ -24,7 +24,8 @@ code does and the technical why) — decisions, history and task ids go to the c
 ## Project overview
 
 Commerce for EmDash (Astro-based CMS): a Stripe plugin, an image-hotspots field widget, a design system and a demo
-storefront. An **Nx + pnpm monorepo**, each project an Nx project named after its folder. Runtime needs **Node >= 24.22.1**.
+storefront. The demo shop is an unofficial **mock Cloudflare-merch store** (fictional products, USD, generated art): the
+theme is data, see `docs/ai-guide.md`. An **Nx + pnpm monorepo**, each project an Nx project named after its folder. Runtime needs **Node >= 24.22.1**.
 
 | Folder | Nx project · package | Role | Port |
 | --- | --- | --- | --- |
@@ -45,7 +46,9 @@ scripts or `pnpm nx …`; never guess Nx flags — check `pnpm nx <target> --hel
 | --- | --- |
 | `pnpm install` | Dependencies |
 | `pnpm dev` | Storefront dev server on `4360` (`npx astro dev stop` in `apps/storefront` stops it) |
-| `pnpm seed` | Demo catalog and Homepage fields (`scripts/seed-demo.mjs`; dev server must run) |
+| `pnpm bootstrap` · `pnpm doctor` | First-run `.env` setup (idempotent, never prints a secret, refuses a live Stripe key) · read-only health check |
+| `pnpm seed` | Mock catalog (`scripts/lib/merch-catalog.mjs`) and Homepage fields (`scripts/seed-demo.mjs`; dev server must run) |
+| `pnpm art` | Regenerates the mock product art (`scripts/art/` → `apps/storefront/public/merch/`, PNG, committed) |
 | `pnpm check:ai` | `.ai/` layout, `YYYY-MM-DD-slug.md` names, memory index |
 | `pnpm typecheck` · `pnpm test` · `pnpm build` | Validation gate (`nx run-many`) — run all three before calling work done |
 
@@ -53,6 +56,7 @@ scripts or `pnpm nx …`; never guess Nx flags — check `pnpm nx <target> --hel
 
 | Area | Where |
 | --- | --- |
+| AI onboarding: architecture map, what you can build, ready prompts, how to re-theme the catalog | `docs/ai-guide.md` |
 | Running the shop from zero (prerequisites, Stripe sandbox, env, webhook secret, seed, first purchase, reset, troubleshooting) | `docs/getting-started.md` |
 | The storefront: routes, features, rules | `apps/storefront/AGENTS.md` |
 | The Stripe plugin: layers, HTTP API, how to extend | `packages/plugin-stripe/docs/` (`architecture.md` · `api.md` · `extending.md`) · `.ai/memory/emdash-plugin-stripe-extending.md` · `.ai/decisions/2026-11-12-emdash-stripe-commerce-architecture.md` |
