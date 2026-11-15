@@ -3,10 +3,11 @@ import type { ProductDetailView } from "@emdash-commerce/plugin-stripe/contracts
 import { iconNames } from "@emdash-commerce/design-system";
 
 import type { Locale } from "../../../lib/i18n";
-import { imageFromUrl, imageFromView } from "../../../lib/media";
+import { imageFromView } from "../../../lib/media";
 import { formatMoney, toDecimalString } from "../../../lib/money";
 import { format } from "../../../lib/strings";
 import type { CatalogCopy } from "../copy";
+import { galleryOf } from "./gallery";
 import { OPTION_FIELD_PREFIX, STOCK_STATUSES } from "./constants";
 import { machineAmount } from "./card";
 import { isPurchasable, stockOfAvailability } from "./stock";
@@ -144,49 +145,6 @@ const initialChoice = (model: VariantModel, preselected: VariantRow | undefined)
 	return choice;
 };
 
-const galleryOf = (detail: ProductDetailView, model: VariantModel, chosenColour: string | undefined): ProductGalleryProps => {
-	const groups = new Map<string | null, { src: string; alt: string }[]>();
-	for (const image of detail.images) {
-		const list = groups.get(null) ?? [];
-		list.push({ src: image.url, alt: image.alt });
-		groups.set(null, list);
-	}
-	const imageAxis = model.axes.find((axis) => axis.isImageAxis);
-	if (imageAxis) {
-		for (const row of model.rows) {
-			if (row.imageUrls.length === 0) continue;
-			const group = row.options[imageAxis.code];
-			const list = groups.get(group) ?? [];
-			for (const url of row.imageUrls) {
-				list.push({ src: url, alt: detail.title });
-			}
-			groups.set(group, list);
-		}
-	}
-	const photos =
-		chosenColour && groups.has(chosenColour)
-			? groups.get(chosenColour)!
-			: (groups.get(null) ?? detail.images.map((image) => ({ src: image.url, alt: image.alt })));
-	const images = photos
-		.map((photo, index) => {
-			const image = imageFromUrl(photo.src, photo.alt, {
-				sizes: "(min-width: 1024px) 50vw, 100vw",
-				isEager: index === 0,
-				isLead: index === 0,
-			});
-			return image ? { image, group: chosenColour ?? undefined } : null;
-		})
-		.filter((entry): entry is NonNullable<typeof entry> => entry !== null);
-	return {
-		id: "pdp-gallery",
-		images,
-		label: "",
-		thumbnailsLabel: "",
-		thumbnailLabelTemplate: "",
-		isEager: true,
-	};
-};
-
 export interface BuildProductViewInput {
 	detail: ProductDetailView;
 	locale: Locale;
@@ -217,7 +175,7 @@ export const buildProductView = ({ detail, locale, copy, shopHref, homeHref }: B
 			{ label: detail.title },
 		],
 		gallery: {
-			...galleryOf(detail, model, imageAxisChosen(model, chosen)),
+			...galleryOf(detail, model),
 			label: copy.galleryLabel,
 			thumbnailsLabel: copy.thumbnailsLabel,
 			thumbnailLabelTemplate: copy.thumbnailTemplate,
@@ -241,11 +199,6 @@ export const buildProductView = ({ detail, locale, copy, shopHref, homeHref }: B
 		priceAmount: toDecimalString(detail.price.amount),
 		buyState: buyStateForClient(model),
 	};
-};
-
-const imageAxisChosen = (model: VariantModel, chosen: Record<string, string>): string | undefined => {
-	const axis = model.axes.find((a) => a.isImageAxis);
-	return axis ? chosen[axis.code] : undefined;
 };
 
 export const pickerChosen = (model: VariantModel, variant: VariantRow | undefined): Record<string, string> =>

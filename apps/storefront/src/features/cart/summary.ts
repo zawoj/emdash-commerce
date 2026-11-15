@@ -1,10 +1,11 @@
-import type { CartLineContent } from "@emdash-commerce/design-system";
-import type { CartView } from "@emdash-commerce/plugin-stripe/contracts";
+import type { CartLineContent, ImageAttrs } from "@emdash-commerce/design-system";
+import type { CartView, ProductDetailView } from "@emdash-commerce/plugin-stripe/contracts";
 
 import type { Locale } from "../../lib/i18n";
+import { imageFromUrl } from "../../lib/media";
 import { formatMoney, toDecimalString } from "../../lib/money";
 import { cartStrings } from "../../lib/strings";
-import { commerceApiBase, fetchCatalogProducts, parseApiEnvelope } from "../../utils/commerce-fetch";
+import { commerceApiBase, fetchCatalogProductDetail, fetchCatalogProducts, parseApiEnvelope } from "../../utils/commerce-fetch";
 import { LINE_FIELDS } from "./constants";
 import { MINI_CART_ID } from "../shell/tab-bar";
 
@@ -21,15 +22,37 @@ export const productHrefForLine = (productId: string, slugByProductId: ReadonlyM
 	return slug ? `/shop/${slug}` : `/shop/${productId}`;
 };
 
+interface ProductPhoto {
+	url: string;
+	alt: string;
+}
+
+/**
+ * The thumbnail of a cart line: the chosen variant's own photo when it has one, otherwise the product's first photo
+ * (a colour without tagged photos still shows the product, never an empty box).
+ */
+export const pickLineImage = (
+	variantId: string | null,
+	detail: Pick<ProductDetailView, "title" | "images" | "variants"> | null,
+	fallback: ProductPhoto | undefined,
+): ProductPhoto | undefined => {
+	const variantUrl = variantId ? detail?.variants.find((variant) => variant.id === variantId)?.imageUrls[0] : undefined;
+	if (variantUrl) return { url: variantUrl, alt: detail?.title ?? "" };
+	const productPhoto = detail?.images[0] ?? fallback;
+	return productPhoto ? { url: productPhoto.url, alt: productPhoto.alt } : undefined;
+};
+
 export const lineContents = (
 	cart: CartView,
 	locale: Locale,
 	slugByProductId: ReadonlyMap<string, string> = new Map(),
+	imageByPriceId: ReadonlyMap<string, ImageAttrs> = new Map(),
 ): CartLineContent[] => {
 	const copy = cartStrings(locale);
 	return cart.lines.map((line) => ({
 		id: line.priceId,
 		name: { label: line.title, href: productHrefForLine(line.productId, slugByProductId) },
+		image: imageByPriceId.get(line.priceId),
 		variantText: line.variantTitle ?? undefined,
 		unitPrice: {
 			label: formatMoney(line.unitAmount.amount, locale, line.unitAmount.currency),
@@ -56,13 +79,33 @@ export const lineContents = (
 	}));
 };
 
-const slugMapForProducts = async (origin: string, productIds: readonly string[]): Promise<Map<string, string>> => {
-	const unique = [...new Set(productIds)];
-	if (unique.length === 0) return new Map();
+const CART_THUMB_SIZES = "96px";
+
+const catalogForProducts = async (origin: string, productIds: readonly string[]) => {
+	const unique = new Set(productIds);
 	const catalog = await fetchCatalogProducts(origin, { limit: 200 });
-	const map = new Map<string, string>();
-	for (const item of catalog?.items ?? []) {
-		if (unique.includes(item.id)) map.set(item.id, item.slug);
+	return (catalog?.items ?? []).filter((item) => unique.has(item.id));
+};
+
+/** Thumbnails by price id; variant photos come from the product detail, fetched only for lines that choose a variant. */
+const lineImages = async (
+	origin: string,
+	cart: CartView,
+	items: Awaited<ReturnType<typeof catalogForProducts>>,
+): Promise<Map<string, ImageAttrs>> => {
+	const byProduct = new Map(items.map((item) => [item.id, item]));
+	const details = new Map<string, ProductDetailView | null>();
+	await Promise.all(
+		[...new Set(cart.lines.filter((line) => line.variantId).map((line) => line.productId))].map(async (productId) => {
+			const slug = byProduct.get(productId)?.slug;
+			details.set(productId, slug ? await fetchCatalogProductDetail(origin, slug) : null);
+		}),
+	);
+	const map = new Map<string, ImageAttrs>();
+	for (const line of cart.lines) {
+		const photo = pickLineImage(line.variantId, details.get(line.productId) ?? null, byProduct.get(line.productId)?.images[0]);
+		const image = photo ? imageFromUrl(photo.url, photo.alt, { sizes: CART_THUMB_SIZES }) : undefined;
+		if (image) map.set(line.priceId, image);
 	}
 	return map;
 };
@@ -92,16 +135,18 @@ export const loadSummary = async (request: Request, locale: Locale): Promise<Car
 			lines: [],
 		};
 	}
-	const slugByProductId = await slugMapForProducts(
+	const items = await catalogForProducts(
 		origin,
 		cart.lines.map((line) => line.productId),
 	);
+	const slugByProductId = new Map(items.map((item) => [item.id, item.slug]));
+	const imageByPriceId = await lineImages(origin, cart, items);
 	const amount = cart.subtotal?.amount ?? 0;
 	return {
 		count: cart.itemCount,
 		subtotal: { amount, label: formatMoney(amount, locale, cart.subtotal?.currency ?? "PLN") },
 		isEmpty: false,
-		lines: lineContents(cart, locale, slugByProductId),
+		lines: lineContents(cart, locale, slugByProductId, imageByPriceId),
 	};
 };
 

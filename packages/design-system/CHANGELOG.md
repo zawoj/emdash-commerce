@@ -4,6 +4,10 @@ Newest on top. Each entry says what changed in the package and why.
 
 ## 2026-11-15
 
+### fix: product gallery filter never leaves the gallery empty
+- `product-gallery:filter` shows the chosen group's photos, else the untagged ones, else all (`product-gallery-core`,
+  exported for tests).
+
 ### feat: blue wireframe skin, no decoration (replaces the volt sportswear skin)
 - Look taken from the zavcode design system: a blue-tinted ink ramp, system fonts, square corners, 1px outlines, no shadow,
   gradient, blur, transition, transform or animation, sentence case. Tokens keep their names; values are overwritten and

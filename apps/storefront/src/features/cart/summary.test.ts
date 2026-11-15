@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { CartView } from "@emdash-commerce/plugin-stripe/contracts";
 
-import { lineContents, productHrefForLine } from "./summary";
+import { lineContents, pickLineImage, productHrefForLine } from "./summary";
 
 describe("productHrefForLine", () => {
 	it("uses the catalog slug when known", () => {
@@ -39,5 +39,32 @@ describe("lineContents", () => {
 		const slugs = new Map([["prod-abc", "run-cap"]]);
 		const lines = lineContents(cart, "en", slugs);
 		expect(lines[0]?.name.href).toBe("/shop/run-cap");
+	});
+});
+
+describe("pickLineImage", () => {
+	const detail = {
+		title: "Shell",
+		images: [{ url: "/product.jpg", alt: "Shell front" }],
+		variants: [
+			{ id: "v-black", imageUrls: ["/black.jpg"] },
+			{ id: "v-red", imageUrls: [] },
+		],
+	} as unknown as Parameters<typeof pickLineImage>[1];
+
+	it("uses the variant's own photo", () => {
+		expect(pickLineImage("v-black", detail, undefined)?.url).toBe("/black.jpg");
+	});
+
+	it("falls back to the product photo when the variant has none", () => {
+		expect(pickLineImage("v-red", detail, undefined)?.url).toBe("/product.jpg");
+	});
+
+	it("falls back to the catalog card photo without a detail", () => {
+		expect(pickLineImage(null, null, { url: "/card.jpg", alt: "Card" })?.url).toBe("/card.jpg");
+	});
+
+	it("returns nothing when the product has no photo at all", () => {
+		expect(pickLineImage(null, null, undefined)).toBeUndefined();
 	});
 });

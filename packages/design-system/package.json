@@ -38,6 +38,7 @@
     "./turnstile": "./src/utils/turnstile.ts",
     "./mini-cart": "./src/utils/mini-cart.ts",
     "./product-gallery": "./src/utils/product-gallery.ts",
+    "./product-gallery-core": "./src/utils/product-gallery-core.ts",
     "./listing-filters": "./src/utils/listing-filters.ts",
     "./pickup-point-picker": "./src/utils/pickup-point-picker.ts",
     "./package.json": "./package.json"

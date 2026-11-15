@@ -2,7 +2,10 @@
 // works without a script. The script marks the thumbnail of the slide in view (`aria-current`),
 // scrolls the track smoothly on a thumbnail click (no hash jump), and filters by group — a
 // `product-gallery:filter` event with `detail: { group }` shows only the slides and thumbnails
-// whose `data-gallery-group` matches (the photos of the chosen colour); an empty group shows all.
+// whose `data-gallery-group` matches (the photos of the chosen colour); a colour without tagged photos
+// falls back to the untagged ones, then to all, so the gallery is never empty; an empty group shows all.
+import { visiblePhotoIndexes } from './product-gallery-core'
+
 export interface GalleryFilterDetail {
   readonly group: string | null
 }
@@ -44,11 +47,13 @@ const mountGallery = (root: HTMLElement) => {
 
   root.addEventListener('product-gallery:filter', (event) => {
     const group = (event as CustomEvent<GalleryFilterDetail>).detail?.group || null
-    const matches = (item: HTMLElement) => !group || !item.dataset.galleryGroup || item.dataset.galleryGroup === group
-    for (const slide of slides) slide.hidden = !matches(slide)
-    thumbs.forEach((thumb, index) => {
+    const visible = new Set(visiblePhotoIndexes(slides.map((slide) => slide.dataset.galleryGroup), group))
+    slides.forEach((slide, index) => {
+      slide.hidden = !visible.has(index)
+    })
+    thumbs.forEach((_, index) => {
       const item = thumbItems[index]
-      if (item) item.hidden = !matches(thumb)
+      if (item) item.hidden = !visible.has(index)
     })
     track.scrollTo({ left: 0 })
     const first = slides.find((slide) => !slide.hidden)
