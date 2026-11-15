@@ -2,6 +2,14 @@
 
 ## 2026-11-15 (QA fixes, round 2)
 
+### docs: getting started from zero — Claude Code
+- New `docs/getting-started.md`, linked from the top of `README.md` and from `AGENTS.md`: prerequisites (Node, pnpm,
+  Stripe CLI), Stripe sandbox keys with the restricted-key permissions, every environment variable, the per-CLI-login
+  webhook secret and how a mismatch shows (`[400]` in `stripe listen`), running and stopping the detached dev server,
+  what `pnpm seed` creates (idempotent, `--only`, the automatic Stripe sync), the dev login, a first test purchase with
+  card 4242 and where the order appears, a reset to a clean state, and troubleshooting drawn from `.ai/memory/`.
+- The README quickstart is shortened to point there; `apps/storefront/.env.example` explains each variable.
+
 ### fix: a variant name is never prefixed with the product name twice — Claude Code
 - A variant title is derived as `<product> — <options>`, and the catalog sync, the cart line, the emails, the admin
   low-stock list and the subscription items all prefixed the product title again, so Stripe Checkout and the cart read

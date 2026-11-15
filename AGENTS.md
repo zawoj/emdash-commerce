@@ -38,7 +38,7 @@ schema: never rename them.
 
 ## Setup & commands (project root)
 
-See `README.md` for the quickstart (`.env`, Stripe sandbox keys, `stripe listen`, seed). Run everything through the root
+See `README.md` for the short quickstart and `docs/getting-started.md` for the full walkthrough (`.env`, Stripe sandbox keys, `stripe listen`, seed, reset, troubleshooting). Run everything through the root
 scripts or `pnpm nx …`; never guess Nx flags — check `pnpm nx <target> --help`.
 
 | Command | Does |
@@ -53,6 +53,7 @@ scripts or `pnpm nx …`; never guess Nx flags — check `pnpm nx <target> --hel
 
 | Area | Where |
 | --- | --- |
+| Running the shop from zero (prerequisites, Stripe sandbox, env, webhook secret, seed, first purchase, reset, troubleshooting) | `docs/getting-started.md` |
 | The storefront: routes, features, rules | `apps/storefront/AGENTS.md` |
 | The Stripe plugin: layers, HTTP API, how to extend | `packages/plugin-stripe/docs/` (`architecture.md` · `api.md` · `extending.md`) · `.ai/memory/emdash-plugin-stripe-extending.md` · `.ai/decisions/2026-11-12-emdash-stripe-commerce-architecture.md` |
 | The image-hotspots plugin and React field widgets | `packages/plugin-image-hotspots/README.md` · `.ai/memory/emdash-react-field-widgets.md` |
