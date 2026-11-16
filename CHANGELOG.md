@@ -1,5 +1,67 @@
 # Changelog
 
+## 2026-11-16 (review fixes)
+
+### fix: the shop UI refresh, after a code review — Claude Code
+- **Add to cart.** The button went back to the label it read from its own text at click time, so a second click inside the
+  "Added" window on a slow connection left it on "Added" for good. The form now carries `data-label-idle` and
+  `data-is-purchasable` (rendered by `AddToCartForm`, kept current by `product-buy.client.ts` when the variant changes) and the
+  script returns to those, with one feedback timer cleared on every click. A variant that became sold out while the request
+  ran also keeps the button disabled, as it did before the request, instead of being re-enabled.
+- **Filters.** A category in the URL that no product belongs to (a stale bookmark) shows the whole shop instead of an empty page
+  whose "Clear all filters" led back to itself (`withKnownCategory`). A catalog API failure shows "We could not load the
+  products" with "Try again" and answers 503, instead of "No products match these filters". A catalog that reaches the 200
+  product fetch limit says "Showing the first 200 products." and logs a warning.
+- **Product page.** A sold-out product no longer promises a delivery date. The bundle saving chip reads the two amounts around
+  "instead of" / "zamiast" ("$109 instead of $147") instead of copying the sentence; the catalog data and its test keep that
+  wording (`docs/ai-guide.md`).
+- **Cart.** The cart summary fell back to PLN for a missing subtotal currency; it now uses the shop currency.
+- **Design system.** `ActivityIndex` and `BrandMarquee`, unused since the home redesign, are removed; the icon names have a
+  `@emdash-commerce/design-system/icon-names` export instead of a deep import path.
+- **Tests.** The dialog and category-bar scripts of the design system are tested (`listing-dialog.client.test.ts`: open and
+  close, reset of unapplied choices, backdrop, blank values, bare path, auto-submit sort, centring the current pill), the cart
+  button has regression tests for the double click, a failed second click, a variant that sells out meanwhile and the label
+  set by the variant script, and the catalog test checks that every bundle's wording reaches the product page and that every
+  home link points at an existing category. Each new test was shown to fail against the bug it guards.
+- **Not changed.** Filtering still happens in the page, so the shop suits a few hundred products (the limit is now visible, not
+  fixed). The bundle saving is still read from the description, not a structured field. `CollectionBento`, `ProductGrid` and
+  `CategoryTile` are also unused by the storefront and stay in the design system.
+
+## 2026-11-16 (README)
+
+### docs: README features list and screenshots — Claude Code
+- The README gains a **Features** list (storefront, commerce backend, admin, design system, agent tooling) and a
+  **Screenshots** section: home, shop, the filter drawer, a product page, a bundle, shop the look, the image-hotspots widget in
+  the admin, and a phone strip. The PNGs are in `docs/screenshots/` (about 1.1 MB), 1440 x 900, light theme, taken from the seeded
+  mock shop with headless Chrome while logged out (a logged-in session shows the EmDash editing pill). They are static: retake
+  them when the UI changes.
+- The packages table no longer calls the design system "square".
+
+## 2026-11-15 (storefront UI refresh)
+
+### feat: a simpler, softer storefront: category bar, filter dialog with live counts, calmer product page and home — Claude Code
+- **Why.** The listing worked but read as a form (an open accordion pushed the products ~600 px down, huge empty price
+  boxes, no category links, applied filters never shown, brand held one value), and the product page and home were boxed and
+  uneven. The design follows the owner's Notion UX notes (see `.ai/decisions/2026-11-15-soft-corners-and-dialog-filters.md`).
+- **Shop.** A compact head with the product count, a category bar, one toolbar (Filters button with a badge, removable
+  filter chips, sort). Filters open in a dialog (drawer from 768 px, full-screen sheet on a phone): in stock, size, brand
+  (now multi-select, was one value) and price presets, each option with its result count, and a "Show N results" button
+  that updates live. Without JavaScript the panel is an inline GET form. The empty result lists the applied filters. The
+  product count is pluralised ("1 product"). New URL parameters: `category`, repeated `brand` and `size`, `price=min-max`;
+  `priceMin` and `priceMax` still work. `/shop` fetches the whole catalog and filters in the page (`domain/facets.ts`), so
+  it suits a few hundred products, not thousands.
+- **Product page.** Gallery with a peek of the next photo, the strongest promises (delivery with a date range, 30-day returns,
+  secure payment) beside the CTA, accordions for Description, Specification and Shipping and returns, a bundle's "Includes"
+  list with the saving, an "Adding… / Added" button, a sold-out notice with a link to similar products, and the phone
+  bar appears once the button scrolls out of view.
+- **Home.** One hero (one primary CTA, a quiet "Shop bundles" link, category pills under it) replaces the four-tile board;
+  rails are New arrivals, Sale and Bundles with one head style; the CTA band, newsletter field and FAQ are borderless tiles.
+- **Look.** Corners are soft (see the design-system changelog). The lint rule that required square corners is relaxed.
+- **Outside the code.** Restart the dev server after pulling (the new client scripts add dependencies Vite must
+  re-optimise; `/cart` showed a 504 for `zod` until it did).
+- **Not covered.** Real iOS Safari (safe areas, keyboard), screen-reader output, dark surface, the Polish copy in a browser,
+  scroll position after applying filters (the page returns to the top), a mutation pass over the product page tests.
+
 ## 2026-11-15 (Cloudflare merch theme)
 
 ### feat: the demo shop is mock Cloudflare merch, with an orange skin, USD and generated art — Claude Code

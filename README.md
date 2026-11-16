@@ -7,6 +7,8 @@ The demo shop is an **unofficial mock Cloudflare-merch store**: fictional produc
 stickers, bundles and a membership), generated art, USD prices, Stripe **sandbox** only. It is not affiliated with
 Cloudflare, nothing is for sale and nothing ships. The theme is data, so the same code runs any other shop.
 
+![The storefront home page: a charcoal hero with an orange cloud, a featured tee and category pills](docs/screenshots/home.png)
+
 **New here? Two ways in:**
 
 - **With an AI agent** (Claude Code, Codex, Cursor): open this repo in it and paste the prompt below, or read
@@ -25,10 +27,71 @@ Rules: Stripe sandbox keys only, never print a secret, do not commit unless I as
 | `apps/storefront` | `@emdash-commerce/storefront` | The demo shop: Astro 7 SSR on EmDash (Node + SQLite + local uploads). Home, shop, product page, cart, Stripe Checkout. |
 | `packages/plugin-stripe` | `@emdash-commerce/plugin-stripe` | Backend-only commerce plugin (id `stripe-commerce`): catalog with variants and prices mirrored to Stripe, carts, Checkout Sessions, orders, refunds, disputes, subscriptions, a durable webhook pipeline. [README](packages/plugin-stripe/README.md) |
 | `packages/plugin-image-hotspots` | `@emdash-commerce/plugin-image-hotspots` | React field widget `image-hotspots:hotspots`: an image with points (a product per point, or a title and text). [README](packages/plugin-image-hotspots/README.md) |
-| `packages/design-system` | `@emdash-commerce/design-system` | Tokens (orange on warm charcoal) and props-driven Astro components: flat, square, no decoration, no brand assets. [README](packages/design-system/README.md) |
+| `packages/design-system` | `@emdash-commerce/design-system` | Tokens (orange on warm charcoal) and props-driven Astro components: flat, soft corners, no shadows or gradients, no brand assets. [README](packages/design-system/README.md) |
 
 Plugin ids (`stripe-commerce`, `image-hotspots`) and the widget reference (`image-hotspots:hotspots`) are stored in content
 and schema, so they are part of the contract.
+
+## Features
+
+**Storefront** (Astro 7, server-rendered, English and Polish copy)
+
+- **Shop listing:** a category bar, sort, and a filter drawer (a full-screen sheet on a phone) with in stock, size, brand
+  (multi-select) and price presets. Every option shows its result count and the "Show N results" button updates live;
+  applied filters are removable chips, the state lives in the URL, and the panel still works without JavaScript.
+- **Product pages:** size x colour variants with their own price, photos and stock; colour swaps the gallery; sold-out and
+  low-stock states; a delivery estimate, returns and payment promises beside the button; accordions for details; an
+  "Adding... / Added" button, a mini-cart and a sticky buy bar on a phone.
+- **Bundles and membership:** a fixed-price bundle lists what it includes and the saving ("$109 instead of $147"); a
+  membership has a recurring price with a trial.
+- **Shop the look:** a photo with numbered points; each point opens a product and one dialog adds the whole kit to the cart.
+- **Home, cart, search and a blog:** hero with category pills, rails, a spotlight with callouts, FAQ and newsletter; cart and
+  Stripe-hosted Checkout; full-text search; posts, tags and RSS from the EmDash blog template.
+
+**Commerce backend** (`stripe-commerce` plugin)
+
+- A catalog of products, variants and prices, mirrored to Stripe; carts whose amounts are derived on the server (the browser
+  sends price ids and quantities only).
+- Checkout Sessions, a durable webhook pipeline (a paid order is created exactly once), refunds, disputes, subscriptions,
+  inventory with stock reservation while a checkout is open, and guest order links.
+- An admin **Commerce** page (key and webhook health, resync, reconcile, abandoned-checkout cleanup) and MCP tools so an
+  agent can run the same operations.
+
+**Admin** (EmDash)
+
+- Edit products, categories, brands, pages, posts and the home page in the EmDash admin.
+- **Image-hotspots widget:** pick a photo, click it to add points, drag or arrow-key them, and choose a product (or write a
+  title and text) for each one.
+
+**Design system**
+
+- Tokens (Cloudflare orange on warm charcoal, soft corners) and props-driven Astro components; the storefront only shapes data
+  into props.
+- Lints that fail on a raw colour, a shadow or a gradient, and a test of the token text and control colour pairs against WCAG contrast.
+
+**Built to be driven by people and AI agents**
+
+- `pnpm bootstrap` and `pnpm doctor` set up and check a fresh clone; `pnpm seed` is idempotent and builds the whole mock
+  catalog (generated PNG art, no network); `pnpm art` redraws the art.
+- [`AGENTS.md`](AGENTS.md), [`docs/ai-guide.md`](docs/ai-guide.md) (architecture map and a prompt per job) and the `.ai/`
+  folder (decisions, memory, run logs) let an agent start from a prompt and keep the record up to date.
+
+## Screenshots
+
+The mock Cloudflare-merch shop with the seeded data, light theme. Product art is generated by `scripts/art/`.
+
+| | |
+|---|---|
+| ![Shop with the category bar and product grid](docs/screenshots/shop.png) | ![The filters drawer: in stock, size, brand with counts, price presets and a "Show 20 results" button](docs/screenshots/filters.png) |
+| **Shop:** category bar, sort and a borderless product grid | **Filters:** a drawer with live counts and "Show N results" |
+| ![A product page with size and colour variants, an add to cart button and promises](docs/screenshots/product.png) | ![The Desk Setup Bundle page listing what it includes and the saving](docs/screenshots/bundle.png) |
+| **Product page:** variants, promises beside the button, accordions | **Bundle:** what it includes and what you save |
+| ![Shop the desk setup: a photo with numbered points and a list of products](docs/screenshots/look.png) | ![The EmDash admin with the image-hotspots widget: a photo with five numbered points and a product per point](docs/screenshots/admin-hotspots.png) |
+| **Shop the look:** a point per product, one button for the kit | **Admin:** the image-hotspots widget on the home page |
+
+On a phone (390 px wide): the shop, the full-screen filter sheet and a product page.
+
+![The shop, the filter sheet and a product page on a phone](docs/screenshots/mobile.png)
 
 ## Quickstart
 

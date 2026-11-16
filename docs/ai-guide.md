@@ -98,7 +98,7 @@ Get this clone running. Use `pnpm doctor` to see what is missing, then `pnpm boo
 ```text
 Add a product "<name>" to the demo catalog: <price in USD>, <variants or none>, category <slug>, brand <slug>. Edit
 scripts/lib/merch-catalog.mjs (the data), add its art to scripts/art/manifest.mjs and run `pnpm art`, then `pnpm seed -- --only
-apparel,accessory,bundle` against the running dev server. A bundle is a fixed-price product with an "includes" line. Check
+apparel,accessory,bundle` against the running dev server. A bundle is a fixed-price product with an "includes" line, and its description states the saving as "$X instead of $Y" (the product page shows exactly that phrase as a chip; a test keeps the data to it). Check
 /shop and the product page in the browser.
 ```
 
