@@ -16,12 +16,14 @@ const { state, skuLabel } = Astro.props;
 	<Price label={state.price.label} value={state.price.value} size={priceSizes.lg}>
 		{state.price.note ? <span slot="note">{state.price.note}</span> : null}
 	</Price>
-	<Availability
-		label={state.availability.label}
-		isAvailable={state.availability.isAvailable}
-		isLow={state.availability.isLow}
-	/>
-	{state.sku ? <p class="buy-state__sku">{skuLabel}</p> : null}
+	<div class="buy-state__meta">
+		<Availability
+			label={state.availability.label}
+			isAvailable={state.availability.isAvailable}
+			isLow={state.availability.isLow}
+		/>
+		{state.sku ? <span class="buy-state__sku">{skuLabel}</span> : null}
+	</div>
 </div>
 
 <style>
@@ -32,8 +34,14 @@ const { state, skuLabel } = Astro.props;
 		gap: var(--space-8);
 	}
 
+	.buy-state__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-4) var(--space-16);
+	}
+
 	.buy-state__sku {
-		margin: 0;
 		color: var(--text-muted);
 		font: var(--type-text-regular-xs);
 	}

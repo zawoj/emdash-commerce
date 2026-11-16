@@ -1,7 +1,7 @@
 ---
-// The "banner" section: a full-bleed campaign band (it breaks out of the page column). With a photo:
-// the photo under the scrim with a centred condensed heading, a short text and a white pill button.
-// Without one: a dark band with the accent button.
+// The "banner" section: a campaign tile inside the page column, rounded like every other tile. With a
+// photo: the photo under the scrim with a centred heading, a short text and a light button. Without one:
+// a dark tile with the accent button.
 import Button from '../../../atoms/button/index.astro'
 import { buttonSizes, buttonVariants } from '../../../atoms/button/variants'
 import type { BannerProps } from './types'
@@ -12,7 +12,7 @@ type Props = BannerProps
 const { heading, headingId, text, image, action, eyebrow, attrs } = Astro.props
 ---
 
-<section class:list={['banner', image && 'banner--with-image']} aria-labelledby={headingId} data-surface="dark" data-band {...attrs?.root}>
+<section class:list={['banner', image && 'banner--with-image']} aria-labelledby={headingId} data-surface="dark" {...attrs?.root}>
   {image && <Image class="banner__img" {...image} />}
   <div class="banner__copy">
     {eyebrow && <p class="banner__eyebrow" {...attrs?.eyebrow}>{eyebrow}</p>}
@@ -29,15 +29,14 @@ const { heading, headingId, text, image, action, eyebrow, attrs } = Astro.props
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100vw;
-    margin-inline: calc(50% - 50vw);
     overflow: hidden;
+    border-radius: var(--radius-card);
     background: var(--surface);
     color: var(--ink-50);
   }
 
   .banner--with-image {
-    min-height: var(--band-height);
+    min-height: clamp(360px, 52vh, 520px); /* token-lint-ignore: a tile, shorter than a full band */
   }
 
   .banner--with-image::after {
@@ -64,7 +63,7 @@ const { heading, headingId, text, image, action, eyebrow, attrs } = Astro.props
     gap: var(--space-16);
     width: 100%;
     max-width: var(--page-max-width);
-    padding: var(--space-96) var(--page-gutter);
+    padding: var(--space-64) var(--space-24);
     text-align: center;
   }
 
@@ -78,7 +77,7 @@ const { heading, headingId, text, image, action, eyebrow, attrs } = Astro.props
     margin: 0;
     max-width: 22ch;
     color: var(--ink-50);
-    font: var(--type-display-2xl);
+    font: var(--type-display-xl);
     text-wrap: balance;
   }
 
@@ -93,19 +92,13 @@ const { heading, headingId, text, image, action, eyebrow, attrs } = Astro.props
     margin-top: var(--space-8);
   }
 
-  @media (max-width: 900px) {
-    .banner__heading {
-      font: var(--type-display-xl);
-    }
-  }
-
   @media (max-width: 640px) {
     .banner__copy {
-      padding-block: var(--space-64);
+      padding-block: var(--space-48);
     }
 
     .banner__heading {
-      font: var(--type-display-lg);
+      font: var(--type-display-md);
     }
 
     .banner__text {

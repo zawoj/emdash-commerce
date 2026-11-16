@@ -1,46 +1,53 @@
-// Listing filters and sort: a GET form that works without a script. The script (a) collapses the
-// filter panel below 900px, applied filters or not (it is open in the markup; the applied filters
-// stay visible above it as chips), (b) opens it from the toolbar's
-// `[data-listing-filters-open]` link (the one entry point on a phone: the panel's own summary row is hidden there; the
-// link toggles the panel with the details animation and mirrors it in `aria-expanded`), and (c) submits a `[data-auto-submit]` form on change —
-// at once for checkboxes, radios and selects, after a pause for typed numbers.
-import { toggleDetails } from './details-motion'
+// Listing filters and sort: GET forms that work without a script. The script (a) opens the filter dialog from the
+// toolbar's `[data-listing-filters-open]` button (the browser traps focus and closes on Escape; this adds
+// `aria-expanded`, closing on a click on the backdrop or the close button, focus back to the button, and a reset of
+// the choices that were never applied, so closing a panel changes nothing), (b) tidies every `[data-listing-form]`
+// before it submits (a blank value never reaches the URL, a form with nothing left goes to the bare path) and
+// (c) submits a `[data-auto-submit]` form on change (the sort select).
+const CHANGE_EVENT = 'change'
 
-const narrowQuery = '(max-width: 899px)'
-const typingDelay = 600
+const syncExpanded = (opener: HTMLElement, isOpen: boolean) => opener.setAttribute('aria-expanded', String(isOpen))
 
-// A change submitted from an open panel reloads the page; the panel stays open for that one load so
-// a shopper can keep choosing, and any other visit starts collapsed.
-const keepOpenKey = 'listing-filters-open'
+const mountDialog = (dialog: HTMLDialogElement) => {
+  if (dialog.dataset.dialogMounted) return
+  dialog.dataset.dialogMounted = 'true'
+  const openers = [...document.querySelectorAll<HTMLElement>(`[data-listing-filters-open][aria-controls="${dialog.id}"]`)]
+  const form = dialog.querySelector<HTMLFormElement>('form')
+  let lastOpener: HTMLElement | null = null
 
-const wasJustSubmitted = (): boolean => {
-  try {
-    const flag = window.sessionStorage.getItem(keepOpenKey)
-    window.sessionStorage.removeItem(keepOpenKey)
-    return flag === '1'
-  } catch {
-    return false
+  for (const opener of openers) {
+    syncExpanded(opener, false)
+    opener.addEventListener('click', () => {
+      if (dialog.open) return
+      lastOpener = opener
+      dialog.showModal()
+      syncExpanded(opener, true)
+    })
   }
+
+  // A click whose target is the dialog itself landed on the backdrop, outside the panel.
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close()
+  })
+  for (const close of dialog.querySelectorAll<HTMLElement>('[data-filters-close]')) close.addEventListener('click', () => dialog.close())
+
+  dialog.addEventListener('close', () => {
+    for (const opener of openers) syncExpanded(opener, false)
+    // Choices made in the panel and never applied are dropped: the form goes back to what the page shows, and the
+    // listeners on `change` (the live counts) are told.
+    if (form) {
+      form.reset()
+      form.dispatchEvent(new Event(CHANGE_EVENT, { bubbles: true }))
+    }
+    lastOpener?.focus()
+  })
 }
 
-const rememberOpen = () => {
-  try {
-    window.sessionStorage.setItem(keepOpenKey, '1')
-  } catch {
-    // Storage blocked: the panel simply starts collapsed after the reload.
-  }
-}
-
-const collapseOnNarrow = (panel: HTMLDetailsElement) => {
-  if (window.matchMedia(narrowQuery).matches && !wasJustSubmitted()) panel.open = false
-}
-
-const mountAutoSubmit = (form: HTMLFormElement) => {
-  if (form.dataset.autoSubmitMounted) return
-  form.dataset.autoSubmitMounted = 'true'
-  let timer: number | undefined
+const mountForm = (form: HTMLFormElement) => {
+  if (form.dataset.listingFormMounted) return
+  form.dataset.listingFormMounted = 'true'
   for (const button of form.querySelectorAll<HTMLElement>('[data-auto-submit-hide]')) button.hidden = true
-  // Blank fields (an empty price bound) never reach the URL: `?priceMin=&priceMax=` becomes no parameter at all.
+  // Blank fields never reach the URL: `?price=` becomes no parameter at all.
   form.addEventListener('formdata', (event) => {
     for (const [name, value] of [...event.formData]) if (typeof value === 'string' && value.trim() === '') event.formData.delete(name)
   })
@@ -51,52 +58,12 @@ const mountAutoSubmit = (form: HTMLFormElement) => {
     event.preventDefault()
     window.location.assign(new URL(form.action, window.location.href).pathname)
   })
-  form.addEventListener('change', (event) => {
-    const target = event.target as HTMLInputElement
-    window.clearTimeout(timer)
-    rememberOpen()
-    if (target.type === 'number' || target.type === 'text') timer = window.setTimeout(() => form.requestSubmit(), typingDelay)
-    else form.requestSubmit()
-  })
+  if (form.hasAttribute('data-auto-submit')) form.addEventListener(CHANGE_EVENT, () => form.requestSubmit())
 }
 
 export const mountListingFilters = (scope: ParentNode = document) => {
-  for (const panel of scope.querySelectorAll<HTMLDetailsElement>('details[data-listing-filters]')) {
-    if (panel.dataset.filtersMounted) continue
-    panel.dataset.filtersMounted = 'true'
-    collapseOnNarrow(panel)
-  }
-  for (const form of scope.querySelectorAll<HTMLFormElement>('form[data-auto-submit]')) mountAutoSubmit(form)
-  for (const button of scope.querySelectorAll<HTMLElement>('[data-filters-show-results]')) {
-    if (button.dataset.showResultsMounted) continue
-    button.dataset.showResultsMounted = 'true'
-    // The phone's bottom bar: fold the panel (the toolbar link mirrors its state) and land on the results under it.
-    button.addEventListener('click', () => {
-      const panel = button.closest<HTMLDetailsElement>('details[data-listing-filters]')
-      if (!panel) return
-      toggleDetails(panel, false)
-      const results = panel.parentElement?.nextElementSibling ?? panel
-      results.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-  }
-  for (const link of scope.querySelectorAll<HTMLAnchorElement>('[data-listing-filters-open]')) {
-    if (link.dataset.filtersOpenMounted) continue
-    link.dataset.filtersOpenMounted = 'true'
-    const panel = document.getElementById(link.getAttribute('href')?.slice(1) ?? '') as HTMLDetailsElement | null
-    if (!panel) continue
-    const isShown = () => panel.open && !panel.hasAttribute('data-closing')
-    const sync = () => link.setAttribute('aria-expanded', String(isShown()))
-    link.setAttribute('aria-controls', panel.id)
-    sync()
-    panel.addEventListener('toggle', sync)
-    link.addEventListener('click', (event) => {
-      event.preventDefault()
-      const shouldOpen = !isShown()
-      toggleDetails(panel, shouldOpen)
-      sync()
-      if (shouldOpen) panel.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-  }
+  for (const dialog of scope.querySelectorAll<HTMLDialogElement>('dialog[data-listing-filters]')) mountDialog(dialog)
+  for (const form of scope.querySelectorAll<HTMLFormElement>('form[data-listing-form], form[data-auto-submit]')) mountForm(form)
 }
 
 mountListingFilters()

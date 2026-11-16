@@ -1,0 +1,367 @@
+---
+// The storefront hero: ONE campaign photo tile with the headline and the one dominant call to action
+// (a quieter text link may follow), beside a single packshot tile, and under both a row of category
+// pills so the shop's ways in are visible above the fold on a phone. The height leaves a strip of the
+// next section in view, so the page never reads as ending at the hero. Phone: the photo tile, then the
+// pills (a swipeable row whose last pill peeks in), no packshot.
+import Button from '../../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../../atoms/button/variants'
+import Icon from '../../../atoms/icon/index.astro'
+import { iconNames } from '../../../atoms/icon/names'
+import Image from '../../../atoms/image/index.astro'
+import Price from '../../../atoms/price/index.astro'
+import type { ShopHeroProps } from './types'
+
+type Props = ShopHeroProps
+
+const { heading, headingId = 'shop-hero-heading', eyebrow, image, hasScrim = true, action, secondaryAction, product, categories, categoriesLabel } = Astro.props
+---
+
+<section class="shop-hero" aria-labelledby={headingId}>
+  <div class:list={['shop-hero__grid', product && 'shop-hero__grid--with-product']}>
+    <div class:list={['shop-hero__tile', 'shop-hero__photo', hasScrim && 'shop-hero__photo--scrim']} data-surface="dark">
+      <Image class="shop-hero__photo-img" {...image} isEager />
+      <div class="shop-hero__copy">
+        {eyebrow && <p class="shop-hero__eyebrow">{eyebrow}</p>}
+        <h1 id={headingId} class="shop-hero__heading">{heading}</h1>
+        <div class="shop-hero__actions">
+          <Button variant={buttonVariants.accent} size={buttonSizes.lg} href={action.href}>{action.label}</Button>
+          {secondaryAction && <a class="shop-hero__more" href={secondaryAction.href}>{secondaryAction.label}</a>}
+        </div>
+      </div>
+    </div>
+
+    {
+      product && (
+        <div class="shop-hero__tile shop-hero__product">
+          <Image class="shop-hero__product-img" {...product.image} sizes="(min-width: 900px) 28vw, 100vw" />
+          {product.label && <p class="shop-hero__product-label">{product.label}</p>}
+          <div class="shop-hero__product-caption">
+            <p class="shop-hero__product-title"><a href={product.href} class="shop-hero__product-link">{product.title}</a></p>
+            <Price label={product.price.label} value={product.price.value} />
+          </div>
+          <span class="shop-hero__product-arrow" aria-hidden="true"><Icon name={iconNames.arrowUpRight} size={20} /></span>
+        </div>
+      )
+    }
+  </div>
+
+  {
+    categories.length > 0 && (
+      <nav class="shop-hero__categories" aria-label={categoriesLabel}>
+        <ul class="shop-hero__category-list">
+          {categories.map((category) => (
+            <li>
+              <a class="shop-hero__category" href={category.href}>
+                {category.image && <Image class="shop-hero__category-img" {...category.image} alt="" sizes="48px" />}
+                <span>{category.label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )
+  }
+</section>
+
+<style>
+  .shop-hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  .shop-hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--grid-gap);
+    height: clamp(360px, calc(100svh - var(--header-height) - var(--tab-bar-height) - 200px), 520px); /* token-lint-ignore: a phone hero that leaves the pills and a peek of the next section in view */
+  }
+
+  .shop-hero__tile {
+    position: relative;
+    isolation: isolate;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+  }
+
+  /* Photo tile: the campaign shot under the scrim, copy bottom-left. */
+  .shop-hero__photo {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background: var(--surface);
+    color: var(--ink-50);
+  }
+
+  .shop-hero__photo--scrim::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--image-scrim);
+    content: '';
+  }
+
+  .shop-hero__photo-img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 25% 50%;
+  }
+
+  .shop-hero__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-16);
+    padding: var(--space-24);
+  }
+
+  .shop-hero__eyebrow {
+    margin: 0;
+    color: var(--ink-50);
+    font: var(--type-text-medium-sm);
+  }
+
+  .shop-hero__heading {
+    margin: 0;
+    max-width: 13ch; /* token-lint-ignore: a short headline wraps on a measure, clear of the artwork */
+    color: var(--ink-50);
+    font: var(--type-display-lg);
+    text-wrap: balance;
+  }
+
+  .shop-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8) var(--space-24);
+    padding-top: var(--space-8);
+  }
+
+  .shop-hero__more {
+    color: var(--ink-50);
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .shop-hero__more:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Packshot tile: borderless, on the muted surface; hidden on a phone. */
+  .shop-hero__product {
+    display: none;
+    background: var(--surface-muted);
+    color: var(--text-primary);
+  }
+
+  .shop-hero__product-img {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .shop-hero__product-label {
+    position: absolute;
+    z-index: 1;
+    top: var(--space-16);
+    left: var(--space-16);
+    margin: 0;
+    padding: var(--space-4) var(--space-12);
+    border-radius: var(--radius-chip);
+    background: var(--surface);
+    color: var(--text-primary);
+    font: var(--type-label-semibold-xs);
+  }
+
+  /* The caption is a small light card on the photo; the arrow sits in it. */
+  .shop-hero__product-caption {
+    position: absolute;
+    z-index: 1;
+    right: var(--space-12);
+    bottom: var(--space-12);
+    left: var(--space-12);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-12) var(--space-64) var(--space-12) var(--space-16);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .shop-hero__product-title {
+    margin: 0;
+    font: var(--type-title-md);
+  }
+
+  .shop-hero__product-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Stretched link: the whole tile is the target. */
+  .shop-hero__product-link::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  .shop-hero__product-link:focus-visible {
+    outline: none;
+  }
+
+  .shop-hero__product:has(.shop-hero__product-link:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+  }
+
+  .shop-hero__product-arrow {
+    position: absolute;
+    z-index: 2;
+    right: var(--space-24);
+    bottom: var(--space-24);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-40);
+    height: var(--space-40);
+    border-radius: var(--radius-full);
+    background: var(--text-primary);
+    color: var(--surface);
+  }
+
+  @media (hover: hover) {
+    .shop-hero__product:hover .shop-hero__product-link {
+      text-decoration: underline;
+    }
+  }
+
+  /* Phone: the artwork on top, the copy below it on the artwork's own charcoal, so the headline never sits on the picture. */
+  @media (max-width: 767px) {
+    .shop-hero__grid {
+      height: auto;
+    }
+
+    .shop-hero__photo {
+      justify-content: flex-start;
+      background: var(--surface-muted);
+    }
+
+    .shop-hero__photo--scrim::after {
+      display: none;
+    }
+
+    .shop-hero__photo-img {
+      position: static;
+      z-index: auto;
+      aspect-ratio: 16 / 10;
+      object-position: 75% 50%;
+    }
+
+    .shop-hero__heading {
+      max-width: 18ch; /* token-lint-ignore: the full tile width is free on a phone */
+      font: var(--type-display-md);
+    }
+  }
+
+  /* Category pills: a row that swipes on a phone (the last pill peeks in) and wraps from tablet up. */
+  .shop-hero__categories {
+    min-width: 0;
+  }
+
+  .shop-hero__category-list {
+    display: flex;
+    gap: var(--space-8);
+    margin: 0 calc(var(--page-gutter) * -1);
+    padding: 0 var(--page-gutter);
+    overflow-x: auto;
+    list-style: none;
+    scrollbar-width: none;
+    scroll-padding-inline: var(--page-gutter);
+    scroll-snap-type: x proximity;
+  }
+
+  .shop-hero__category-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shop-hero__category-list > li {
+    flex: none;
+    scroll-snap-align: start;
+  }
+
+  .shop-hero__category {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-12);
+    min-height: 56px; /* token-lint-ignore: pill height, thumbnail 40px plus padding */
+    padding: var(--space-8) var(--space-20) var(--space-8) var(--space-8);
+    border-radius: var(--radius-full);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .shop-hero__category-img {
+    flex: none;
+    width: 40px; /* token-lint-ignore: pill thumbnail */
+    height: 40px; /* token-lint-ignore: pill thumbnail */
+    border-radius: var(--radius-full);
+    object-fit: cover;
+  }
+
+  @media (hover: hover) {
+    .shop-hero__category:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  .shop-hero__category:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (min-width: 768px) {
+    .shop-hero__heading {
+      font: var(--type-display-xl);
+    }
+
+    .shop-hero__grid {
+      height: clamp(440px, calc(100svh - var(--header-height) - 200px), 640px); /* token-lint-ignore: tall enough to carry the headline, short enough to show the pills and the next section */
+    }
+
+    .shop-hero__copy {
+      padding: var(--space-48);
+    }
+
+    .shop-hero__category-list {
+      flex-wrap: wrap;
+      margin: 0;
+      padding: 0;
+      overflow: visible;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .shop-hero__grid--with-product {
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr);
+    }
+
+    .shop-hero__product {
+      display: block;
+    }
+  }
+</style>

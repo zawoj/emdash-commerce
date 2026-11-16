@@ -8,8 +8,7 @@ The package is **de-branded**: no logos or brand photos; site chrome uses a text
 
 The look is a **warm ink + orange wireframe with no decoration**, in the Cloudflare palette: one warm neutral ramp
 (`--ink-0`…`--ink-1000`, step 800 is the charcoal `#404041`), one orange ramp (`--orange-50`…`--orange-900`, 500 is
-`#F6821F`, 300 the amber `#FBAD41`), system font stacks (nothing is loaded), square corners everywhere (circles
-included), 1px outlines (2px for emphasis: selected, invalid, danger), no shadow, no gradient, no blur, no transition,
+`#F6821F`, 300 the amber `#FBAD41`), system font stacks (nothing is loaded), soft corners (`--radius-card` 20px for photos and tiles, pills for anything you tap), 1px outlines (2px for emphasis: selected, invalid, danger), no shadow, no gradient, no blur, no transition,
 transform or animation, and sentence case in normal width. Orange is the accent: a **fill with near-black text**
 (`--accent` / `--on-accent`, 7.2:1; white on `#F6821F` is only 2.6:1), the default solid button and selected control
 (`--action-primary`, `--control-solid` on the light surface). State is told by outline, border width, underline,
@@ -19,7 +18,7 @@ on `img, video, picture` in `reset.css` if a skin wants a tint again); the scrim
 charcoal layer. Tokens live in `src/tokens/index.css`; shared glyphs live in `src/assets/` (play icon, social SVGs).
 
 A few tokens exist only so components keep compiling and are neutral on purpose (`--text-case`, `--label-case`,
-`--tracking-*`, `--*-stretch`, the semantic `--radius-*`, `--duration-collapse`): `none`, `0`, `100%`, `0ms`.
+`--tracking-*`, `--*-stretch`, `--duration-collapse`): `none`, `0`, `100%`, `0ms`.
 
 Contrast roles (checked with real WCAG maths by `scripts/token-contrast.test.mjs`, both surfaces):
 

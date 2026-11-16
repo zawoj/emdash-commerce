@@ -432,17 +432,25 @@ export { default as ListingFilters } from './components/parts/listing-filters/in
 export { filterGroupKinds } from './components/parts/listing-filters/variants'
 export type { FilterGroupKind } from './components/parts/listing-filters/variants'
 export type {
-  ActiveFilter,
   CheckboxFilterGroup,
   ChipsFilterGroup,
   FilterGroup,
   FilterOption,
   ListingFiltersProps,
-  RangeBound,
-  RangeFilterGroup,
+  ListingFiltersResults,
+  SegmentedFilterGroup,
+  SwitchFilterGroup,
 } from './components/parts/listing-filters/types'
+export { default as ActiveFilters } from './components/parts/active-filters/index.astro'
+export type { ActiveFilter, ActiveFiltersProps } from './components/parts/active-filters/types'
+export { default as CategoryBar } from './components/parts/category-bar/index.astro'
+export type { CategoryBarItem, CategoryBarProps } from './components/parts/category-bar/types'
+export { default as ListingGrid } from './components/parts/listing-grid/index.astro'
+export type { ListingGridProps } from './components/parts/listing-grid/types'
 export { default as ListingToolbar } from './components/parts/listing-toolbar/index.astro'
-export type { ListingSort, ListingToolbarProps } from './components/parts/listing-toolbar/types'
+export type { ListingFiltersButton, ListingSort, ListingToolbarProps } from './components/parts/listing-toolbar/types'
+export { default as BundleIncludes } from './components/parts/bundle-includes/index.astro'
+export type { BundleIncludesProps } from './components/parts/bundle-includes/types'
 export { default as SpecTable } from './components/parts/spec-table/index.astro'
 export type { SpecRow, SpecTableProps } from './components/parts/spec-table/types'
 export { default as MiniCart } from './components/parts/mini-cart/index.astro'
@@ -485,10 +493,6 @@ export { default as Faq } from './components/blocks/sections/faq/index.astro'
 export type { FaqHelp, FaqItem, FaqProps } from './components/blocks/sections/faq/types'
 export { default as Banner } from './components/blocks/sections/banner/index.astro'
 export type { BannerProps, BannerSlotAttrs } from './components/blocks/sections/banner/types'
-export { default as BrandMarquee } from './components/blocks/sections/brand-marquee/index.astro'
-export { brandMarqueeTones } from './components/blocks/sections/brand-marquee/variants'
-export type { BrandMarqueeProps } from './components/blocks/sections/brand-marquee/types'
-export type { BrandMarqueeTone } from './components/blocks/sections/brand-marquee/variants'
 
 export { default as RatingStars } from './components/atoms/rating-stars/index.astro'
 export { RATING_STARS_MAX, ratingStarsSizes } from './components/atoms/rating-stars/variants'
@@ -502,15 +506,13 @@ export { default as ReviewForm } from './components/parts/review-form/index.astr
 export type { ReviewFormErrors, ReviewFormProps, ReviewFormValues } from './components/parts/review-form/types'
 
 // Homepage section library (store variants)
-export { default as BoardHero } from './components/blocks/sections/board-hero/index.astro'
-export type { BoardHeroProduct, BoardHeroProps } from './components/blocks/sections/board-hero/types'
+export { default as ShopHero } from './components/blocks/heroes/shop-hero/index.astro'
+export type { ShopHeroCategory, ShopHeroProduct, ShopHeroProps } from './components/blocks/heroes/shop-hero/types'
 export { default as ProductRail } from './components/blocks/sections/product-rail/index.astro'
 export type { ProductRailProps, ProductRailTab } from './components/blocks/sections/product-rail/types'
 export { default as ProductSpotlight } from './components/blocks/sections/product-spotlight/index.astro'
 export type { ProductSpotlightProps, SpotlightCallout, SpotlightSpec } from './components/blocks/sections/product-spotlight/types'
 export { calloutSides, type CalloutSide } from './components/blocks/sections/product-spotlight/variants'
-export { default as ActivityIndex } from './components/blocks/sections/activity-index/index.astro'
-export type { ActivityIndexItem, ActivityIndexProps } from './components/blocks/sections/activity-index/types'
 export { default as CollectionBento } from './components/blocks/sections/collection-bento/index.astro'
 export type { CollectionBentoProps, CollectionPhotoTile, CollectionTextTile, CollectionTile } from './components/blocks/sections/collection-bento/types'
 export { collectionTileTones, type CollectionTileTone } from './components/blocks/sections/collection-bento/variants'
@@ -555,5 +557,4 @@ export { default as OrderConfirmation } from './components/parts/order-confirmat
 export type { OrderConfirmationFact, OrderConfirmationProps, OrderConfirmationStep } from './components/parts/order-confirmation/types'
 export { orderConfirmationTones, type OrderConfirmationTone } from './components/parts/order-confirmation/types'
 export { default as ProductDetails } from './components/parts/product-details/index.astro'
-export { productDetailsTabs } from './components/parts/product-details/types'
-export type { ProductDetailsPanel, ProductDetailsProps, ProductDetailsTab } from './components/parts/product-details/types'
+export type { ProductDetailsPanel, ProductDetailsProps } from './components/parts/product-details/types'

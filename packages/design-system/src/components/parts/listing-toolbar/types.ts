@@ -1,5 +1,6 @@
 import type { LinkContent } from '../../../types/link'
 import type { SelectOption } from '../../atoms/select/index.astro'
+import type { ActiveFilter } from '../active-filters/types'
 
 export interface ListingSort {
   readonly id: string
@@ -12,14 +13,29 @@ export interface ListingSort {
   readonly submitLabel: string
 }
 
+/** The button that opens the filter panel. */
+export interface ListingFiltersButton {
+  readonly label: string
+  /** The id of the filter panel (a `ListingFilters` dialog) it opens. */
+  readonly controls: string
+  /** How many filters are applied: the badge; hidden at 0. */
+  readonly activeCount: number
+  /** Spoken after the badge number ("applied"): `Filters 3 applied`. */
+  readonly activeCountLabel?: string
+}
+
 export interface ListingToolbarProps {
-  /** The result count in words ("24 products"); a polite live region so a filter change is announced. */
-  resultCount: string
   /** Where the sort form submits (the listing's own URL). */
   action: string
   sort: ListingSort
-  /** The query parameters the sort form must keep (the active filters, the search term) as hidden fields. */
+  /** The query parameters the sort form must keep (the category, the filters) as hidden fields. */
   keep?: Readonly<Record<string, string | readonly string[]>>
-  /** A link to the filter panel (`#<id>`), shown on a phone only; the script opens the panel. */
-  filterToggle?: LinkContent
+  /** The Filters button; without it the toolbar is the sort alone. */
+  filters?: ListingFiltersButton
+  /** The applied filters as removable chips after the button; one scrolling line on a phone. */
+  activeFilters?: readonly ActiveFilter[]
+  /** Names the chip list ("Applied filters"). */
+  activeFiltersLabel?: string
+  /** Drops every applied filter; shown after the chips. */
+  clearAll?: LinkContent
 }

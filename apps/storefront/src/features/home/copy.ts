@@ -4,11 +4,10 @@ import type { HomeFaqItem } from "./config";
 export interface HomeHeroCopy {
 	eyebrow: string;
 	heading: string;
-	voltText: string;
-	blackText: string;
 	ctaLabel: string;
 	secondaryLabel: string;
 	productLabel: string;
+	categoriesLabel: string;
 }
 
 export interface HomeSpotlightCopy {
@@ -23,67 +22,51 @@ export interface HomeLookCopy {
 	listHeading: string;
 }
 
-/** The home categories shown as rails, tabs and the index; each key is a product category slug. */
+/** The category pills under the hero; each key is a product category slug. */
 export interface HomeCategoryCopy {
 	readonly apparel: string;
 	readonly desk: string;
 	readonly drinkware: string;
+	readonly stickers: string;
 	readonly bundles: string;
+	readonly sale: string;
 }
 
-export interface HomeRailTitles extends HomeCategoryCopy {
-	readonly featured: string;
+/** The rails of the home page; each key is a rail key of the home structure. */
+export interface HomeRailTitles {
 	readonly new: string;
 	readonly sale: string;
+	readonly bundles: string;
 }
 
 export interface HomeLocaleCopy {
 	hero: HomeHeroCopy;
 	railTitles: HomeRailTitles;
-	railMore: HomeCategoryCopy & {
-		readonly new: string;
-		readonly sale: string;
-	};
-	tabCategories: HomeCategoryCopy;
+	railMore: HomeRailTitles;
 	spotlight: HomeSpotlightCopy;
 	look: HomeLookCopy;
 	activity: HomeCategoryCopy;
 	faq: readonly HomeFaqItem[];
-	marquee: string;
 }
 
 const en: HomeLocaleCopy = {
 	hero: {
-		eyebrow: "Apparel · Desk setup · Drinkware · Bundles",
-		heading: "MERCH FOR PEOPLE WHO SHIP AT THE EDGE.",
-		voltText: "SHIP.",
-		blackText: "AT THE\nEDGE",
-		ctaLabel: "New arrivals",
+		eyebrow: "Unofficial mock merch store",
+		heading: "Merch for people who ship at the edge.",
+		ctaLabel: "Shop new arrivals",
 		secondaryLabel: "Shop bundles",
 		productLabel: "Workers tee",
+		categoriesLabel: "Shop by category",
 	},
 	railTitles: {
-		featured: "Featured",
 		new: "New arrivals",
 		sale: "Sale",
 		bundles: "Bundles",
-		apparel: "Apparel",
-		desk: "Desk setup",
-		drinkware: "Drinkware",
 	},
 	railMore: {
 		new: "View all",
-		sale: "View sale",
-		bundles: "Shop bundles",
-		apparel: "Shop apparel",
-		desk: "Shop desk setup",
-		drinkware: "Shop drinkware",
-	},
-	tabCategories: {
-		apparel: "Apparel",
-		desk: "Desk setup",
-		drinkware: "Drinkware",
-		bundles: "Bundles",
+		sale: "View all",
+		bundles: "View all",
 	},
 	spotlight: {
 		eyebrow: "Outerwear",
@@ -102,7 +85,9 @@ const en: HomeLocaleCopy = {
 		apparel: "Apparel",
 		desk: "Desk setup",
 		drinkware: "Drinkware",
+		stickers: "Stickers",
 		bundles: "Bundles",
+		sale: "Sale",
 	},
 	faq: [
 		{
@@ -120,41 +105,26 @@ const en: HomeLocaleCopy = {
 			answer: ["Yes — in a real shop you would have 30 days to return without giving a reason."],
 		},
 	],
-	marquee: "SHIP IT AT THE EDGE",
 };
 
 const pl: HomeLocaleCopy = {
 	hero: {
-		eyebrow: "Odzież · Biurko · Akcesoria do picia · Zestawy",
-		heading: "GADŻETY DLA LUDZI, KTÓRZY WDRAŻAJĄ NA EDGE'U.",
-		voltText: "WDRAŻAJ.",
-		blackText: "NA\nEDGE'U",
-		ctaLabel: "Nowości",
+		eyebrow: "Nieoficjalny sklep z gadżetami",
+		heading: "Gadżety dla ludzi, którzy wdrażają na edge'u.",
+		ctaLabel: "Zobacz nowości",
 		secondaryLabel: "Kupuj zestawy",
 		productLabel: "Koszulka Workers",
+		categoriesLabel: "Kupuj według kategorii",
 	},
 	railTitles: {
-		featured: "Wyróżnione",
 		new: "Nowości",
 		sale: "Wyprzedaż",
 		bundles: "Zestawy",
-		apparel: "Odzież",
-		desk: "Biurko",
-		drinkware: "Do picia",
 	},
 	railMore: {
 		new: "Zobacz wszystkie",
-		sale: "Zobacz wyprzedaż",
-		bundles: "Kupuj zestawy",
-		apparel: "Kupuj odzież",
-		desk: "Kupuj na biurko",
-		drinkware: "Kupuj do picia",
-	},
-	tabCategories: {
-		apparel: "Odzież",
-		desk: "Biurko",
-		drinkware: "Do picia",
-		bundles: "Zestawy",
+		sale: "Zobacz wszystkie",
+		bundles: "Zobacz wszystkie",
 	},
 	spotlight: {
 		eyebrow: "Okrycia wierzchnie",
@@ -173,7 +143,9 @@ const pl: HomeLocaleCopy = {
 		apparel: "Odzież",
 		desk: "Biurko",
 		drinkware: "Do picia",
+		stickers: "Naklejki",
 		bundles: "Zestawy",
+		sale: "Wyprzedaż",
 	},
 	faq: [
 		{
@@ -191,7 +163,6 @@ const pl: HomeLocaleCopy = {
 			answer: ["Tak — w prawdziwym sklepie masz 30 dni na zwrot bez podawania przyczyny."],
 		},
 	],
-	marquee: "WDRAŻAJ NA EDGE'U",
 };
 
 export const homeCopy: Record<Locale, HomeLocaleCopy> = { en, pl };

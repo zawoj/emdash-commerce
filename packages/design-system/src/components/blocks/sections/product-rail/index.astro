@@ -3,7 +3,8 @@
 // link and the prev/next buttons right) over a scroll-snap row of product cards. Cards are sized so
 // a fraction of the next one is always in view, which is what tells the shopper it scrolls. The
 // track is a focusable labelled region; the buttons appear once the script runs and are disabled at
-// the ends. A rail without products renders nothing.
+// the ends. A rail without products renders nothing. Every rail head reads the same: the title on the
+// left, "View all" and the arrows on the right (a phone keeps the title and the link, the cards swipe).
 import Icon from '../../../atoms/icon/index.astro'
 import { iconNames } from '../../../atoms/icon/names'
 import ScrollButton from '../../../atoms/scroll-button/index.astro'
@@ -30,7 +31,12 @@ const { heading, headingId, products, tabs = [], tabsLabel, more, label, prevLab
               </ul>
             </nav>
           )}
-          {more && <a class="product-rail__more" href={more.href}>{more.label}</a>}
+          {more && (
+            <a class="product-rail__more" href={more.href}>
+              {more.label}
+              <Icon name={iconNames.arrowRight} size={16} />
+            </a>
+          )}
           <div class="product-rail__controls" data-rail-controls hidden>
             <ScrollButton class="product-rail__button" label={prevLabel} isDisabled>
               <Icon slot="icon" name={iconNames.chevronLeft} />
@@ -58,13 +64,13 @@ const { heading, headingId, products, tabs = [], tabsLabel, more, label, prevLab
 
 <style>
   .product-rail {
-    padding-block: var(--space-32);
+    padding-block: var(--space-40);
     container: product-rail / inline-size;
   }
 
   .product-rail__head {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: var(--space-16) var(--space-32);
     margin-bottom: var(--space-24);
@@ -72,7 +78,7 @@ const { heading, headingId, products, tabs = [], tabsLabel, more, label, prevLab
 
   .product-rail__heading {
     margin: 0;
-    font: var(--type-display-md);
+    font: var(--type-display-sm);
     font-stretch: var(--display-stretch);
     letter-spacing: var(--tracking-display);
     text-transform: var(--text-case);
@@ -89,36 +95,43 @@ const { heading, headingId, products, tabs = [], tabsLabel, more, label, prevLab
 
   .product-rail__tab-list {
     display: flex;
-    gap: var(--space-24);
+    gap: var(--space-8);
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .product-rail__tab,
-  .product-rail__more {
-    color: var(--text-secondary);
+  /* Collection tabs are pills; the current one is filled. */
+  .product-rail__tab {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-6) var(--space-12);
+    border-radius: var(--radius-chip);
+    background: var(--surface-muted);
+    color: var(--text-primary);
     font: var(--type-text-medium-sm);
     text-decoration: none;
   }
 
-  .product-rail__tab {
-    padding-block: var(--space-4);
-    border-bottom: 2px solid transparent;
-  }
-
-  .product-rail__tab:hover,
-  .product-rail__more:hover {
-    color: var(--text-primary);
+  .product-rail__tab:hover {
+    background: var(--surface-hover);
   }
 
   .product-rail__tab[aria-current='page'] {
-    border-bottom-color: var(--text-primary);
-    color: var(--text-primary);
+    background: var(--text-primary);
+    color: var(--surface);
   }
 
   .product-rail__more {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-4);
     color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    text-decoration: none;
+  }
+
+  .product-rail__more:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
   }
@@ -197,17 +210,24 @@ const { heading, headingId, products, tabs = [], tabsLabel, more, label, prevLab
 
   @container product-rail (width < 520px) {
     .product-rail__list {
-      --rail-visible: 1.4;
-      --rail-gap: var(--grid-gap-tight);
+      --rail-visible: 1.8;
+      --rail-gap: var(--grid-gap);
+    }
+
+    .product-rail__tabs,
+    .product-rail__controls {
+      display: none;
+    }
+  }
+
+  /* Phone: tighter section rhythm. */
+  @media (max-width: 640px) {
+    .product-rail {
+      padding-block: var(--space-16);
     }
 
     .product-rail__head {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .product-rail__aside {
-      justify-content: flex-start;
+      margin-bottom: var(--space-16);
     }
   }
 

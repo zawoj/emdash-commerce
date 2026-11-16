@@ -20,7 +20,8 @@ const mount = (root: HTMLElement) => {
 	if (!state.variants) return;
 	const target = root.querySelector<HTMLElement>("[data-buy-target]");
 	const idField = root.querySelector<HTMLInputElement>("input[data-price-id]");
-	const submit = root.querySelector<HTMLButtonElement>("form[data-add-to-cart] button[type='submit']");
+	const form = root.querySelector<HTMLFormElement>("form[data-add-to-cart]");
+	const submit = form?.querySelector<HTMLButtonElement>("button[type='submit']") ?? null;
 	const gallery = document.querySelector<HTMLElement>("[data-product-gallery]");
 	const addLabel = root.dataset.addLabel ?? "";
 	const soldOutLabel = root.dataset.soldOutLabel ?? "";
@@ -36,8 +37,14 @@ const mount = (root: HTMLElement) => {
 		if (submit && isComplete) submit.removeAttribute("aria-disabled");
 		if (submit && !isComplete) submit.setAttribute("aria-disabled", "true");
 		if (submit && resolved) {
+			const label = resolved.isPurchasable ? addLabel : soldOutLabel;
+			// The add-to-cart script returns the button to these two, whatever it was showing meanwhile.
+			if (form) {
+				form.dataset.labelIdle = label;
+				form.dataset.isPurchasable = String(resolved.isPurchasable);
+			}
 			submit.disabled = !resolved.isPurchasable;
-			submit.textContent = resolved.isPurchasable ? addLabel : soldOutLabel;
+			submit.textContent = label;
 		}
 		if (state.imageAxis && gallery) {
 			gallery.dispatchEvent(new CustomEvent("product-gallery:filter", { detail: { group: chosen[state.imageAxis] ?? null } }));

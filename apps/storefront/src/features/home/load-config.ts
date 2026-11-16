@@ -5,23 +5,14 @@ import { homeStructure, type HomeConfig } from "./config";
 /** Runtime home config: structure plus locale-specific copy. */
 export const loadHomeConfig = (locale: Locale): HomeConfig => {
 	const strings = homeCopy[locale];
-	const railMore = (key: string): string | undefined => {
-		if (key === "new") return strings.railMore.new;
-		if (key === "sale") return strings.railMore.sale;
-		if (key === "bundles") return strings.railMore.bundles;
-		if (key === "apparel") return strings.railMore.apparel;
-		if (key === "desk") return strings.railMore.desk;
-		if (key === "drinkware") return strings.railMore.drinkware;
-		return undefined;
-	};
+	const railMore = (key: string): string | undefined =>
+		key in strings.railMore ? strings.railMore[key as keyof typeof strings.railMore] : undefined;
 
 	return {
 		hero: {
 			...homeStructure.hero,
 			eyebrow: strings.hero.eyebrow,
 			heading: strings.hero.heading,
-			voltText: strings.hero.voltText,
-			blackText: strings.hero.blackText,
 			ctaLabel: strings.hero.ctaLabel,
 			secondaryLabel: strings.hero.secondaryLabel,
 			productLabel: strings.hero.productLabel,

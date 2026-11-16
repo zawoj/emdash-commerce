@@ -1,16 +1,8 @@
 import type { SpecRow } from '../spec-table/types'
 
-/** The tabs of the details area, in display order; also the ids of their panels and `#hash`es. */
-export const productDetailsTabs = {
-  description: 'description',
-  specification: 'specification',
-  manufacturer: 'manufacturer',
-} as const
-
-export type ProductDetailsTab = (typeof productDetailsTabs)[keyof typeof productDetailsTabs]
-
-/** A titled block of facts (specification, manufacturer, delivery and returns). */
+/** A titled block of facts (specification, manufacturer, delivery and returns): one accordion row. */
 export interface ProductDetailsPanel {
+  /** The accordion row's title. */
   readonly title: string
   /** Names the table for assistive tech. */
   readonly caption: string
@@ -19,23 +11,19 @@ export interface ProductDetailsPanel {
   readonly note?: string
 }
 
-/** The "Product details" area under the gallery and the buy box. The long description is the default slot. */
+/** The product's long-form facts as short accordion rows. The long description is the default slot. */
 export interface ProductDetailsProps {
-  /** The section's H2. */
+  /** The section's H2, visible to assistive tech only (the rows are the visible structure). */
   readonly heading: string
   readonly headingId?: string
-  /** Tab labels (also the panels' headings when the script is off). A tab without content is not rendered. */
-  readonly tabLabels: Readonly<Record<ProductDetailsTab, string>>
+  /** The description row's title. A row without content is not rendered. */
+  readonly descriptionLabel: string
   /** A few key points pulled out above the description. */
   readonly highlights?: readonly string[]
-  readonly highlightsHeading?: string
-  /** Toggle labels of a description longer than the collapsed height. */
-  readonly readMoreLabel: string
-  readonly readLessLabel: string
-  /** The specification tab. */
+  /** The specification row. */
   readonly specification?: ProductDetailsPanel
-  /** The manufacturer tab: who placed the product on the market (GPSR). */
+  /** The manufacturer row: who placed the product on the market (GPSR). */
   readonly manufacturer?: ProductDetailsPanel
-  /** Not a tab: a compact block under the tabbed area. */
+  /** The delivery and returns row. */
   readonly delivery?: ProductDetailsPanel
 }

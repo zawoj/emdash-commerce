@@ -1,5 +1,5 @@
 ---
-// The home newsletter: a full-bleed black band with the eyebrow, the huge condensed heading, the copy and the sign-up form passed in the default slot.
+// The home newsletter: a dark tile with the optional eyebrow, the heading, the copy and the sign-up form passed in the default slot.
 import type { NewsletterProps } from './types'
 
 type Props = NewsletterProps
@@ -7,10 +7,10 @@ type Props = NewsletterProps
 const { eyebrow, heading, headingId = 'newsletter-heading', body } = Astro.props
 ---
 
-<section class="home-newsletter" data-surface="dark" data-band aria-labelledby={headingId}>
+<section class="home-newsletter" data-surface="dark" aria-labelledby={headingId}>
   <div class="home-newsletter__panel">
     <div class="home-newsletter__content">
-      <p class="home-newsletter__eyebrow">{eyebrow}</p>
+      {eyebrow && <p class="home-newsletter__eyebrow">{eyebrow}</p>}
       <div class="home-newsletter__text">
         <h2 id={headingId}>{heading}</h2>
         <p class="home-newsletter__body">{body}</p>
@@ -24,6 +24,8 @@ const { eyebrow, heading, headingId = 'newsletter-heading', body } = Astro.props
 
 <style>
   .home-newsletter {
+    overflow: hidden;
+    border-radius: var(--radius-card);
     background: var(--surface);
   }
 
@@ -35,8 +37,7 @@ const { eyebrow, heading, headingId = 'newsletter-heading', body } = Astro.props
     max-width: var(--page-max-width);
     margin: 0 auto;
     overflow: hidden;
-    /* Side padding = the page gutter, so the copy lines up with the header and the footer. */
-    padding: var(--space-96) var(--page-gutter);
+    padding: var(--space-64) var(--space-48);
   }
 
   .home-newsletter__content {
@@ -60,7 +61,7 @@ const { eyebrow, heading, headingId = 'newsletter-heading', body } = Astro.props
   }
 
   .home-newsletter__text h2 {
-    font: var(--type-display-xl);
+    font: var(--type-display-md);
     font-stretch: var(--display-stretch);
     letter-spacing: var(--tracking-display);
     color: var(--text-primary);
@@ -147,11 +148,11 @@ const { eyebrow, heading, headingId = 'newsletter-heading', body } = Astro.props
 
   @media (max-width: 900px) {
     .home-newsletter__panel {
-      padding: var(--space-64) var(--page-gutter);
+      padding: var(--space-48) var(--space-32);
     }
 
     .home-newsletter__text h2 {
-      font: var(--type-display-xl);
+      font: var(--type-display-md);
       font-stretch: var(--display-stretch);
       letter-spacing: var(--tracking-display);
     }
@@ -159,11 +160,11 @@ const { eyebrow, heading, headingId = 'newsletter-heading', body } = Astro.props
 
   @media (max-width: 640px) {
     .home-newsletter__panel {
-      padding: var(--space-48) var(--page-gutter);
+      padding: var(--space-32) var(--space-24);
     }
 
     .home-newsletter__text h2 {
-      font: var(--type-display-lg);
+      font: var(--type-display-sm);
       font-stretch: var(--display-stretch);
       letter-spacing: var(--tracking-display);
     }

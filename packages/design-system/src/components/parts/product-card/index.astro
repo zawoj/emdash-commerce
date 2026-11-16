@@ -1,6 +1,7 @@
 ---
-// The card of a shop grid: the 4:5 photo frame, the title (the card's one link, stretched over the
-// whole card), an optional two-line excerpt, then the price and the stock status on one row. The
+// The card of a shop grid, a borderless tile: the rounded 4:5 photo, then the title (the card's one link, stretched
+// over the whole card), an optional two-line excerpt and the price with the stock status on one row, all on the
+// page background and aligned to the photo's edge. Markers ("New", "-23%") are quiet text above the title. The
 // photo arrives as ready <img> attributes; without one the frame stays, filled with the muted
 // surface, so a grid row keeps one height. A reduced product shows the previous price struck through
 // and the Omnibus note; badges sit on the photo; a product that cannot be bought keeps its place,
@@ -75,7 +76,6 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
     display: flex;
     flex-direction: column;
     height: 100%;
-    border: 1px solid var(--border);
   }
 
   .product-card:focus-within {
@@ -88,7 +88,6 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
     isolation: isolate; /* the photo gets its own layer; badges and sizes stay above it */
     aspect-ratio: 4 / 5;
     overflow: hidden;
-    border-bottom: 1px solid var(--border);
     border-radius: var(--radius-card);
     background: var(--surface-muted);
   }
@@ -131,7 +130,6 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
       gap: var(--space-4) var(--space-12);
       margin: 0;
       padding: var(--space-12);
-      border-top: 1px solid var(--border);
       background: var(--surface);
       color: var(--text-primary);
       list-style: none;
@@ -183,12 +181,12 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
     color: var(--text-primary);
   }
 
-  /* The marker line above the title: "New · -23%" as text, not a sticker on the photo. */
+  /* The marker line above the title: "New · -23%" as quiet text, not a sticker on the photo. */
   .product-card__markers {
-    min-height: 20px; /* token-lint-ignore: one line of text-medium-sm, reserved when empty */
+    min-height: 20px; /* token-lint-ignore: one line of text-regular-sm, reserved when empty */
     margin: 0;
-    color: var(--text-primary);
-    font: var(--type-text-medium-sm);
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
   }
 
   .product-card--sold-out .product-card__img:not(.product-card__img--hover),
@@ -201,14 +199,15 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
     flex: 1;
     flex-direction: column;
     gap: var(--space-2);
-    padding: var(--space-16);
+    padding: var(--space-12) 0 0;
   }
 
   .product-card__title {
     display: -webkit-box;
     overflow: hidden;
+    margin: 0;
     color: var(--text-primary);
-    font: var(--type-title-md);
+    font: var(--type-text-regular-md);
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }

@@ -1,409 +1,456 @@
 ---
-// The filter panel of a listing: a GET form of facet groups (checkbox lists with counts, a price
-// range, option chips), the applied filters as removable chips with "clear all", and an apply button.
-// The panel is a <details> that is open in the markup — an inline script right after it collapses it on a phone
-// before the first paint (so the results never shift), the module script keeps it that way and
-// the toolbar's link toggles it (the panel's own summary row is hidden on a phone) — so it works without a script.
-// On a phone, while the panel is open, a "Show results (N)" bar is fixed to the bottom (it takes the tab bar's place). The applied filters sit above the
-// panel, outside the <details>, so they stay visible while it is collapsed. Parameters in `keep` survive applying.
+// The filter panel of a listing: one native modal <dialog> holding a GET form of option groups (a stock switch,
+// option chips, a checkbox list with counts, a segmented price choice, each group a fieldset with its legend) and a
+// footer with "Clear all" and the primary "Show N results" button. The same markup is a right-hand drawer from
+// 768px and a full-screen sheet below; the toolbar's Filters button opens it (`utils/listing-filters.ts`: focus
+// trap and Escape are the browser's, the script adds the scroll lock, focus back to the button, and a reset of
+// choices that were never applied). The app's own script keeps the count on the button and the options live
+// (the form's `change` event is the seam: the button carries `data-results-forms`, an option's number is
+// `[data-filter-count]`). Without a script the panel is a plain form shown inline (the noscript rule below) and
+// the Filters button is hidden, so filtering still works.
 import Button from '../../atoms/button/index.astro'
 import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
 import Icon from '../../atoms/icon/index.astro'
 import { iconNames } from '../../atoms/icon/names'
-import OptionChip from '../../atoms/option-chip/index.astro'
 import { filterGroupKinds } from './variants'
-import type { ListingFiltersProps } from './types'
+import type { FilterOption, ListingFiltersProps } from './types'
 
 type Props = ListingFiltersProps
 
-const { id, action, title, groups, activeFilters = [], clearAll, keep = {}, submitLabel, activeLabel, countLabel, resultsLabel } = Astro.props
-const activeCount = activeFilters.length
+const { id, action, title, closeLabel, groups, keep = {}, clearAll, results, countLabel } = Astro.props
+const titleId = `${id}-title`
+const forms = results.forms ? JSON.stringify(results.forms) : undefined
+
+const isEmpty = (option: FilterOption): boolean => option.count === 0 && !option.isChecked
 ---
 
-  {
-    activeCount > 0 && (
-      <div class="listing-filters__active">
-        {activeLabel && <p class="visually-hidden">{activeLabel}</p>}
-        <ul class="listing-filters__chips">
-          {activeFilters.map((filter) => (
-            <li>
-              <a class="listing-filters__chip" href={filter.removeHref} aria-label={filter.removeLabel}>
-                {filter.label}
-                <Icon name={iconNames.x} size={12} />
-              </a>
-            </li>
-          ))}
-        </ul>
-        {clearAll && <a class="listing-filters__clear" href={clearAll.href}>{clearAll.label}</a>}
-      </div>
-    )
-  }
+<dialog id={id} class="listing-filters" aria-labelledby={titleId} data-listing-filters>
+  <form class="listing-filters__form" action={action} method="get" data-listing-form data-listing-filters-form>
+    <header class="listing-filters__head">
+      <h2 class="listing-filters__title" id={titleId}>{title}</h2>
+      <button class="listing-filters__close" type="button" aria-label={closeLabel} data-filters-close>
+        <Icon name={iconNames.x} size={20} />
+      </button>
+    </header>
 
-<details class="listing-filters" id={id} open data-details-motion data-listing-filters data-active-count={activeCount}>
-  <summary class="listing-filters__summary">
-    <span class="listing-filters__title">{title}{activeCount > 0 && <span class="listing-filters__active-count"> ({activeCount})</span>}</span>
-    <span class="listing-filters__chevron" aria-hidden="true"><span class="listing-filters__glyph listing-filters__glyph--closed"><Icon name={iconNames.chevronDown} /></span><span class="listing-filters__glyph listing-filters__glyph--open"><Icon name={iconNames.chevronUp} /></span></span>
-  </summary>
+    <div class="listing-filters__body">
+      {Object.entries(keep).map(([name, value]) => <input type="hidden" name={name} value={value} />)}
 
-  <form class="listing-filters__form" action={action} method="get" data-auto-submit>
-    {Object.entries(keep).map(([name, value]) => <input type="hidden" name={name} value={value} />)}
+      {
+        groups.map((group) => (
+          <fieldset class="listing-filters__group">
+            <legend class="listing-filters__legend">{group.label}</legend>
 
-    {
-      groups.map((group) => (
-        <details class="listing-filters__group" open={group.isOpen ?? true} data-details-motion>
-          <summary class="listing-filters__group-summary">
-            <span id={`${group.id}-label`}>{group.label}</span>
-            <span class="listing-filters__chevron" aria-hidden="true"><span class="listing-filters__glyph listing-filters__glyph--closed"><Icon name={iconNames.chevronDown} /></span><span class="listing-filters__glyph listing-filters__glyph--open"><Icon name={iconNames.chevronUp} /></span></span>
-          </summary>
-          <fieldset class="listing-filters__fieldset" aria-labelledby={`${group.id}-label`}>
+            {group.kind === filterGroupKinds.switch && (
+              <label class="listing-filters__switch" data-is-empty={isEmpty(group.option) ? '' : undefined}>
+                <span class="listing-filters__switch-label">
+                  {group.option.label}
+                  {group.option.count !== undefined && (
+                    <span class="listing-filters__count"><span data-filter-count>{group.option.count}</span>{countLabel && <span class="visually-hidden"> {countLabel}</span>}</span>
+                  )}
+                </span>
+                <input class="listing-filters__switch-input" id={`${group.id}-0`} type="checkbox" role="switch" name={group.name} value={group.option.value} checked={group.option.isChecked} />
+              </label>
+            )}
+
             {group.kind === filterGroupKinds.checkbox && (
-              <ul class="listing-filters__options">
+              <ul class="listing-filters__list">
                 {group.options.map((option, index) => (
                   <li>
-                    <label class="listing-filters__option" for={`${group.id}-${index}`}>
-                      <input id={`${group.id}-${index}`} type="checkbox" name={group.name} value={option.value} checked={option.isChecked} />
-                      <span class="listing-filters__option-label">{option.label}</span>
+                    <label class="listing-filters__row" data-is-empty={isEmpty(option) ? '' : undefined}>
+                      <input class="listing-filters__check" id={`${group.id}-${index}`} type="checkbox" name={group.name} value={option.value} checked={option.isChecked} />
+                      <span class="listing-filters__row-label">{option.label}</span>
                       {option.count !== undefined && (
-                        <span class="listing-filters__count">
-                          <span aria-hidden="true">({option.count})</span>
-                          <span class="visually-hidden">{countLabel ? `(${option.count} ${countLabel})` : `(${option.count})`}</span>
-                        </span>
+                        <span class="listing-filters__count"><span data-filter-count>{option.count}</span>{countLabel && <span class="visually-hidden"> {countLabel}</span>}</span>
                       )}
                     </label>
                   </li>
                 ))}
               </ul>
             )}
-            {group.kind === filterGroupKinds.chips && (
-              <div class="listing-filters__chip-options">
+
+            {(group.kind === filterGroupKinds.chips || group.kind === filterGroupKinds.segmented) && (
+              <div class="listing-filters__pills">
                 {group.options.map((option, index) => (
-                  <OptionChip id={`${group.id}-${index}`} name={group.name} kind="checkbox" option={option} soldOutLabel={group.soldOutLabel} />
+                  <label class="listing-filters__pill" data-is-empty={isEmpty(option) ? '' : undefined}>
+                    <input
+                      class="listing-filters__pill-input"
+                      id={`${group.id}-${index}`}
+                      type={group.kind === filterGroupKinds.chips ? 'checkbox' : 'radio'}
+                      name={group.name}
+                      value={option.value}
+                      checked={option.isChecked}
+                    />
+                    <span class="listing-filters__pill-box">
+                      {option.label}
+                      {option.count !== undefined && (
+                        <span class="listing-filters__count"><span data-filter-count>{option.count}</span>{countLabel && <span class="visually-hidden"> {countLabel}</span>}</span>
+                      )}
+                    </span>
+                  </label>
                 ))}
-              </div>
-            )}
-            {group.kind === filterGroupKinds.range && (
-              <div class="listing-filters__range">
-                {[group.min, group.max].map((bound, index) => (
-                  <>
-                    {index === 1 && <span class="listing-filters__range-dash" aria-hidden="true">–</span>}
-                    <label class="listing-filters__range-field" for={`${group.id}-${index === 0 ? 'min' : 'max'}`}>
-                      <span class="visually-hidden">{bound.label}</span>
-                      <input
-                        id={`${group.id}-${index === 0 ? 'min' : 'max'}`}
-                        type="number"
-                        inputmode="numeric"
-                        min="0"
-                        name={bound.name}
-                        value={bound.value}
-                        placeholder={bound.placeholder}
-                      />
-                    </label>
-                  </>
-                ))}
-                {group.unit && <span class="listing-filters__unit">{group.unit}</span>}
               </div>
             )}
           </fieldset>
-        </details>
-      ))
+        ))
+      }
+    </div>
+
+    <footer class="listing-filters__foot">
+      <a class="listing-filters__clear" href={clearAll.href}>{clearAll.label}</a>
+      <Button type="submit" variant={buttonVariants.accent} size={buttonSizes.lg} class="listing-filters__submit" data-filters-results data-results-forms={forms}>{results.label}</Button>
+    </footer>
+  </form>
+</dialog>
+{/* No script, no way to open a dialog: show the panel inline as a plain form instead. */}
+<noscript>
+  <style is:inline>
+    /* More specific than the component's own scoped rules, which carry an attribute selector. */
+    html dialog.listing-filters[data-listing-filters] {
+      position: static;
+      display: block;
+      width: auto;
+      height: auto;
+      max-height: none;
+      margin: 0 0 var(--space-24);
+      border: 1px solid var(--border);
     }
 
-    <div class="listing-filters__submit" data-auto-submit-hide>
-      <Button type="submit" variant={buttonVariants.primary} size={buttonSizes.sm}>{submitLabel}</Button>
-    </div>
-  </form>
-
-  {
-    resultsLabel && (
-      <div class="listing-filters__bar" data-surface="light">
-        <Button type="button" variant={buttonVariants.primary} size={buttonSizes.lg} data-filters-show-results>{resultsLabel}</Button>
-      </div>
-    )
-  }
-</details>
-{/* Collapses the panel on a phone before the first paint (the module script would do it after load and shift
-    the results); the same query and keep-open flag as utils/listing-filters.ts. */}
-<script is:inline>
-  ;(function (panel) {
-    try {
-      if (window.matchMedia('(max-width: 899px)').matches && window.sessionStorage.getItem('listing-filters-open') !== '1') panel.open = false
-    } catch (error) {}
-  })(document.currentScript.previousElementSibling)
-</script>
+    html dialog.listing-filters[data-listing-filters] .listing-filters__close {
+      display: none;
+    }
+  </style>
+</noscript>
 
 <script>
-  import '../../../utils/details-motion'
   import '@emdash-commerce/design-system/listing-filters'
 </script>
 
 <style>
   .listing-filters {
+    width: 100%;
+    max-width: none;
+    height: 100vh; /* token-lint-ignore: viewport fallback for browsers without dvh */
+    height: 100dvh; /* token-lint-ignore: full-screen sheet */
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
     background: var(--surface);
+    color: var(--text-body);
+    inset: 0;
   }
 
-  .listing-filters__summary,
-  .listing-filters__group-summary {
+  .listing-filters[open] {
     display: flex;
-    min-height: 48px; /* token-lint-ignore: touch target */
+    flex-direction: column;
+  }
+
+  .listing-filters::backdrop {
+    background: var(--image-scrim);
+  }
+
+  /* From a tablet up the same panel is a drawer on the right edge. */
+  @media (min-width: 768px) {
+    .listing-filters {
+      width: min(440px, 100%); /* token-lint-ignore: drawer width */
+      border-left: var(--stroke-thin) solid var(--border);
+      inset: 0 0 0 auto;
+    }
+  }
+
+  /* The page behind the open panel does not scroll; the gutter stays so nothing jumps. */
+  :global(html:has(.listing-filters[open])) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+
+  .listing-filters__form {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  /* ----- head ----- */
+  .listing-filters__head {
+    display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-12);
-    padding: var(--space-8) 0;
-    cursor: pointer;
-    list-style: none;
-  }
-
-  .listing-filters__summary::-webkit-details-marker,
-  .listing-filters__group-summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .listing-filters__summary:focus-visible,
-  .listing-filters__group-summary:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: -2px;
+    gap: var(--space-16);
+    padding: var(--space-8) var(--space-12) var(--space-8) var(--space-24);
+    border-bottom: var(--stroke-thin) solid var(--border);
   }
 
   .listing-filters__title {
+    margin: 0;
     color: var(--text-primary);
-    font: var(--type-label-caps-xs);
-    font-stretch: var(--label-stretch);
-    letter-spacing: var(--tracking-label);
-    text-transform: var(--label-case);
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
   }
 
-  .listing-filters__active-count {
-    font-weight: 400;
-  }
-
-  .listing-filters__chevron {
+  .listing-filters__close {
     display: inline-flex;
+    width: 44px; /* token-lint-ignore: touch target */
+    height: 44px; /* token-lint-ignore: touch target */
     align-items: center;
     justify-content: center;
-    width: 32px; /* token-lint-ignore: hover disc around the chevron */
-    height: 32px; /* token-lint-ignore: hover disc around the chevron */
-    border-radius: var(--radius-full);
-    color: var(--text-secondary);
-  }
-
-  .listing-filters__glyph {
-    display: inline-flex;
-  }
-
-  .listing-filters__glyph--open,
-  .listing-filters[open]:not([data-closing]) > .listing-filters__summary .listing-filters__glyph--closed,
-  .listing-filters__group[open]:not([data-closing]) > .listing-filters__group-summary .listing-filters__glyph--closed {
-    display: none;
-  }
-
-  .listing-filters[open]:not([data-closing]) > .listing-filters__summary .listing-filters__glyph--open,
-  .listing-filters__group[open]:not([data-closing]) > .listing-filters__group-summary .listing-filters__glyph--open {
-    display: inline-flex;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: none;
+    color: var(--text-primary);
+    cursor: pointer;
   }
 
   @media (hover: hover) {
-    .listing-filters__summary:hover .listing-filters__chevron,
-    .listing-filters__group-summary:hover .listing-filters__chevron {
+    .listing-filters__close:hover {
       background: var(--surface-muted);
-      color: var(--text-primary);
     }
   }
 
-  /* On a phone the toolbar's "Filters" toggle is the only entry point: the panel has no summary row of its own. */
-  @media (max-width: 899px) {
-    .listing-filters__summary {
-      display: none;
-    }
-  }
-
-  .listing-filters__active {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-8);
-    margin-bottom: var(--space-16);
-  }
-
-  .listing-filters__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-8);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .listing-filters__chip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-8);
-    min-height: 32px; /* token-lint-ignore: chip height */
-    padding: 0 var(--space-12);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-control);
-    background: var(--surface-muted);
-    color: var(--text-primary);
-    font: var(--type-text-regular-sm);
-    text-decoration: none;
-  }
-
-  .listing-filters__chip:hover {
-    background: var(--surface-hover);
-  }
-
-  .listing-filters__chip:focus-visible,
+  .listing-filters__close:focus-visible,
   .listing-filters__clear:focus-visible {
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
 
-  .listing-filters__clear {
-    color: var(--link);
-    font: var(--type-text-medium-sm);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .listing-filters__form {
-    display: flex;
-    flex-direction: column;
+  /* ----- groups ----- */
+  .listing-filters__body {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 var(--space-24);
   }
 
   .listing-filters__group {
-    border-top: 1px solid var(--border);
-  }
-
-  .listing-filters__group-summary {
-    color: var(--text-primary);
-    font: var(--type-text-medium-sm);
+    min-width: 0;
+    margin: 0;
+    padding: var(--space-20) 0 var(--space-24);
+    border: 0;
+    border-bottom: var(--stroke-thin) solid var(--border);
   }
 
   .listing-filters__group:last-of-type {
-    border-bottom: 1px solid var(--border);
+    border-bottom: 0;
   }
 
-  .listing-filters__fieldset {
-    min-width: 0;
-    margin: 0;
-    padding: 0 0 var(--space-16);
-    border: 0;
-  }
-
-  .listing-filters__options {
-    display: flex;
-    max-height: 16rem;
-    flex-direction: column;
-    gap: var(--space-2);
-    margin: 0;
+  /* A floated legend is laid out like any block (a plain one sits on the fieldset's top edge); what follows clears it. */
+  .listing-filters__legend {
+    float: left;
+    width: 100%;
+    margin: 0 0 var(--space-12);
     padding: 0;
-    overflow-y: auto;
-    list-style: none;
+    color: var(--text-primary);
+    font: var(--type-title-md);
   }
 
-  .listing-filters__option {
-    display: flex;
-    min-height: 36px; /* token-lint-ignore: touch target in a dense list */
-    align-items: center;
-    gap: var(--space-8);
-    color: var(--text-body);
-    font: var(--type-text-regular-sm);
-    cursor: pointer;
-  }
-
-  .listing-filters__option input {
-    flex: none;
-    width: 16px; /* token-lint-ignore: native checkbox box */
-    height: 16px; /* token-lint-ignore: native checkbox box */
-    margin: 0;
-    accent-color: var(--ink-1000);
+  .listing-filters__legend + * {
+    clear: both;
   }
 
   .listing-filters__count {
-    margin-left: auto;
     color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
     font-variant-numeric: tabular-nums;
   }
 
-  .listing-filters__chip-options {
+  /* An option that would leave nothing stays choosable (it may be checked in another group's favour) but is quiet. */
+  [data-is-empty] {
+    color: var(--text-subtle);
+  }
+
+  [data-is-empty] .listing-filters__count {
+    color: var(--text-subtle);
+  }
+
+  /* ----- the stock switch ----- */
+  .listing-filters__switch {
+    display: flex;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16);
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+    cursor: pointer;
+  }
+
+  .listing-filters__switch-label {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-8);
+  }
+
+  .listing-filters__switch-input {
+    position: relative;
+    flex: none;
+    width: 44px; /* token-lint-ignore: switch track */
+    height: 24px; /* token-lint-ignore: switch track */
+    margin: 0;
+    border: var(--stroke-bold) solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    appearance: none;
+    cursor: pointer;
+  }
+
+  /* The knob sits left when off and right when on: the position says it, the fill only repeats it. */
+  .listing-filters__switch-input::before {
+    position: absolute;
+    top: 2px; /* token-lint-ignore: knob inset */
+    left: 2px; /* token-lint-ignore: knob inset */
+    width: 16px; /* token-lint-ignore: knob */
+    height: 16px; /* token-lint-ignore: knob */
+    border-radius: var(--radius-control);
+    background: var(--border-strong);
+    content: '';
+  }
+
+  .listing-filters__switch-input:checked {
+    border-color: var(--text-primary);
+    background: var(--text-primary);
+  }
+
+  .listing-filters__switch-input:checked::before {
+    left: calc(100% - 18px); /* token-lint-ignore: knob width plus inset */
+    background: var(--surface);
+  }
+
+  .listing-filters__switch-input:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* ----- the checkbox list (brands) ----- */
+  .listing-filters__list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .listing-filters__row {
+    display: flex;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    gap: var(--space-12);
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+    cursor: pointer;
+  }
+
+  .listing-filters__row-label {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .listing-filters__check {
+    flex: none;
+    width: 20px; /* token-lint-ignore: native checkbox box */
+    height: 20px; /* token-lint-ignore: native checkbox box */
+    margin: 0;
+    accent-color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .listing-filters__check:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* ----- option chips (sizes) and the segmented choice (price) ----- */
+  .listing-filters__pills {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-8);
   }
 
-  .listing-filters__range {
+  .listing-filters__pill {
+    position: relative;
+    display: inline-flex;
+    cursor: pointer;
+  }
+
+  .listing-filters__pill-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-radius: 0;
+    opacity: 0;
+    appearance: none;
+    cursor: inherit;
+  }
+
+  .listing-filters__pill-box {
+    display: inline-flex;
+    min-width: 44px; /* token-lint-ignore: touch target */
+    min-height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-6);
+    padding: 0 var(--space-16);
+    border: var(--stroke-thin) solid var(--border-strong);
+    border-radius: var(--radius-chip);
+    background: var(--surface);
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    white-space: nowrap;
+  }
+
+  @media (hover: hover) {
+    .listing-filters__pill:hover .listing-filters__pill-box {
+      border-color: var(--text-primary);
+    }
+  }
+
+  .listing-filters__pill-input:checked + .listing-filters__pill-box {
+    border-color: var(--text-primary);
+    background: var(--text-primary);
+    color: var(--surface);
+  }
+
+  .listing-filters__pill-input:checked + .listing-filters__pill-box .listing-filters__count {
+    color: inherit;
+  }
+
+  .listing-filters__pill-input:focus-visible + .listing-filters__pill-box {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  [data-is-empty] .listing-filters__pill-box {
+    border-color: var(--border);
+    color: var(--text-subtle);
+  }
+
+  /* ----- foot ----- */
+  .listing-filters__foot {
     display: flex;
     align-items: center;
-    gap: var(--space-8);
-  }
-
-  .listing-filters__range-field {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .listing-filters__range-field input {
-    width: 100%;
-    height: 40px; /* token-lint-ignore: control height */
-    padding: 0 var(--space-12);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-field);
+    gap: var(--space-16);
+    padding: var(--space-16) var(--space-24) calc(var(--space-16) + env(safe-area-inset-bottom, 0px));
+    border-top: var(--stroke-thin) solid var(--border);
     background: var(--surface);
-    color: var(--text-body);
-    font: var(--type-text-regular-sm);
   }
 
-  .listing-filters__range-dash,
-  .listing-filters__unit {
-    color: var(--text-secondary);
-    font: var(--type-text-regular-sm);
+  .listing-filters__clear {
+    display: inline-flex;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
-  .listing-filters__submit {
-    padding: var(--space-16) 0;
-  }
-
-  .listing-filters__submit[hidden] {
-    display: none;
-  }
-
-  @media (pointer: coarse) {
-    .listing-filters__chip,
-    .listing-filters__clear,
-    .listing-filters__option {
-      min-height: 44px; /* token-lint-ignore: touch target */
-    }
-
-    .listing-filters__clear {
-      display: inline-flex;
-      align-items: center;
-    }
-  }
-
-  @media (pointer: coarse) {
-    .listing-filters__range-field input {
-      height: 44px; /* token-lint-ignore: touch target */
-      font: var(--type-text-regular-md); /* 16px: iOS does not zoom the page on focus */
-    }
-  }
-
-  /* The bar exists on a phone only. Fixed inside the open <details>: a folded panel hides it with its content. */
-  .listing-filters__bar {
-    display: none;
-  }
-
-  @media (max-width: 767px) {
-    .listing-filters__bar {
-      position: fixed;
-      inset: auto 0 0;
-      z-index: 30; /* token-lint-ignore: same layer as the tab bar it replaces */
-      display: block;
-      padding: var(--space-12) var(--page-gutter) calc(var(--space-12) + env(safe-area-inset-bottom, 0px));
-      background: var(--surface);
-      border-top: var(--stroke-thin) solid var(--border);
-    }
-
-    .listing-filters__bar :global(.button) {
-      width: 100%;
-    }
+  .listing-filters__foot :global(.listing-filters__submit) {
+    min-height: 48px; /* token-lint-ignore: primary action */
+    flex: 1;
   }
 </style>

@@ -120,8 +120,9 @@ const { label, items } = Astro.props
     color: var(--text-primary);
   }
 
+  /* `inherit`, not `visible`: while the action bar replaces the tab bar (`visibility: hidden` on it) the mark must go too. */
   .tab-bar__item--current::before {
-    visibility: visible;
+    visibility: inherit;
   }
 
   .tab-bar__item:active {

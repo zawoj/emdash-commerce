@@ -1,99 +1,123 @@
 ---
 import {
+	ActiveFilters,
+	CategoryBar,
 	EmptyState,
 	ListingFilters,
 	ListingIntro,
 	ListingToolbar,
-	ProductCard,
+	ListingGrid,
 } from "@emdash-commerce/design-system";
 import Base from "../../layouts/Base.astro";
-import { cardPriority, toCard } from "../../features/catalog/domain/card";
-import { filtersProps, toolbarProps, type ListingContext } from "../../features/catalog/domain/listing";
+import { toCard } from "../../features/catalog/domain/card";
+import { CATALOG_FETCH_LIMIT, EAGER_CARDS, FACETS_SCRIPT_ID } from "../../features/catalog/domain/constants";
+import { matchesListing, serializeFacets, toFacet } from "../../features/catalog/domain/facets";
+import {
+	activeFiltersOf,
+	brandsOf,
+	categoriesOf,
+	categoryBarProps,
+	clearAllLink,
+	countLabel,
+	filtersProps,
+	startFromCategoryLinks,
+	toolbarProps,
+	withKnownCategory,
+	type ListingContext,
+} from "../../features/catalog/domain/listing";
 import { parseListing } from "../../features/catalog/domain/params";
-import { catalogCopy } from "../../features/catalog/copy";
 import { fetchCatalogProducts } from "../../utils/commerce-fetch";
 import { getSiteLocale } from "../../utils/locale";
 import { resolveLocale } from "../../lib/i18n";
-import { catalogStrings } from "../../lib/strings";
+import { catalogStrings, format } from "../../lib/strings";
 
 const locale = resolveLocale(getSiteLocale());
 const copy = catalogStrings(locale);
-const plCopy = catalogCopy[locale];
-const state = parseListing(Astro.url.searchParams);
+const requested = parseListing(Astro.url.searchParams);
 const origin = Astro.url.origin;
 
-const catalog = await fetchCatalogProducts(origin, {
-	sort: state.sort,
-	brand: state.brand ?? undefined,
-	limit: 200,
-});
+// The API filters by one brand and one category, and the shop needs several brands plus counts for every option:
+// fetch the whole catalog once and filter here, with the same facets the browser counts with.
+const catalog = await fetchCatalogProducts(origin, { sort: requested.sort, limit: CATALOG_FETCH_LIMIT }).catch(() => null);
+const hasFailed = catalog === null;
+if (hasFailed) Astro.response.status = 503;
+const allItems = catalog?.items ?? [];
+const isTruncated = allItems.length >= CATALOG_FETCH_LIMIT;
+if (isTruncated) console.warn(`[shop] the catalog reached the fetch limit of ${CATALOG_FETCH_LIMIT}: later products are not listed`);
+const categories = categoriesOf(allItems);
+const state = withKnownCategory(requested, categories);
+const facets = allItems.map(toFacet);
+const items = allItems.filter((_, index) => matchesListing(facets[index]!, state));
 
-let items = catalog?.items ?? [];
-if (state.inStock) {
-	items = items.filter((item) => item.availability.state !== "sold_out");
-}
-if (state.priceMin !== null) items = items.filter((item) => item.price.amount >= state.priceMin!);
-if (state.priceMax !== null) items = items.filter((item) => item.price.amount <= state.priceMax!);
-
-const brands = [...new Map(items.flatMap((item) => (item.brand ? [[item.brand.slug, item.brand]] : []))).values()];
-const ctx: ListingContext = { locale, copy, state, basePath: "/shop", brands };
+const ctx: ListingContext = {
+	locale,
+	copy,
+	state,
+	basePath: "/shop",
+	facets,
+	brands: brandsOf(allItems),
+	categories,
+};
 const cards = items.map((item) => toCard(item, { locale, copy, hrefOf: (slug) => `/shop/${slug}` }));
+const currentCategory = ctx.categories.find((category) => category.slug === state.category);
+const heading = currentCategory?.name ?? copy.shop;
+const activeFilters = activeFiltersOf(ctx);
+const countMeta = `${countLabel(ctx, cards.length)}${isTruncated ? ` ${format(copy.catalogTruncated, { limit: CATALOG_FETCH_LIMIT })}` : ""}`;
 ---
 
-<Base title={copy.shop} pageTitle={copy.allProducts} description={copy.allProducts}>
-	<ListingIntro heading={copy.allProducts} headingId="shop-heading" intro={[plCopy.allProducts]} />
-	<ListingToolbar {...toolbarProps(ctx, cards.length)} />
-	<ListingFilters {...filtersProps(ctx)} />
-	<section class="shop-grid" aria-labelledby="shop-heading">
+<Base title={heading} pageTitle={heading} description={copy.allProducts}>
+	{
+		hasFailed ? (
+			<section class="shop-results" aria-labelledby="shop-heading">
+				<ListingIntro heading={copy.shop} headingId="shop-heading" />
+				<EmptyState
+					title={copy.loadErrorTitle}
+					text={copy.loadErrorText}
+					headingLevel={2}
+					action={{ href: `${Astro.url.pathname}${Astro.url.search}`, label: copy.loadErrorRetry }}
+				/>
+			</section>
+		) : (
+			<>
+	<div class="shop-head">
+		<ListingIntro heading={heading} headingId="shop-heading" meta={countMeta} />
+		{ctx.categories.length > 0 && <CategoryBar {...categoryBarProps(ctx)} />}
+		<ListingToolbar {...toolbarProps(ctx)} />
+		<ListingFilters {...filtersProps(ctx, cards.length)} />
+		<script type="application/json" id={FACETS_SCRIPT_ID} set:html={serializeFacets(facets)} />
+	</div>
+	<section class="shop-results" aria-labelledby="shop-heading">
 		{
 			cards.length === 0 ? (
 				<EmptyState
 					title={copy.emptyFilteredTitle}
 					text={copy.emptyFilteredText}
 					headingLevel={2}
-					action={{ href: "/shop", label: copy.clearFilters }}
-				/>
+					action={{ ...clearAllLink(ctx), label: copy.clearFilters }}
+					links={startFromCategoryLinks(ctx)}
+					linksLabel={copy.emptyStartWith}
+				>
+					<ActiveFilters label={copy.activeFiltersLabel} filters={activeFilters} />
+				</EmptyState>
 			) : (
-				<ul class="shop-grid__list">
-					{cards.map((card, index) => (
-						<li>
-							<ProductCard
-								product={card}
-								isEager={cardPriority(index).isEager}
-								isLead={cardPriority(index).isLead}
-							/>
-						</li>
-					))}
-				</ul>
+				<ListingGrid products={cards} eagerCount={EAGER_CARDS} />
 			)
 		}
 	</section>
+			</>
+		)
+	}
 </Base>
 
+<script>
+	import "../../features/catalog/client/listing-facets.client";
+</script>
+
 <style>
-	.shop-grid {
-		padding-inline: var(--gutter);
-		padding-block-end: var(--space-48);
-	}
-
-	.shop-grid__list {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+	/* The page head: the title, the categories and the toolbar sit close together, apart from the products. */
+	.shop-head {
+		display: flex;
+		flex-direction: column;
 		gap: var(--space-16);
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-
-	@media (min-width: 640px) {
-		.shop-grid__list {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-		}
-	}
-
-	@media (min-width: 1100px) {
-		.shop-grid__list {
-			grid-template-columns: repeat(4, minmax(0, 1fr));
-		}
 	}
 </style>

@@ -2,7 +2,37 @@
 
 Newest on top. Each entry says what changed in the package and why.
 
+## 2026-11-16
+
+### chore: remove two unused sections, export the icon names
+- `ActivityIndex` and `BrandMarquee` (and `brandMarqueeTones`, their types) are removed: the home page stopped using them with
+  the `ShopHero` redesign and nothing else did. `CollectionBento`, `ProductGrid` and `CategoryTile` are also not used by the
+  storefront and stay.
+- New export `@emdash-commerce/design-system/icon-names` (the icon name vocabulary without the Astro component barrel), for code
+  that must stay importable from a plain TypeScript test.
+- The `listing-filters` and `category-bar` scripts are covered by tests, run from the storefront because this package has no
+  DOM test runner (`apps/storefront/src/features/catalog/client/listing-dialog.client.test.ts`).
+
 ## 2026-11-15
+
+### feat: soft corners, a filter dialog, a category bar and calmer product and home blocks
+- **Corners.** `--radius-card` and `--radius-panel` are 20 px, `--radius-field` 12 px, `--radius-control` and `--radius-chip` pills
+  (`--radius-xs…lg` 4, 8, 12, 20 px, `--radius-full` 999 px). `wireframe-lint` no longer requires radius tokens to be `0`
+  (a component `border-radius` must still be a token); shadow, gradient, blur, motion and uppercase stay banned.
+- **New:** `CategoryBar` (pill links, `./category-bar`), `ActiveFilters` (removable chips, also used by the empty state),
+  `ListingGrid`, `BundleIncludes`, `ShopHero` (replaces `BoardHero`, removed).
+- **`ListingFilters`** is a modal `<dialog>`: a drawer from 768 px, a full-screen sheet below. Group kinds are `switch`,
+  `chips`, `checkbox` and `segmented`; the `range` kind and the details accordion are gone; renders inline without a script.
+  **`ListingToolbar`** is the Filters button with a badge, the chips and the sort: its `filterToggle` and `resultCount`
+  props became `filters`, `activeFilters` and `clearAll`. `ListingIntro` gained `meta`, `EmptyState` a default slot.
+- **`ProductCard`** is borderless: a rounded photo, text below, regular-weight title, quiet markers.
+- **`ProductDetails`** is accordion rows on `Disclosure` (`descriptionLabel` replaces `tabLabels`; `readMoreLabel`,
+  `readLessLabel` and `productDetailsTabs` and `utils/product-details.ts` are gone). `PromiseList` gained `columns` and a
+  `detail` line, `ProductRail` a new head (title left, "View all" right), pill tabs and a peeking card, `ProductGallery`
+  is borderless with a peek. `ProductSpotlight`, `Banner`, `Newsletter` (its `eyebrow` is optional) and `Faq` are tiles.
+  `ActivityIndex` and `BrandMarquee` remain but the home no longer uses them.
+- **Chrome.** Wordmark `max-width` 12 rem (a phone showed "Cloudflare Merc…"), the tab bar's current mark no longer shows
+  through the action bar, and the dead `details[data-listing-filters]` selector is gone from `bottom-bars.css`.
 
 ### feat: Cloudflare palette (orange on warm charcoal), replaces the blue wireframe ink
 - The skin is now a warm ink + orange wireframe taken from the Cloudflare merch look: the `--ink-0…1000` ramp is warm

@@ -3,9 +3,10 @@ import ActionBar from "@emdash-commerce/design-system/components/chrome/action-b
 import Breadcrumbs from "@emdash-commerce/design-system/components/atoms/breadcrumbs/index.astro";
 import ProductDetails from "@emdash-commerce/design-system/components/parts/product-details/index.astro";
 import ProductGallery from "@emdash-commerce/design-system/components/parts/product-gallery/index.astro";
-import ProductGrid from "@emdash-commerce/design-system/components/blocks/sections/product-grid/index.astro";
+import ProductRail from "@emdash-commerce/design-system/components/blocks/sections/product-rail/index.astro";
+import BundleIncludes from "@emdash-commerce/design-system/components/parts/bundle-includes/index.astro";
 import PromiseList from "@emdash-commerce/design-system/components/molecules/promise-list/index.astro";
-import { buttonVariants } from "@emdash-commerce/design-system";
+import { buttonSizes, buttonVariants, promiseListLayouts } from "@emdash-commerce/design-system";
 import Button from "@emdash-commerce/design-system/components/atoms/button/index.astro";
 import Base from "../../layouts/Base.astro";
 import ProductBuyBox from "../../features/catalog/components/ProductBuyBox.astro";
@@ -16,7 +17,7 @@ import { cartCopy } from "../../features/cart/copy";
 import { fetchCatalogProductDetail } from "../../utils/commerce-fetch";
 import { getSiteLocale } from "../../utils/locale";
 import { resolveLocale } from "../../lib/i18n";
-import { catalogStrings, cartStrings } from "../../lib/strings";
+import { catalogStrings, cartStrings, contentStrings, format } from "../../lib/strings";
 
 const { slug } = Astro.params;
 if (!slug) return Astro.rewrite("/404");
@@ -24,6 +25,7 @@ if (!slug) return Astro.rewrite("/404");
 const locale = resolveLocale(getSiteLocale());
 const copy = catalogStrings(locale);
 const cartLocaleCopy = cartStrings(locale);
+const contentCopy = contentStrings(locale);
 const detail = await fetchCatalogProductDetail(Astro.url.origin, slug);
 if (!detail) return Astro.rewrite("/404");
 
@@ -38,56 +40,70 @@ const related = detail.related.map((item, index) => ({
 	card: toCard(item, { locale, copy, hrefOf: (s) => `/shop/${s}` }),
 	priority: cardPriority(index),
 }));
+const detailRows = [
+	{ term: copy.shippingDeliveryLabel, value: copy.shippingDeliveryValue },
+	{ term: copy.shippingCostLabel, value: copy.shippingCostValue },
+	{ term: copy.shippingReturnsLabel, value: copy.shippingReturnsValue },
+];
 const initialState =
 	model.variantStates.find((state) => state.surrogateId === model.preselectedSurrogateId) ?? model.defaultState;
 ---
 
 <Base title={detail.title} pageTitle={detail.title} description={detail.excerpt ?? undefined}>
 	<section class="pdp">
-		<Breadcrumbs items={model.breadcrumbs} backLabel={copy.breadcrumbBack} label={copy.breadcrumbsLabel} />
+		<Breadcrumbs items={model.breadcrumbs} backLabel={copy.breadcrumbBack} ariaLabel={copy.breadcrumbsLabel} />
 		<div class="pdp__layout">
 			<div class="pdp__gallery">
 				<ProductGallery {...model.gallery} data-product-gallery />
 			</div>
 			<div class="pdp__summary">
-				{model.brand ? <p class="pdp__brand">{model.brand.name}</p> : null}
-				<h1 class="pdp__title">{model.title}</h1>
+				<header class="pdp__head">
+					{model.brand ? <p class="pdp__brand">{model.brand.name}</p> : null}
+					<h1 class="pdp__title">{model.title}</h1>
+				</header>
 				<ProductBuyBox model={model} catalogCopy={catalogCopy[locale]} cartCopy={cartCopy[locale]} />
 				{
 					model.subscriptionPriceId ? (
-						<Button href={`/api/cart/subscribe?priceId=${model.subscriptionPriceId}`} variant={buttonVariants.outline}>
+						<Button href={`/api/cart/subscribe?priceId=${model.subscriptionPriceId}`} variant={buttonVariants.outline} size={buttonSizes.lg}>
 							{copy.subscribe}
 							{model.subscriptionLabel ? ` — ${model.subscriptionLabel}` : ""}
 						</Button>
 					) : null
 				}
-				<PromiseList items={model.promises} />
+				{
+					model.bundle ? (
+						<BundleIncludes heading={copy.includesTitle} items={model.bundle.items} saving={model.bundle.saving ?? undefined} />
+					) : null
+				}
+				<PromiseList items={model.promises} layout={promiseListLayouts.columns} />
+				<ProductDetails
+					heading={copy.detailsTitle}
+					headingId="pdp-details"
+					descriptionLabel={copy.descriptionTitle}
+					specification={
+						model.specRows.length > 0
+							? {
+									title: copy.specificationTitle,
+									caption: copy.specificationTitle,
+									rows: model.specRows.map((row) => ({ term: row.label, value: row.value })),
+								}
+							: undefined
+					}
+					delivery={{ title: copy.shippingTitle, caption: copy.shippingTitle, rows: detailRows }}
+				>
+					{model.descriptionText ? model.descriptionText.split("\n\n").map((paragraph) => <p>{paragraph}</p>) : null}
+				</ProductDetails>
 			</div>
 		</div>
-		<ProductDetails
-			heading={copy.detailsTitle}
-			headingId="pdp-details"
-			tabLabels={{ description: copy.tabDescription, specification: copy.tabSpecification, manufacturer: copy.tabSpecification }}
-			readMoreLabel={copy.readMore}
-			readLessLabel={copy.readLess}
-			specification={
-				model.specRows.length > 0
-					? {
-							title: copy.specificationTitle,
-							caption: copy.specificationTitle,
-							rows: model.specRows.map((row) => ({ term: row.label, value: row.value })),
-						}
-					: undefined
-			}
-		>
-			{model.descriptionText ? <p>{model.descriptionText}</p> : null}
-		</ProductDetails>
 		{
 			related.length > 0 ? (
-				<ProductGrid
+				<ProductRail
 					heading={copy.relatedTitle}
 					headingId="related"
 					products={related.map((row) => row.card)}
+					label={format(contentCopy.railLabel, { title: copy.relatedTitle })}
+					prevLabel={contentCopy.railPrev}
+					nextLabel={contentCopy.railNext}
 					eagerCount={0}
 				/>
 			) : null
@@ -100,7 +116,7 @@ const initialState =
 			label: model.isSoldOut ? copy.addToCartSoldOut : copy.addToCart,
 			isDisabled: model.isSoldOut,
 		}}
-		watch="[data-product-buy]"
+		watch="[data-add-to-cart-button]"
 		proxy="[data-add-to-cart-button]"
 		mirror={{ root: "[data-product-buy]", value: "[data-buy-target] .price", button: "[data-add-to-cart-button]" }}
 	/>
@@ -109,9 +125,9 @@ const initialState =
 <style>
 	.pdp {
 		padding-inline: var(--page-gutter);
-		padding-block: var(--space-24) var(--space-48);
+		padding-block: var(--space-16) var(--space-64);
 		display: grid;
-		gap: var(--space-32);
+		gap: var(--space-24);
 	}
 
 	.pdp__layout {
@@ -121,21 +137,10 @@ const initialState =
 		align-items: start;
 	}
 
-	@media (min-width: 700px) {
+	@media (min-width: 900px) {
 		.pdp__layout {
-			grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+			grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
 			gap: var(--space-64);
-		}
-
-		.pdp__summary {
-			position: sticky;
-			top: calc(var(--header-height) + var(--space-24));
-		}
-	}
-
-	@media (max-width: 699px) {
-		.pdp__layout {
-			gap: var(--space-24);
 		}
 	}
 
@@ -144,12 +149,20 @@ const initialState =
 		flex-direction: column;
 		align-items: stretch;
 		gap: var(--space-24);
+		min-width: 0;
+	}
+
+	/* Title and price stay together at the top of the buy column: the first thing a shopper scans. */
+	.pdp__head {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
 	}
 
 	.pdp__brand {
 		margin: 0;
 		color: var(--text-secondary);
-		font: var(--type-text-regular-sm);
+		font: var(--type-text-medium-sm);
 	}
 
 	.pdp__title {
@@ -159,5 +172,12 @@ const initialState =
 		text-transform: var(--text-case);
 		font-stretch: var(--display-stretch);
 		text-wrap: balance;
+	}
+
+	/* The headline is a touch smaller on a phone so the price still fits above the photos' fold. */
+	@media (max-width: 699px) {
+		.pdp__title {
+			font: var(--type-display-sm);
+		}
 	}
 </style>

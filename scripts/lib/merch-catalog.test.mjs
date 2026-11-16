@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+import { bundleOf } from "../../apps/storefront/src/features/catalog/domain/pdp.ts";
 import { HOTSPOTS } from "../art/hotspots.mjs";
 import {
 	ACCESSORIES,
@@ -90,6 +91,19 @@ describe("bundles", () => {
 		}
 	});
 
+	it("states its saving in the wording the product page reads, so the page shows the chip and every part", () => {
+		for (const bundle of BUNDLES) {
+			const parts = bundle.includes.split(", ");
+			const total = parts.reduce((sum, title) => sum + titleToPrice.get(title), 0);
+			const view = bundleOf(
+				[{ label: "Includes", value: bundle.includes }],
+				bundle.copy.map((text) => ({ _type: "block", children: [{ text }] })),
+			);
+			expect(view?.items, `${bundle.slug} parts`).toEqual(parts);
+			expect(view?.saving, `${bundle.slug} saving`).toBe(`$${dollars(bundle.price)} instead of $${dollars(total)}`);
+		}
+	});
+
 	it("keeps the Workers Fit Bundle below the tee, cap and socks bought apart", () => {
 		const total = priceOf("workers-tee") + priceOf("ray-id-cap") + priceOf("dns-socks");
 		const fit = APPAREL.find((product) => product.slug === "workers-fit-bundle");
@@ -99,12 +113,16 @@ describe("bundles", () => {
 });
 
 describe("home page wiring", () => {
-	it("points rails, tabs, the index and the hero at categories and products that exist", () => {
+	it("points rails, the category pills and the hero at categories and products that exist", () => {
 		for (const slug of quoted(/\bcategory: "([a-z-]+)"/g)) expect(categorySlugs.has(slug), `category ${slug}`).toBe(true);
 		for (const slug of quoted(/\bslug: "([a-z-]+)"/g)) expect(categorySlugs.has(slug), `index slug ${slug}`).toBe(true);
-		const tabs = HOME_CONFIG.match(/tabCategorySlugs: \[([^\]]+)\]/)[1];
-		for (const [, slug] of tabs.matchAll(/"([a-z-]+)"/g)) expect(categorySlugs.has(slug), `tab ${slug}`).toBe(true);
 		for (const slug of quoted(/\bproductSlug: "([a-z-]+)"/g)) expect(slugs.has(slug), `product ${slug}`).toBe(true);
+	});
+
+	it("links every rail and category pill to a shop category that exists", () => {
+		const hrefs = quoted(/\/shop\?category=([a-z-]+)/g);
+		expect(hrefs.length, "the home config links to categories").toBeGreaterThan(0);
+		for (const slug of hrefs) expect(categorySlugs.has(slug), `href category ${slug}`).toBe(true);
 	});
 
 	it("opens a product from every shop-the-look point and has a hotspot for every point and callout", () => {

@@ -83,13 +83,18 @@ const thumbLabel = (index: number) => thumbnailLabelTemplate.replace('{index}', 
   }
 
   .product-gallery__slide {
-    flex: 0 0 100%;
+    flex: 0 0 88%;
     aspect-ratio: 4 / 5;
     margin: 0;
-    border: 1px solid var(--border);
+    overflow: hidden;
     border-radius: var(--radius-card);
     background: var(--surface-muted);
     scroll-snap-align: start;
+  }
+
+  /* The peek of the next photo only makes sense when there is one: a lone photo takes the full width. */
+  .product-gallery__slide:only-child {
+    flex-basis: 100%;
   }
 
   .product-gallery__slide[hidden] {
@@ -118,14 +123,15 @@ const thumbLabel = (index: number) => thumbnailLabelTemplate.replace('{index}', 
 
   .product-gallery__thumb {
     display: block;
+    overflow: hidden;
     aspect-ratio: 1;
-    border: var(--stroke-thin) solid var(--border);
+    border: var(--stroke-bold) solid transparent;
     border-radius: var(--radius-card);
     background: var(--surface-muted);
   }
 
   .product-gallery__thumb:hover {
-    border-color: var(--text-primary);
+    border-color: var(--border-strong);
   }
 
   .product-gallery__thumb :global(img) {
@@ -135,7 +141,7 @@ const thumbLabel = (index: number) => thumbnailLabelTemplate.replace('{index}', 
   }
 
   .product-gallery__thumb[aria-current='true'] {
-    border: var(--stroke-bold) solid var(--control-edge);
+    border-color: var(--control-edge);
   }
 
   .product-gallery__thumb:focus-visible {
@@ -155,11 +161,6 @@ const thumbLabel = (index: number) => thumbnailLabelTemplate.replace('{index}', 
 
     .product-gallery__slide {
       flex-basis: 86%;
-    }
-
-    /* The peek of the next photo only makes sense when there is one: a lone photo takes the full width. */
-    .product-gallery__slide:only-child {
-      flex-basis: 100%;
     }
 
     .product-gallery__thumbs {

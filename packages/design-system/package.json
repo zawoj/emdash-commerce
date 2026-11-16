@@ -41,6 +41,8 @@
     "./product-gallery": "./src/utils/product-gallery.ts",
     "./product-gallery-core": "./src/utils/product-gallery-core.ts",
     "./listing-filters": "./src/utils/listing-filters.ts",
+    "./category-bar": "./src/utils/category-bar.ts",
+    "./icon-names": "./src/components/atoms/icon/names.ts",
     "./pickup-point-picker": "./src/utils/pickup-point-picker.ts",
     "./package.json": "./package.json"
   },

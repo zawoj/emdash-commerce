@@ -1,0 +1,103 @@
+---
+// The category links above a listing: one row of pills ("All", "Apparel", ...), the current one filled with
+// ink. On a desktop the row wraps; on a phone it is one line that scrolls sideways and runs to the page edge,
+// opened on the current pill. Plain links, so it works without a script.
+import type { CategoryBarProps } from './types'
+
+type Props = CategoryBarProps
+
+const { label, items, id } = Astro.props
+---
+
+<nav class="category-bar" id={id} aria-label={label} data-category-bar>
+  <ul class="category-bar__list">
+    {
+      items.map((item) => (
+        <li>
+          <a class:list={['category-bar__pill', item.isCurrent && 'category-bar__pill--current']} href={item.href} aria-current={item.isCurrent ? 'page' : undefined}>
+            {item.label}
+            {item.count !== undefined && <span class="category-bar__count">{item.count}</span>}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<script>
+  import '@emdash-commerce/design-system/category-bar'
+</script>
+
+<style>
+  .category-bar {
+    min-width: 0;
+  }
+
+  .category-bar__list {
+    position: relative; /* the pills' offsetLeft is measured from the row */
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .category-bar__pill {
+    display: inline-flex;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    gap: var(--space-6);
+    padding: 0 var(--space-16);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-chip);
+    background: var(--surface);
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  @media (hover: hover) {
+    .category-bar__pill:hover {
+      border-color: var(--text-primary);
+    }
+  }
+
+  .category-bar__pill:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* The current one is ink with the page colour on it (never the orange: that stays the call to action). */
+  .category-bar__pill--current {
+    border-color: var(--text-primary);
+    background: var(--text-primary);
+    color: var(--surface);
+  }
+
+  .category-bar__count {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .category-bar__pill--current .category-bar__count {
+    color: inherit;
+  }
+
+  /* A phone: one scrolling line to the page edge; the scrollbar stays out of the way. */
+  @media (max-width: 767px) {
+    .category-bar__list {
+      flex-wrap: nowrap;
+      margin-inline: calc(-1 * var(--page-gutter));
+      padding-inline: var(--page-gutter);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .category-bar__list::-webkit-scrollbar {
+      display: none;
+    }
+  }
+</style>

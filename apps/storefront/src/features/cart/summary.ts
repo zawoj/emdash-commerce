@@ -144,7 +144,7 @@ export const loadSummary = async (request: Request, locale: Locale): Promise<Car
 	const amount = cart.subtotal?.amount ?? 0;
 	return {
 		count: cart.itemCount,
-		subtotal: { amount, label: formatMoney(amount, locale, cart.subtotal?.currency ?? "PLN") },
+		subtotal: { amount, label: formatMoney(amount, locale, cart.subtotal?.currency) },
 		isEmpty: false,
 		lines: lineContents(cart, locale, slugByProductId, imageByPriceId),
 	};

@@ -10,13 +10,13 @@ describe("loadHomeConfig", () => {
 	it("serves English hero copy for en", () => {
 		const config = loadHomeConfig(LOCALES.en);
 		expect(config.hero.heading).toBe(homeCopy.en.hero.heading);
-		expect(config.hero.voltText).toBe("SHIP.");
-		expect(config.rails[0]?.title).toBe("Featured");
+		expect(config.hero.heading).toBe("Merch for people who ship at the edge.");
+		expect(config.rails[0]?.title).toBe("New arrivals");
 	});
 
 	it("serves Polish hero copy for pl", () => {
 		const config = loadHomeConfig(LOCALES.pl);
-		expect(config.hero.heading).toContain("WDRAŻAJ");
+		expect(config.hero.heading).toContain("wdrażają");
 		expect(config.faq[1]?.question).toContain("dostawa");
 	});
 });
@@ -32,21 +32,25 @@ describe("formatMoney", () => {
 });
 
 describe("home structure and copy", () => {
-	it.each([LOCALES.en, LOCALES.pl])("names every rail, tab and index entry in the copy (%s)", (locale) => {
+	it.each([LOCALES.en, LOCALES.pl])("names every rail and category pill in the copy (%s)", (locale) => {
 		const strings = homeCopy[locale];
 		for (const rail of homeStructure.rails) {
 			expect(strings.railTitles, `title of rail ${rail.key}`).toHaveProperty(rail.key);
 			if ("moreHref" in rail) expect(strings.railMore, `more of rail ${rail.key}`).toHaveProperty(rail.key);
-			for (const slug of "tabCategorySlugs" in rail ? rail.tabCategorySlugs : []) {
-				expect(strings.tabCategories, `tab ${slug}`).toHaveProperty(slug);
-			}
 		}
 		for (const item of homeStructure.activityCategories) expect(strings.activity).toHaveProperty(item.slug);
 	});
 
-	it("names the index entries from the copy, not from the slug", () => {
+	it("names the category pills from the copy, not from the slug", () => {
 		const config = loadHomeConfig(LOCALES.en);
-		expect(config.activityCategories.map((item) => item.name)).toEqual(["Apparel", "Desk setup", "Drinkware", "Bundles"]);
-		expect(config.rails.find((rail) => rail.key === "bundles")?.moreLabel).toBe("Shop bundles");
+		expect(config.activityCategories.map((item) => item.name)).toEqual([
+			"Apparel",
+			"Desk setup",
+			"Drinkware",
+			"Stickers",
+			"Bundles",
+			"Sale",
+		]);
+		expect(config.rails.find((rail) => rail.key === "bundles")?.moreLabel).toBe("View all");
 	});
 });

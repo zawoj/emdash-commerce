@@ -1,4 +1,5 @@
 ---
+import InlineNotice from "@emdash-commerce/design-system/components/atoms/inline-notice/index.astro";
 import QuantityStepper from "@emdash-commerce/design-system/components/atoms/quantity-stepper/index.astro";
 import VariantPicker from "@emdash-commerce/design-system/components/molecules/variant-picker/index.astro";
 import type { CartCopy } from "../../cart/copy";
@@ -16,7 +17,7 @@ interface Props {
 
 const { model, catalogCopy, cartCopy } = Astro.props;
 const initial = model.variantStates.find((state) => state.surrogateId === model.preselectedSurrogateId) ?? model.defaultState;
-const unavailableLabel = model.isSoldOut ? catalogCopy.addToCartSoldOut : catalogCopy.addToCartSoldOut;
+const unavailableLabel = catalogCopy.addToCartSoldOut;
 const skuLabel = (sku: string | null) => (sku ? catalogCopy.skuLabel.replace("{sku}", sku) : "");
 ---
 
@@ -30,6 +31,13 @@ const skuLabel = (sku: string | null) => (sku ? catalogCopy.skuLabel.replace("{s
 	<div class="buy-box__state" data-buy-target aria-live="polite">
 		<BuyState state={initial} skuLabel={skuLabel(initial.sku)} />
 	</div>
+	{
+		model.isSoldOut ? (
+			<InlineNotice>
+				{catalogCopy.soldOutNotice}{" "}<a href="#related">{catalogCopy.soldOutSimilar}</a>
+			</InlineNotice>
+		) : null
+	}
 	<AddToCartForm
 		copy={cartCopy}
 		priceFieldName={model.hasVariants ? model.priceFieldName : undefined}

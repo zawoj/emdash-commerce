@@ -4,6 +4,8 @@ import type { ImageAttrs } from '../../../types/image'
 export interface ListingIntroProps {
   readonly heading: string
   readonly headingId?: string
+  /** Muted text beside the heading, announced politely when it changes (the product count: "20 products"). */
+  readonly meta?: string
   /** The intro as paragraphs. */
   readonly intro?: readonly string[]
   readonly image?: ImageAttrs

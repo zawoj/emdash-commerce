@@ -1,82 +1,72 @@
 import type { LinkContent } from '../../../types/link'
+export type { ActiveFilter } from '../active-filters/types'
 
 export interface FilterOption {
+  /** What the control submits. */
   readonly value: string
   readonly label: string
-  /** How many results the option leaves; shown in brackets and read out. */
+  /** How many results the option leaves next to the other applied filters. */
   readonly count?: number
   readonly isChecked?: boolean
-  /** A chip option with no stock stays selectable and is labelled. */
-  readonly isSoldOut?: boolean
 }
 
 interface FilterGroupBase {
   /** Prefix of the group's control ids. */
   readonly id: string
+  /** The group's legend. */
   readonly label: string
-  /** Groups are open by default; set false to start one collapsed. */
-  readonly isOpen?: boolean
+  /** The query parameter every option submits under. */
+  readonly name: string
+}
+
+export interface SwitchFilterGroup extends FilterGroupBase {
+  readonly kind: 'switch'
+  readonly option: FilterOption
 }
 
 export interface CheckboxFilterGroup extends FilterGroupBase {
   readonly kind: 'checkbox'
-  /** The query parameter every option's checkbox submits under (repeated). */
-  readonly name: string
   readonly options: readonly FilterOption[]
 }
 
 export interface ChipsFilterGroup extends FilterGroupBase {
   readonly kind: 'chips'
-  readonly name: string
   readonly options: readonly FilterOption[]
-  readonly soldOutLabel?: string
 }
 
-export interface RangeBound {
-  readonly name: string
-  /** Accessible name of the input ("Price from"). */
+export interface SegmentedFilterGroup extends FilterGroupBase {
+  readonly kind: 'segmented'
+  readonly options: readonly FilterOption[]
+}
+
+export type FilterGroup = SwitchFilterGroup | CheckboxFilterGroup | ChipsFilterGroup | SegmentedFilterGroup
+
+export interface ListingFiltersResults {
+  /** The button's text for the current count ("Show 12 results"). */
   readonly label: string
-  readonly placeholder?: string
-  readonly value?: number
-}
-
-export interface RangeFilterGroup extends FilterGroupBase {
-  readonly kind: 'range'
-  readonly min: RangeBound
-  readonly max: RangeBound
-  /** The unit shown after the inputs ("zł"). */
-  readonly unit?: string
-}
-
-export type FilterGroup = CheckboxFilterGroup | ChipsFilterGroup | RangeFilterGroup
-
-/** An applied filter as a removable chip; `removeHref` is the listing URL without it. */
-export interface ActiveFilter {
-  readonly label: string
-  readonly removeHref: string
-  /** Accessible name of the remove link ("Remove filter: Black"). */
-  readonly removeLabel: string
+  /**
+   * The button's text per plural category (`one`, `few`, `many`, `other`, and `zero` for no results at all), each
+   * with a `{count}` placeholder: the script picks one when the count changes while the panel is open.
+   */
+  readonly forms?: Readonly<Record<string, string>>
 }
 
 export interface ListingFiltersProps {
-  /** The panel's id: the toolbar's filter link targets `#<id>`. */
+  /** The panel's id: the toolbar's Filters button points at it. */
   id: string
   /** The listing's URL; the form submits there with GET. */
   action: string
   /** The panel's heading ("Filters"). */
   title: string
+  /** Accessible name of the close button ("Close filters"). */
+  closeLabel: string
   groups: readonly FilterGroup[]
-  activeFilters?: readonly ActiveFilter[]
-  /** Drops every filter. */
-  clearAll?: LinkContent
-  /** Parameters that survive applying filters (the search term, the sort). */
+  /** Parameters that survive applying filters (the category, the sort). */
   keep?: Readonly<Record<string, string>>
-  /** Text of the apply button; hidden when the script submits on change. */
-  submitLabel: string
-  /** Heading of the active-filter row ("Active filters"), spoken. */
-  activeLabel?: string
-  /** Prefix of the count in brackets read out for an option ("results"): `Black (12 results)`. */
+  /** Drops every filter ("Clear all"). */
+  clearAll: LinkContent
+  /** The primary button at the foot: it applies the choices and says how many results they leave. */
+  results: ListingFiltersResults
+  /** Said after an option's count ("results"): `Black 12 results`. */
   countLabel?: string
-  /** Phone: the button fixed at the bottom of the open panel ("Show results (24)"); it folds the panel and shows the results. */
-  resultsLabel?: string
 }

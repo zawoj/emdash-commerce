@@ -1,6 +1,6 @@
 ---
 // Nothing to show yet (an empty cart, no orders, no results): a glyph, a title, one line of text and
-// the way forward. Unlike `StatusPage` it is a section inside a page, not the whole page.
+// the way forward, with room (the default slot) for something between the two. Unlike `StatusPage` it is a section inside a page, not the whole page.
 import Button from '../../atoms/button/index.astro'
 import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
 import Icon from '../../atoms/icon/index.astro'
@@ -16,6 +16,8 @@ const Heading = `h${headingLevel}` as const
   {icon && <span class="empty-state__icon" aria-hidden="true"><Icon name={icon} size={40} /></span>}
   <Heading class="empty-state__title">{title}</Heading>
   {text && <p class="empty-state__text">{text}</p>}
+  {/* Extra content between the text and the way forward (a listing puts the applied filters here). */}
+  <slot />
   {
     (action || secondaryAction) && (
       <div class="empty-state__actions">
@@ -67,6 +69,15 @@ const Heading = `h${headingLevel}` as const
     letter-spacing: var(--tracking-display);
     text-transform: var(--text-case);
     text-wrap: balance;
+  }
+
+  /* Chips of applied filters (the default slot) sit on this panel: give them the page colour to stand out. */
+  .empty-state :global(.active-filters__chip) {
+    background: var(--surface);
+  }
+
+  .empty-state :global(.active-filters__list) {
+    justify-content: center;
   }
 
   .empty-state__text {
@@ -140,6 +151,16 @@ const Heading = `h${headingLevel}` as const
     font: var(--type-text-medium-md);
     text-decoration: underline;
     text-underline-offset: 3px;
+  }
+
+  @media (max-width: 767px) {
+    .empty-state {
+      padding: var(--space-48) var(--space-16);
+    }
+
+    .empty-state__title {
+      font: var(--type-display-md);
+    }
   }
 
   @media (pointer: coarse) {

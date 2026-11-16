@@ -1,15 +1,14 @@
 ---
-import BoardHero from "@emdash-commerce/design-system/components/blocks/sections/board-hero/index.astro";
+import ShopHero from "@emdash-commerce/design-system/components/blocks/heroes/shop-hero/index.astro";
 import ProductRail from "@emdash-commerce/design-system/components/blocks/sections/product-rail/index.astro";
 import ProductSpotlight from "@emdash-commerce/design-system/components/blocks/sections/product-spotlight/index.astro";
 import Banner from "@emdash-commerce/design-system/components/blocks/sections/banner/index.astro";
 import ShopTheLook from "@emdash-commerce/design-system/components/blocks/sections/shop-the-look/index.astro";
-import ActivityIndex from "@emdash-commerce/design-system/components/blocks/sections/activity-index/index.astro";
-import BrandMarquee from "@emdash-commerce/design-system/components/blocks/sections/brand-marquee/index.astro";
 import Newsletter from "@emdash-commerce/design-system/components/blocks/sections/newsletter/index.astro";
 import Faq from "@emdash-commerce/design-system/components/blocks/sections/faq/index.astro";
 import PromiseList from "@emdash-commerce/design-system/components/molecules/promise-list/index.astro";
-import { promiseListLayouts, iconNames } from "@emdash-commerce/design-system";
+import Button from "@emdash-commerce/design-system/components/atoms/button/index.astro";
+import { buttonSizes, buttonVariants, promiseListLayouts, iconNames } from "@emdash-commerce/design-system";
 
 import { buildLookChoice } from "../catalog/domain/look-choice";
 import { catalogCopy } from "../catalog/copy";
@@ -72,27 +71,10 @@ const railData = await Promise.all(
 );
 const rails = dedupeRails(railData, reservedProductIds);
 
-const tabLabels = homeStrings.tabCategories;
-
-const railTabs = (rail: HomeRailLoaded) => {
-	const slugs = rail.config.tabCategorySlugs;
-	if (!slugs?.length) return [];
-	const current = rail.config.category;
-	const labelOf = (slug: string): string =>
-		slug in tabLabels ? tabLabels[slug as keyof typeof tabLabels] : slug;
-	return slugs.map((slug) => ({
-		label: labelOf(slug),
-		href: `/shop?category=${slug}`,
-		isCurrent: slug === current,
-	}));
-};
-
 const railProps = (rail: HomeRailLoaded, eagerCount = 0) => ({
 	heading: rail.title,
 	headingId: `rail-${rail.key}`,
 	products: rail.items.map((item) => toCard(item, { locale, copy: catalog, hrefOf: (slug) => `/shop/${slug}` })),
-	tabs: railTabs(rail),
-	tabsLabel: copy.railTabs,
 	more: rail.config.moreHref ? { href: rail.config.moreHref, label: rail.config.moreLabel ?? copy.seeMore } : undefined,
 	label: format(copy.railLabel, { title: rail.title }),
 	prevLabel: copy.railPrev,
@@ -127,16 +109,20 @@ const promises = [
 ];
 ---
 
-<BoardHero
+<ShopHero
 	heading={config.hero.heading}
 	headingId="home-hero"
+	hasScrim={false}
 	eyebrow={config.hero.eyebrow}
 	image={imageFromUrl(config.hero.imageUrl, config.hero.imageAlt, { sizes: "100vw", isEager: true, isLead: true })}
 	action={{ label: config.hero.ctaLabel, href: config.hero.ctaHref }}
 	secondaryAction={{ label: config.hero.secondaryLabel, href: config.hero.secondaryHref }}
-	voltText={config.hero.voltText}
-	blackText={config.hero.blackText}
-	brandName={siteTitle}
+	categoriesLabel={homeStrings.hero.categoriesLabel}
+	categories={config.activityCategories.map((item) => ({
+		label: item.name,
+		href: item.href,
+		image: imageFromUrl(item.imageUrl, "", { sizes: "48px" }),
+	}))}
 	product={{
 		title: heroProduct?.title ?? config.hero.productLabel,
 		href: heroProduct ? `/shop/${heroProduct.slug}` : "/shop",
@@ -152,11 +138,6 @@ const promises = [
 />
 <PromiseList items={promises} layout={promiseListLayouts.strip} />
 {
-	railByKey(rails, "featured") ? (
-		<ProductRail {...railProps(railByKey(rails, "featured")!, 3)} />
-	) : null
-}
-{
 	railByKey(rails, "new") ? (
 		<ProductRail {...railProps(railByKey(rails, "new")!)} />
 	) : null
@@ -164,7 +145,7 @@ const promises = [
 {
 	spotlightProduct ? (
 		<ProductSpotlight
-			heading={config.spotlight.eyebrow}
+			heading={spotlightProduct.title}
 			headingId="home-spotlight"
 			eyebrow={config.spotlight.eyebrow}
 			image={
@@ -186,16 +167,6 @@ const promises = [
 {
 	railByKey(rails, "sale") ? (
 		<ProductRail {...railProps(railByKey(rails, "sale")!)} />
-	) : null
-}
-{
-	railByKey(rails, "bundles") ? (
-		<ProductRail {...railProps(railByKey(rails, "bundles")!)} />
-	) : null
-}
-{
-	railByKey(rails, "apparel") ? (
-		<ProductRail {...railProps(railByKey(rails, "apparel")!)} />
 	) : null
 }
 {
@@ -274,41 +245,23 @@ const promises = [
 	) : null
 }
 {
-	railByKey(rails, "desk") ? (
-		<ProductRail {...railProps(railByKey(rails, "desk")!)} />
+	railByKey(rails, "bundles") ? (
+		<ProductRail {...railProps(railByKey(rails, "bundles")!)} />
 	) : null
 }
-<ActivityIndex
-	heading={copy.activityIndexTitle}
-	headingId="home-activity"
-	items={config.activityCategories.map((item) => ({
-		label: item.name,
-		href: item.href,
-		countLabel: "",
-		image: imageFromUrl(item.imageUrl, ""),
-	}))}
-/>
-{
-	railByKey(rails, "drinkware") ? (
-		<ProductRail {...railProps(railByKey(rails, "drinkware")!)} />
-	) : null
-}
-<BrandMarquee text={homeStrings.marquee} />
+<Faq heading={copy.faqTitle} headingId="home-faq" items={config.faq} />
 <Newsletter
-	eyebrow={copy.newsletterTitle}
 	heading={copy.newsletterTitle}
 	headingId="home-newsletter"
 	body={copy.newsletterLead}
 >
 	<form action={config.newsletterAction} method="post" class="home-newsletter__form">
-		<label>
-			<span>{copy.formEmail}</span>
-			<input type="email" name="email" required autocomplete="email" />
-		</label>
-		<button type="submit">{copy.formSubmit}</button>
+		<div>
+			<input type="email" name="email" required autocomplete="email" aria-label={copy.formEmail} placeholder={copy.formEmail} />
+		</div>
+		<Button type="submit" variant={buttonVariants.accent} size={buttonSizes.lg}>{copy.formSubmit}</Button>
 	</form>
 </Newsletter>
-<Faq heading={copy.faqTitle} headingId="home-faq" items={config.faq} />
 
 <script define:vars={{ priceMap }}>
 	window.__lookPriceMap = priceMap;

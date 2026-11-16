@@ -50,7 +50,7 @@ An unofficial mock Cloudflare-merch shop (fictional products, USD, Stripe sandbo
 
 | Page        | Path               | What it shows                                                                                                                  |
 | ----------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| Home        | `/`                | Merch storefront (hero, rails, spotlight, shop-the-look on a desk setup, FAQ); config in `src/features/home/config.ts`                  |
+| Home        | `/`                | Merch storefront (hero with category pills, rails, spotlight, shop-the-look on a desk setup, FAQ); config in `src/features/home/config.ts`                  |
 | All posts   | `/posts`           | Post rows with thumbnails, excerpts, bylines, and tag chips; cursor pagination                                                 |
 | Post detail | `/posts/[slug]`    | Tags, title, excerpt, featured image, then a three-column reading view: meta rail, body, table of contents and sidebar widgets |
 | Search      | `/search`          | Full-text search over posts; matching title terms are highlighted                                                              |

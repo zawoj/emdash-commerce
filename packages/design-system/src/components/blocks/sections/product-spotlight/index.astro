@@ -68,19 +68,20 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
 
 <style>
   .product-spotlight {
-    padding-block: var(--space-24);
+    padding-block: var(--space-40);
     container: product-spotlight / inline-size;
   }
 
   .product-spotlight__layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
-    gap: var(--grid-gap-tight);
+    gap: var(--grid-gap);
   }
 
   .product-spotlight__stage {
     min-width: 0;
-    border: 1px solid var(--border);
+    overflow: hidden;
+    border-radius: var(--radius-card);
     background: var(--surface-muted);
   }
 
@@ -201,14 +202,14 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
     display: flex;
     flex-direction: column;
     padding: var(--space-32);
-    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
     background: var(--surface-muted);
   }
 
   .product-spotlight__eyebrow {
-    margin: 0 0 var(--space-12);
+    margin: 0 0 var(--space-8);
     color: var(--text-secondary);
-    font: var(--type-label-caps-xs);
+    font: var(--type-text-medium-sm);
     font-stretch: var(--label-stretch);
     letter-spacing: var(--tracking-label);
     text-transform: var(--label-case);
@@ -216,7 +217,7 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
 
   .product-spotlight__name {
     margin: 0;
-    font: var(--type-display-xl);
+    font: var(--type-display-md);
     font-stretch: var(--display-stretch);
     letter-spacing: var(--tracking-display);
     text-transform: var(--text-case);
@@ -284,6 +285,16 @@ const pad = (index: number): string => String(index + 1).padStart(2, '0')
   .product-spotlight__secondary:focus-visible {
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .product-spotlight {
+      padding-block: var(--space-16);
+    }
+
+    .product-spotlight__panel {
+      padding: var(--space-24);
+    }
   }
 
   /* Narrow: panel under the photo; callouts become a numbered list under the photo. */

@@ -18,6 +18,8 @@ const { copy, priceFieldName, isDisabled = false, submitLabel } = Astro.props;
 	method="post"
 	data-add-to-cart
 	data-price-field={priceFieldName}
+	data-label-idle={submitLabel}
+	data-is-purchasable={String(!isDisabled)}
 	data-label-adding={copy.addToCartAdding}
 	data-label-added={copy.addToCartAdded}
 	data-message-choose-variant={copy.chooseVariant}

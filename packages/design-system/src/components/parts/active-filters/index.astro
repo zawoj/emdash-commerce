@@ -1,0 +1,116 @@
+---
+// The applied filters of a listing as removable chips, each a plain link to the listing without that
+// filter, followed by a "clear all" link. Used under the listing toolbar and in the empty state. With
+// `isScrolling` a phone gets one line that scrolls sideways instead of a wrapping block.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { ActiveFiltersProps } from './types'
+
+type Props = ActiveFiltersProps
+
+const { label, filters, clearAll, isScrolling = false } = Astro.props
+---
+
+{
+  filters.length > 0 && (
+    <div class:list={['active-filters', isScrolling && 'active-filters--scrolling']}>
+      <ul class="active-filters__list" aria-label={label}>
+        {filters.map((filter) => (
+          <li>
+            <a class="active-filters__chip" href={filter.removeHref} aria-label={filter.removeLabel}>
+              {filter.label}
+              <Icon name={iconNames.x} size={12} />
+            </a>
+          </li>
+        ))}
+        {clearAll && (
+          <li>
+            <a class="active-filters__clear" href={clearAll.href}>{clearAll.label}</a>
+          </li>
+        )}
+      </ul>
+    </div>
+  )
+}
+
+<style>
+  .active-filters {
+    min-width: 0;
+  }
+
+  .active-filters__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .active-filters__chip {
+    display: inline-flex;
+    min-height: 36px; /* token-lint-ignore: chip height */
+    align-items: center;
+    gap: var(--space-8);
+    padding: 0 var(--space-12);
+    border-radius: var(--radius-chip);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  @media (hover: hover) {
+    .active-filters__chip:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  .active-filters__clear {
+    display: inline-flex;
+    min-height: 36px; /* token-lint-ignore: aligns with the chips */
+    align-items: center;
+    padding: 0 var(--space-4);
+    color: var(--text-secondary);
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+
+  @media (hover: hover) {
+    .active-filters__clear:hover {
+      color: var(--text-primary);
+    }
+  }
+
+  .active-filters__chip:focus-visible,
+  .active-filters__clear:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (pointer: coarse) {
+    .active-filters__chip,
+    .active-filters__clear {
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+
+  /* A phone: one scrolling line that runs to the page edge (the list sits inside the page gutter). */
+  @media (max-width: 767px) {
+    .active-filters--scrolling .active-filters__list {
+      flex-wrap: nowrap;
+      margin-inline: calc(-1 * var(--page-gutter));
+      padding-inline: var(--page-gutter);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .active-filters--scrolling .active-filters__list::-webkit-scrollbar {
+      display: none;
+    }
+  }
+</style>

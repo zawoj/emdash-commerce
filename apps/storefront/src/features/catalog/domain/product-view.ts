@@ -1,9 +1,8 @@
 import type { ProductGalleryProps, VariantPickerProps } from "@emdash-commerce/design-system";
 import type { ProductDetailView } from "@emdash-commerce/plugin-stripe/contracts";
-import { iconNames } from "@emdash-commerce/design-system";
+import { iconNames } from "@emdash-commerce/design-system/icon-names";
 
 import type { Locale } from "../../../lib/i18n";
-import { imageFromView } from "../../../lib/media";
 import { formatMoney, toDecimalString } from "../../../lib/money";
 import { format } from "../../../lib/strings";
 import type { CatalogCopy } from "../copy";
@@ -11,6 +10,7 @@ import { galleryOf } from "./gallery";
 import { OPTION_FIELD_PREFIX, STOCK_STATUSES } from "./constants";
 import { machineAmount } from "./card";
 import { isPurchasable, stockOfAvailability } from "./stock";
+import { bundleOf, deliveryRange, specsWithoutIncludes, type BundleView } from "./pdp";
 import { buildVariantModel, findVariant, preselectedVariant, type VariantModel, type VariantRow } from "./variants";
 
 export interface PriceState {
@@ -49,7 +49,8 @@ export interface ProductViewModel {
 	isSoldOut: boolean;
 	descriptionText: string | null;
 	specRows: { label: string; value: string }[];
-	promises: { icon: (typeof iconNames)[keyof typeof iconNames]; text: string }[];
+	promises: { icon: (typeof iconNames)[keyof typeof iconNames]; text: string; detail?: string }[];
+	bundle: BundleView | null;
 	subscriptionPriceId: string | null;
 	subscriptionLabel: string | null;
 	priceAmount: string;
@@ -151,9 +152,11 @@ export interface BuildProductViewInput {
 	copy: CatalogCopy;
 	shopHref: string;
 	homeHref: string;
+	/** The moment the delivery window counts from; defaults to now. */
+	now?: Date;
 }
 
-export const buildProductView = ({ detail, locale, copy, shopHref, homeHref }: BuildProductViewInput): ProductViewModel & { buyState: ReturnType<typeof buyStateForClient> } => {
+export const buildProductView = ({ detail, locale, copy, shopHref, homeHref, now = new Date() }: BuildProductViewInput): ProductViewModel & { buyState: ReturnType<typeof buyStateForClient> } => {
 	const model = buildVariantModel(detail);
 	const preselected = preselectedVariant(model, detail.price.priceId);
 	const chosen = initialChoice(model, preselected);
@@ -188,11 +191,21 @@ export const buildProductView = ({ detail, locale, copy, shopHref, homeHref }: B
 		hasVariants: detail.hasVariants && model.rows.length > 1,
 		isSoldOut: !defaultState.isPurchasable,
 		descriptionText: portableTextToPlain(detail.description),
-		specRows: detail.specs,
+		specRows: specsWithoutIncludes(detail.specs),
+		bundle: bundleOf(detail.specs, detail.description),
 		promises: [
-			{ icon: iconNames.rotateCcw, text: copy.promiseReturns },
-			{ icon: iconNames.shieldCheck, text: copy.promiseWarranty },
-			{ icon: iconNames.creditCard, text: copy.promisePayments },
+			// A sold-out product promises no delivery date.
+			...(defaultState.isPurchasable
+				? [
+						{
+							icon: iconNames.truck,
+							text: copy.promiseDeliveryTitle,
+							detail: format(copy.promiseDeliveryDetail, { range: deliveryRange(now, locale) }),
+						},
+					]
+				: []),
+			{ icon: iconNames.rotateCcw, text: copy.promiseReturns, detail: copy.promiseReturnsDetail },
+			{ icon: iconNames.shieldCheck, text: copy.promisePayments, detail: copy.promisePaymentsDetail },
 		],
 		subscriptionPriceId: recurring?.priceId ?? null,
 		subscriptionLabel,

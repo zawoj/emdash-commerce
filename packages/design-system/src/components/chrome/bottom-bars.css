@@ -11,8 +11,7 @@
     --bottom-bar-offset: calc(var(--action-bar-height) + env(safe-area-inset-bottom, 0px));
   }
 
-  body:has([data-action-bar][data-state='shown']) [data-tab-bar],
-  body:has(details[data-listing-filters][open]:not([data-closing])) [data-tab-bar] {
+  body:has([data-action-bar][data-state='shown']) [data-tab-bar] {
     visibility: hidden;
   }
 

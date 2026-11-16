@@ -8,7 +8,6 @@ export interface HomeRailConfig {
 	limit?: number;
 	moreHref?: string;
 	moreLabel?: string;
-	tabCategorySlugs?: readonly string[];
 }
 
 export interface HomeSpotlightConfig {
@@ -37,8 +36,6 @@ export interface HomeConfig {
 	hero: {
 		eyebrow: string;
 		heading: string;
-		voltText: string;
-		blackText: string;
 		imageUrl: string;
 		imageAlt: string;
 		ctaHref: string;
@@ -69,25 +66,15 @@ export const homeStructure = {
 		productSlug: "workers-tee",
 	},
 	rails: [
-		{ key: "featured", category: undefined, sort: "newest" as const, limit: 8 },
 		{
 			key: "new",
 			category: "new-arrivals",
 			sort: "newest" as const,
 			limit: 12,
 			moreHref: "/shop?category=new-arrivals",
-			tabCategorySlugs: ["apparel", "desk", "drinkware", "bundles"],
 		},
-		{
-			key: "sale",
-			category: "sale",
-			limit: 12,
-			moreHref: "/shop?category=sale",
-		},
+		{ key: "sale", category: "sale", limit: 12, moreHref: "/shop?category=sale" },
 		{ key: "bundles", category: "bundles", limit: 12, moreHref: "/shop?category=bundles" },
-		{ key: "apparel", category: "apparel", limit: 12, moreHref: "/shop?category=apparel" },
-		{ key: "desk", category: "desk", limit: 12, moreHref: "/shop?category=desk" },
-		{ key: "drinkware", category: "drinkware", limit: 12, moreHref: "/shop?category=drinkware" },
 	],
 	spotlight: {
 		productSlug: "packet-jacket",
@@ -98,7 +85,9 @@ export const homeStructure = {
 		{ slug: "apparel", imageUrl: merch("cat-apparel"), href: "/shop?category=apparel" },
 		{ slug: "desk", imageUrl: merch("cat-desk"), href: "/shop?category=desk" },
 		{ slug: "drinkware", imageUrl: merch("cat-drinkware"), href: "/shop?category=drinkware" },
+		{ slug: "stickers", imageUrl: merch("cat-stickers"), href: "/shop?category=stickers" },
 		{ slug: "bundles", imageUrl: merch("cat-bundles"), href: "/shop?category=bundles" },
+		{ slug: "sale", imageUrl: merch("cat-sale"), href: "/shop?category=sale" },
 	],
 	newsletterAction: "/api/newsletter",
 } as const;

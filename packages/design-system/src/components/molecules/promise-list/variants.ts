@@ -3,8 +3,10 @@ export const promiseListLayouts = {
   row: 'row',
   /** Stacked (cart and checkout sidebars). */
   stack: 'stack',
-  /** A quiet strip under a hero: the promises side by side between hairlines (a scroll row on a phone). */
+  /** A quiet strip under a hero: the promises side by side (stacked rows on a phone). */
   strip: 'strip',
+  /** Next to the buy button: up to three icon + two-line columns on one row, stacked rows on a phone. */
+  columns: 'columns',
 } as const
 export type PromiseListLayout = (typeof promiseListLayouts)[keyof typeof promiseListLayouts]
 
