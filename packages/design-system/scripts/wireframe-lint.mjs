@@ -6,7 +6,7 @@
 //   uppercase / capitalize, non-zero letter-spacing, rotate / skew / scale, transform / translate other
 //   than centring, @keyframes / animation / transition / @starting-style, the motion tokens, raw colours
 //   (hex, rgb(), hsl(), named) outside the token file, the removed brand tokens, webfonts, `filter` on a
-//   photo, and (in tokens/index.css) a non-square radius, tracking, a --hot that is not the dark orange step, or a
+//   photo, and (in tokens/index.css) tracking, a --hot that is not the dark orange step, or a
 //   hex colour that is neither grey nor in the warm range (hue 15-45deg: no blue, green, red or purple).
 // A line carrying `wireframe-ignore: <reason>` is skipped (use it, with the reason, for the one-colour
 // logo silhouette). Usage: wireframe-lint <file-or-dir>… ; exits 1 when anything is found.
@@ -100,7 +100,6 @@ export const lintText = (file, text) => {
       const afterColon = line.slice(line.indexOf(':') + 1)
       if (/#[0-9a-fA-F]{3,8}\b|\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\(/.test(afterColon) || new RegExp(`(?:^|[\\s:,(])(${NAMED_COLOURS})(?=[\\s;,)]|$)`, 'i').test(afterColon) && !/^(content|font|grid|animation-name|will-change|counter)/.test(prop)) add('colour', value)
     } else {
-      if (/^--radius-/.test(prop) && value !== '0') add('tokens', `${prop}: ${value}`)
       if (/^--tracking-/.test(prop) && value !== '0') add('tokens', `${prop}: ${value}`)
       if (/^--(text|label)-case$/.test(prop) && value !== 'none') add('tokens', `${prop}: ${value}`)
       if (prop === '--hot' && value !== HOT_TOKEN_VALUE) add('tokens', `${prop}: ${value}`)

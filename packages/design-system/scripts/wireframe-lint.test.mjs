@@ -53,7 +53,6 @@ test('every forbidden pattern is caught, each on its own line', () => {
 test('the token file must stay a wireframe', () => {
   const text = readFileSync(fixture('bad-tokens.css'), 'utf8')
   const findings = lintText('src/tokens/index.css', text)
-  assert.ok(hit(findings, '--radius-md'), 'non-zero radius token')
   assert.ok(hit(findings, '--tracking-label'), 'non-zero tracking token')
   assert.ok(hit(findings, '--text-case'), 'uppercase case token')
   assert.ok(hit(findings, '--hot'), 'a --hot that is not the dark orange step')

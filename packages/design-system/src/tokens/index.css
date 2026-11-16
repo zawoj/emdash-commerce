@@ -242,18 +242,18 @@
   --tile-breakpoint-xl: 760px;
   --tile-breakpoint-2xl: 1000px;
 
-  /* Radius scale: square everywhere, circles included. */
-  --radius-xs: 0;
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;
-  --radius-full: 0;
+  /* Radius scale: soft corners, pills for anything you tap. */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
   /* Semantic radii — what components read: */
-  --radius-control: 0;
-  --radius-field: 0;
-  --radius-chip: 0;
-  --radius-card: 0;
-  --radius-panel: 0;
+  --radius-control: var(--radius-full);
+  --radius-field: var(--radius-md);
+  --radius-chip: var(--radius-full);
+  --radius-card: var(--radius-lg);
+  --radius-panel: var(--radius-lg);
 }
 
 /* Semantic tokens — surface: light (the default, and `[data-surface="light"]` to switch back to it
