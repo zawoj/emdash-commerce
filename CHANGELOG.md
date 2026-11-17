@@ -7,6 +7,15 @@
   reaches the deadline, so the next step sometimes started with a spent budget. That made `cron.test.ts` flaky in CI (it
   failed on Dependabot PR #4). A timeout now marks the budget as spent. A new test with a clock that never advances fails
   without the fix every time.
+## 2026-11-17 (GitHub Actions bumps)
+
+### chore: bump the pinned GitHub Actions (Dependabot #3–#8 in one change) — Claude Code
+- `actions/checkout` 7.0.1, `actions/setup-node` 7.1.0, `actions/upload-artifact` 7.0.2, `pnpm/action-setup` 6.1.1,
+  `zizmorcore/zizmor-action` 0.8.1, still pinned to commit SHAs. Why one change: the six PRs touch the same workflow files and
+  would rebase each other.
+- `github/codeql-action/analyze` moves to 4.39.3 together with `init` (Dependabot bumped only `init`, and CodeQL failed on the
+  mismatch in #7). `actions/download-artifact` moves to 8.0.2 to pair with `upload-artifact` 7 in the template workflow,
+  whose publish job runs only on `main` and is not exercised by a pull request.
 
 ## 2026-11-17 (release plumbing switched on)
 
