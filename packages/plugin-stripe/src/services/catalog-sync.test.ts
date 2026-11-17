@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { CommerceError } from "../core/errors.js";
 import { ProviderError } from "../ports/payment-provider.js";
 import { createFakePaymentProvider, createInMemoryWorld, type FakePaymentProvider, type InMemoryWorld } from "../testing/index.js";
 import { createCatalogSyncService } from "./catalog-sync.js";
@@ -13,6 +14,34 @@ describe("catalog sync service", () => {
 	beforeEach(() => {
 		world = createInMemoryWorld();
 		provider = createFakePaymentProvider();
+	});
+
+	it("without a Stripe key keeps the link failed and backed off but never writes the content rows", async () => {
+		world.catalog.addProduct(product({ hasVariants: true }));
+		world.catalog.addVariant(variant());
+		world.catalog.addPrice(price({ variantId: "var_1" }));
+		const { mirror, variants, prices } = mirrorRecorder();
+		const container = buildContainer(world, provider, mirror);
+		container.provider = async () => {
+			throw new CommerceError("notConfigured", "Stripe is not configured");
+		};
+		const service = createCatalogSyncService(container, recordingPublisher());
+		await service.syncEntity({ entity: "variant", id: "var_1" });
+		await service.syncEntity({ entity: "price", id: "price_1" });
+		expect((await world.catalogLinks.get(variantEntityKey("var_1")))?.value).toMatchObject({ syncStatus: "failed", attempts: 1 });
+		expect((await world.catalogLinks.get(priceEntityKey("price_1")))?.value.syncStatus).toBe("failed");
+		expect(variants.size).toBe(0);
+		expect(prices.size).toBe(0);
+	});
+
+	it("still writes the failure into the content row when Stripe rejects the call", async () => {
+		world.catalog.addProduct(product({ hasVariants: true }));
+		world.catalog.addVariant(variant());
+		const { mirror, variants } = mirrorRecorder();
+		const container = buildContainer(world, provider, mirror);
+		provider.failNext("createProduct", new ProviderError("down", { isRetryable: true }));
+		await createCatalogSyncService(container, recordingPublisher()).syncEntity({ entity: "variant", id: "var_1" });
+		expect(variants.get("var_1")).toMatchObject({ stripeSyncStatus: "failed" });
 	});
 
 	it("creates and updates a product Stripe mirror", async () => {

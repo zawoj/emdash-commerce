@@ -1,5 +1,6 @@
 import { commerceEventId, type AnyCommerceEvent } from "../core/events.js";
 import { priceTermsFingerprint, type Price } from "../core/catalog.js";
+import { isCommerceError } from "../core/errors.js";
 import { ProviderError } from "../ports/payment-provider.js";
 import type { CatalogLink, CatalogRepository } from "../ports/repositories.js";
 import type { CatalogEntityRef, CatalogSyncService, EventPublisher } from "./contracts.js";
@@ -127,6 +128,11 @@ export const createCatalogSyncService = (container: CommerceContainer, publisher
 		const nextAttemptAt = catalogNextAttemptAt(attempts, clock.now());
 		await markFailed(catalogLinks, entityKey, message, attempts, nextAttemptAt);
 		await publisher.publish([syncFailedEvent(ref, message, attempts, clock.now().toISOString())]);
+		// No Stripe key is a missing setting, not a failure of this row: the link keeps its backoff (above) and the content
+		// row stays as saved. Writing `failed` into it would update every price and variant an editor (or `pnpm seed`)
+		// saves, right after its response, and that write races the next save or publish of the same row (EmDash answers
+		// 409 "Content changed while the operation was in progress" on D1).
+		if (isCommerceError(error) && error.kind === "notConfigured") return;
 		const parsed = parseEntityKey(entityKey);
 		if (parsed?.entity === "variant") {
 			await mirror.writeVariantSync(parsed.id, { stripeProductId: link.providerId, stripeSyncStatus: "failed", stripeSyncError: message });

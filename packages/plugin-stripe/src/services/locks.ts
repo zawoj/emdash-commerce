@@ -35,8 +35,12 @@ export const LOCK_KEY = {
 	payment: (paymentId: string): string => `lock:payment:${paymentId}`,
 	customer: (customerId: string): string => `lock:customer:${customerId}`,
 	subscription: (subscriptionId: string): string => `lock:subscription:${subscriptionId}`,
-	/** The managed price entries of one product and its variants (product and variant saves converge them). */
-	managedPrices: (productId: string): string => `lock:managed-prices:${productId}`,
+	/**
+	 * The managed price entry of one sellable (a product or one variant). One lock per sellable, not per product: saving
+	 * the variants of a product converges them one by one, and a lock per product made twenty hooks queue behind one
+	 * another past EmDash's 5 s hook timeout.
+	 */
+	managedPrice: (sellableId: string): string => `lock:managed-price:${sellableId}`,
 } as const;
 
 export interface LockOptions {

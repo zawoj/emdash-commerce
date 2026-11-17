@@ -11,6 +11,7 @@ import { toCurrencyCode } from "../../core/money.js";
 import { selectDefaultPrice } from "../../core/price-selection.js";
 import { buildHooks } from "../../plugin/hooks.js";
 import { createModelWorld, type ModelWorld } from "./model-test-support.js";
+import { LOCK_KEY } from "../locks.js";
 import { MANAGED_CHANGE, syncManagedPrices } from "./managed-prices.js";
 
 const options = commerceOptionsSchema.parse({ supportedCurrencies: ["pln"] });
@@ -135,6 +136,20 @@ describe("managed prices", () => {
 			expect(await amountOf(overriding)).toMatchObject({ amount: 5100 });
 			// The product's own change was not applied to the other variant by this variant-scoped sync.
 			expect(await amountOf(inheriting)).toMatchObject({ amount: 5000 });
+		});
+
+		it("saves of different variants of one product never wait for each other (one lock per sellable, not per product)", async () => {
+			// A sibling's save is still running (its lock is held): this variant's convergence must not queue behind it.
+			expect((await w.container.recordIndex.claim(LOCK_KEY.managedPrice(overriding))).isWinner).toBe(true);
+			await setVariant(w, inheriting, { [VARIANT_FIELD.price]: 5200 });
+			const claimed: string[] = [];
+			const claim = w.container.recordIndex.claim.bind(w.container.recordIndex);
+			w.container.recordIndex.claim = async (key) => (claimed.push(key), claim(key));
+			const started = Date.now();
+			await syncManagedPrices(w.container, { entity: "variant", id: inheriting });
+			expect(Date.now() - started).toBeLessThan(1000);
+			expect(claimed).toEqual([LOCK_KEY.managedPrice(inheriting)]);
+			expect(await amountOf(inheriting)).toMatchObject({ amount: 5200 });
 		});
 
 		it("archives every stray duplicate and keeps exactly one active entry", async () => {
