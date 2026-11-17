@@ -30,11 +30,19 @@ the four colour-contrast `test.fixme` cases.
 5. **Cold-start crash (D, second pass).** On the merged branch, the first `pnpm test:e2e:smoke:cloudflare` run on a cold Vite
    cache crashed. Vite's optimizer found `@astrojs/react/server.js` late, reloaded, and workerd asked for a deps file that no
    longer existed. C and D had each seen this once. CI always starts cold, so stream D was sent back to fix the cause.
+   It found three late dependencies (`@astrojs/react/server.js`, `stripe`, `astro/container`) and pre-bundles them in the
+   Cloudflare SSR environment's `optimizeDeps.include` (`.ai/memory/cloudflare-dev-cold-cache-reoptimize.md`).
 
 ## Verification
 On the merged branch:
 - `pnpm check:ai`, `pnpm lint` (0 errors), `pnpm typecheck`, `pnpm test` and `pnpm build` all pass.
 - `pnpm test:e2e:smoke`: 45 passed, 0 skipped (the old contrast `fixme` cases are real tests now).
+- From a deleted Vite cache: `pnpm test:e2e:cloudflare` (smoke and purchase, with a sandbox key and Stripe CLI 1.40.3) gave
+  42 passed, 4 skipped (the cases that only apply with or without a key) and 1 failed. The failure: the hosted-Checkout purchase
+  timed out after pressing Pay, with the Stripe form filled. No `checkout.session.completed` reached the server; every
+  forwarded webhook answered 200. On a re-run the purchase project passed on both targets (Cloudflare 3/3, Node 3/3). Stream D
+  saw the same stall once, so it is an intermittent stall on Stripe's hosted page, cause not found. The cold server log
+  showed 0 late "dependency optimized" lines.
 - The three packages pass `pnpm publish --dry-run`. `npm view @emdash-commerce/plugin-stripe` finds nothing, so nothing is
   published.
 - Each stream also verified its own work:
@@ -47,7 +55,7 @@ On the merged branch:
   - E: mutation (opacity restored) failed 8 a11y tests.
 
 ## Outcome
-Partial: done in code and verified locally. The npm organisation and first release are owner steps, and nothing was run
+Partial: done in code and verified locally (`pnpm check:ai`, lint, typecheck, test and a no-cache build re-run green after the last merge). The npm organisation and first release are owner steps, and nothing was run
 against a real Cloudflare account.
 
 ## Follow-ups
@@ -58,4 +66,6 @@ against a real Cloudflare account.
 - `emdash site import` into a fresh shop needs a manual `DELETE FROM _emdash_relations` (`docs/production.md`).
 - On a deployed Worker, whether a secret set with `wrangler secret put` but not listed in `secrets.required` reaches the
   Worker was not tested (`.ai/memory/wrangler-passes-only-required-secrets-to-the-worker.md`).
+- The hosted-Checkout Pay step sometimes stalls past the 90 s wait (2 of about 5 Cloudflare purchase runs, none seen on Node).
+  If the weekly job shows it, capture a trace and look at Stripe's side (adaptive currency selector, card-field focus).
 - The unavailable cart line shows its warning twice, and the cart count reads "1 items in the cart".
