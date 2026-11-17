@@ -2,7 +2,7 @@
 
 const en = {
 	breadcrumbsLabel: "You are here",
-	breadcrumbBack: "Back",
+	breadcrumbBack: "Back to {label}",
 	buyBarLabel: "Buy",
 	home: "Home",
 	shop: "Shop",
@@ -106,7 +106,7 @@ export type CatalogCopy = { [K in keyof typeof en]: string };
 
 const pl: CatalogCopy = {
 	breadcrumbsLabel: "Jesteś tutaj",
-	breadcrumbBack: "Wstecz",
+	breadcrumbBack: "Wróć do: {label}",
 	buyBarLabel: "Kup",
 	home: "Strona główna",
 	shop: "Sklep",
