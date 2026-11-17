@@ -58,9 +58,11 @@ export interface CartLineContent {
   readonly remove: CartLineRemove
   /** A status beside the line (stock clamped, last items…). */
   readonly notice?: CartLineNotice
-  /** The product can no longer be bought: the line is dimmed, its quantity is locked, `unavailableText` explains. */
+  /** The product can no longer be bought: the line is dimmed, its quantity is locked, `unavailableText` explains (once, as a warning). */
   readonly isUnavailable?: boolean
   readonly unavailableText?: string
+  /** Spoken before `unavailableText` ("Warning"), so a screen reader hears what kind of message it is. */
+  readonly unavailableLabel?: string
   /** The unit price's spoken prefix when it is struck through ("Previous price:"). */
   readonly previousPriceLabel?: string
 }

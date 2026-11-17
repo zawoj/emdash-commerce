@@ -4,7 +4,8 @@ import {
 	tabBarIcons,
 } from "@emdash-commerce/design-system/components/chrome/tab-bar/variants.ts";
 import { drawerIdOf, SEARCH_DIALOG_ID } from "@emdash-commerce/design-system/site-header-ids";
-import type { ShellCopy } from "./copy";
+import { cartCountLabelOf } from "./cart-count";
+import type { ShellCopy, ShellLocale } from "./copy";
 
 export const MINI_CART_ID = "mini-cart";
 
@@ -17,7 +18,7 @@ const activeTabOf = (pathname: string): (typeof tabBarIcons)[keyof typeof tabBar
 	return null;
 };
 
-export const tabBarItemsForSite = (copy: ShellCopy, pathname: string): TabBarItem[] => {
+export const tabBarItemsForSite = (copy: ShellCopy, pathname: string, locale: ShellLocale): TabBarItem[] => {
 	const active = activeTabOf(pathname);
 	const isCurrent = (icon: (typeof tabBarIcons)[keyof typeof tabBarIcons]): boolean =>
 		active === icon;
@@ -53,7 +54,7 @@ export const tabBarItemsForSite = (copy: ShellCopy, pathname: string): TabBarIte
 			action: tabBarActions.miniCart,
 			controls: MINI_CART_ID,
 			isCurrent: isCurrent(tabBarIcons.cart),
-			badge: { count: 0, labelTemplate: copy.cartCountTemplate },
+			badge: { count: 0, ...cartCountLabelOf(copy, locale) },
 		},
 		{
 			icon: tabBarIcons.account,

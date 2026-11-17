@@ -159,7 +159,7 @@ const linkTarget = (link: ChromeLink): string | undefined => (link.isNewTab ? '_
             <a class="site-header__icon-link" href={cart.href} data-mini-cart-open={cart.miniCartId}>
               <Icon name={iconNames.shoppingBag} size={24} />
               <span class="visually-hidden">{cart.label}</span>
-              <span class="site-header__cart-count"><CountBadge count={cart.count} labelTemplate={cart.countLabelTemplate} /></span>
+              <span class="site-header__cart-count"><CountBadge count={cart.count} labelTemplate={cart.countLabelTemplate} labelForms={cart.countLabelForms} locale={cart.countLocale} /></span>
             </a>
           )
         }

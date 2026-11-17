@@ -1,5 +1,4 @@
 import type { CartLineContent, OrderSummaryProps } from "@emdash-commerce/design-system";
-import { noticeTones } from "@emdash-commerce/design-system/components/atoms/inline-notice/variants.ts";
 import type { CartView } from "@emdash-commerce/plugin-stripe/contracts";
 
 import type { Locale } from "../../lib/i18n";
@@ -32,8 +31,7 @@ export const applyCartIssues = (lines: CartLineContent[], cart: CartView, copy: 
 			...line,
 			isUnavailable: true,
 			unavailableText: issue.message,
-			notice: { tone: noticeTones.warning, text: issue.message, toneLabel: copy.warningLabel },
-		};
+			unavailableLabel: copy.warningLabel,		};
 	});
 
 /** Shapes the plugin cart into design-system props for the full cart page (and its HTML fragment). */

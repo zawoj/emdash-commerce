@@ -9,7 +9,7 @@ import type { CatalogCopy } from "../copy";
 import { galleryOf } from "./gallery";
 import { OPTION_FIELD_PREFIX, STOCK_STATUSES } from "./constants";
 import { machineAmount } from "./card";
-import { isPurchasable, stockOfAvailability } from "./stock";
+import { isPurchasable, stockLowLabel, stockOfAvailability } from "./stock";
 import { bundleOf, deliveryRange, specsWithoutIncludes, type BundleView } from "./pdp";
 import { buildVariantModel, findVariant, preselectedVariant, type VariantModel, type VariantRow } from "./variants";
 
@@ -59,12 +59,13 @@ export interface ProductViewModel {
 const stockLabel = (
 	stock: ReturnType<typeof stockOfAvailability>,
 	copy: CatalogCopy,
+	locale: Locale,
 ): string => {
 	switch (stock.status) {
 		case STOCK_STATUSES.inStock:
 			return copy.stockIn;
 		case STOCK_STATUSES.low:
-			return format(copy.stockLow, { count: stock.lowCount ?? 1 });
+			return stockLowLabel(locale, copy, stock.lowCount);
 		case STOCK_STATUSES.backorder:
 			return copy.stockBackorder;
 		default:
@@ -93,7 +94,7 @@ const stateOf = (
 			note: copy.vatIncluded,
 		},
 		availability: {
-			label: stockLabel(stock, copy),
+			label: stockLabel(stock, copy, locale),
 			isAvailable: stock.status !== STOCK_STATUSES.soldOut,
 			isLow: stock.status === STOCK_STATUSES.low,
 		},

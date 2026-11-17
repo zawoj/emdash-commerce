@@ -4,6 +4,16 @@ Newest on top. Each entry says what changed in the package and why.
 
 ## 2026-11-17
 
+### fix: plural forms for the spoken cart count, one reason on an unavailable cart line
+- `CountBadge` gains optional `labelForms` (texts per plural category) and `locale`; the server render and the script that
+  rewrites the count on `cart:changed` both pick the form with `Intl.PluralRules` (`utils/plural-label.ts`, exported as
+  `@emdash-commerce/design-system/plural-label`), so one item reads "1 item in the cart", not "1 items". `SiteHeader`'s
+  `cart` takes `countLabelForms` and `countLocale`, the tab bar badge `labelForms` and `locale`. Without them `labelTemplate` is
+  used as before.
+- `CartLine` gains `unavailableLabel` ("Warning"), the spoken tone label of the `unavailableText` notice. The storefront used
+  to set both `unavailableText` and `notice` for an unavailable line, which rendered the same warning twice; it now sets only
+  `unavailableText` (+ `unavailableLabel`), and `notice` stays for other statuses.
+
 ### fix: dimmed sold-out cards and unavailable cart lines keep AA text contrast
 - `ProductCard` (sold out) and `CartLine` (unavailable) dimmed their text with `opacity` (0.6 / 0.55), which blended the ink
   into the surface: 4.34:1 for the card title and 3.73:1 for the line name and price (axe `color-contrast`). Only the photo is

@@ -2,6 +2,7 @@
 // own: every label, link and logo comes in through these props.
 import type { ImageAsset } from '../../types/asset'
 import type { ImageAttrs } from '../../types/image'
+import type { PluralLabelForms } from '../../utils/plural-label'
 
 /** A link of the header or the footer. */
 export interface ChromeLink {
@@ -59,6 +60,10 @@ export interface HeaderCart {
   readonly count: number
   /** Spoken count with `{count}` ("{count} items in the cart"). */
   readonly countLabelTemplate: string
+  /** Spoken count per plural category of `countLocale` ("1 item in the cart"). */
+  readonly countLabelForms?: PluralLabelForms
+  /** BCP 47 tag that picks the plural category of the spoken count. */
+  readonly countLocale?: string
   /** The id of the mini-cart `<dialog>` the link opens. */
   readonly miniCartId?: string
 }

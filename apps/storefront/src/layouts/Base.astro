@@ -14,6 +14,7 @@ import "@emdash-commerce/design-system/tokens.css";
 import "../styles/blog-compat.css";
 
 import MiniCartMount from "../components/MiniCartMount.astro";
+import { cartCountLabelOf } from "../features/shell/cart-count";
 import {
 	shellCopy,
 	resolveShellLocale,
@@ -78,6 +79,7 @@ const fullTitle = titleIncludesSiteName ? title : `${title} — ${siteTitle}`;
 const lang = getSiteLocale() ?? "en";
 const shellLocale = resolveShellLocale(lang);
 const copy = shellCopy[shellLocale];
+const cartCount = cartCountLabelOf(copy, shellLocale);
 
 const TRAILING_SLASH = /\/$/;
 const currentPath =
@@ -118,7 +120,7 @@ const footerColumns = [
 		})),
 	),
 ];
-const tabItems = tabBarItemsForSite(copy, currentPath);
+const tabItems = tabBarItemsForSite(copy, currentPath, shellLocale);
 ---
 
 <!doctype html>
@@ -166,7 +168,9 @@ const tabItems = tabBarItemsForSite(copy, currentPath);
 				href: "/cart",
 				label: copy.cartLabel,
 				count: 0,
-				countLabelTemplate: copy.cartCountTemplate,
+				countLabelTemplate: cartCount.labelTemplate,
+				countLabelForms: cartCount.labelForms,
+				countLocale: cartCount.locale,
 				miniCartId: MINI_CART_ID,
 			}}
 		>
