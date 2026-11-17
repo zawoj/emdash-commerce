@@ -64,7 +64,7 @@ Facts that surprise people (each has a memory file):
 | Storefront | Home (hero, rails, spotlight, shop-the-look, FAQ), shop with filters and sorting, product page, cart and mini-cart, search, blog (posts, tags, RSS), en and pl copy |
 | Shop the look | A photo with numbered points; each point opens a product, and one dialog adds the whole kit to the cart |
 | Checkout | Stripe-hosted Checkout from a server-priced cart; success and cancel pages; sold-out and low-stock states; stock reservation while a checkout is open |
-| Orders | Paid orders from the webhook (exactly once), refunds, disputes, fulfilment status, timeline, guest order links |
+| Orders | Paid orders from the webhook (exactly once), refunds, disputes, fulfilment status, timeline, guest order links (emailed signed link, page at `/orders/view`) |
 | Operations | Admin "Commerce" page (key and webhook health, resync, reconcile, abandoned-checkout cleanup), and MCP tools for an agent: `commerce_status`, `commerce_catalog_sync`, `commerce_orders_list`, `commerce_inventory_adjust`, `commerce_orders_refund`, `commerce_checkouts_sweep`, `commerce_reconcile`, `commerce_webhooks_*` and more |
 | Design system | Tokens, atoms to sections, lints that fail on a raw colour, a shadow or a gradient, a contrast test of the token pairs |
 

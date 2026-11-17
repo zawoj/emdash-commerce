@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-11-17 (release readiness)
+
+### fix: encryption key format, guest order page, category and brand URLs, docs that matched the code — Claude Code
+- **Encryption key (a real onboarding bug).** EmDash 1.5 accepts only `emdash_enc_v1_` + 43 base64url characters, but
+  `pnpm bootstrap` generated a 64-character hex key, `pnpm doctor` demanded one and `.env.example`, the getting-started guide
+  and the plugin README said `openssl rand -hex 32`. A fresh clone therefore got a key EmDash rejects: the maintenance cron
+  failed and every route that reads the access-token secret (`orders/view`, the access-link email) answered 500. Bootstrap now
+  generates the right format, doctor checks it (a comma-separated rotation list is accepted), the old placeholder still counts
+  as a placeholder, docs say `npx emdash secrets generate`, and `.ai/memory/emdash-encryption-key-format.md` records the trap
+  (including: never swap the key on a database that already stored a secret).
+- **`/orders/view`.** The signed link in the order emails (the plugin's default `emails.orderViewPath`) led to a 404. The page
+  now shows the order number, payment and fulfilment status, a progress track, lines and totals from the plugin's `orders/view`
+  (`features/orders/`, en and pl). A bad or expired link is a 404 page with a way back to the shop, an unreachable plugin a 503;
+  the page is `no-store`, `noindex` and sends no referrer because the token is a bearer secret.
+- **`/shop/c/<slug>` and `/shop/brand/<slug>`.** The plugin declares these URL patterns for categories and brands (search results
+  and sitemaps use them) but the storefront had no route: both were 404. A known slug is now a 301 to `/shop?category=` /
+  `?brand=`, an unknown one a real 404. `missing-routes.test.ts` now allows a redirect only after the 404 rewrite and requires
+  both routes.
+- **Docs that disagreed with the code.** The plugin README counted 17 MCP tools and listed 15; there are 19 (`commerce_catalog_sync`
+  and `commerce_checkouts_sweep` are now in the table). The README says what the demo shop leaves off (promotion codes, shipping
+  rates, Stripe Tax, embedded Checkout), that the language is one per deployment, and that the design system holds components
+  the demo does not use. `apps/storefront/AGENTS.md` said "square corners" and now lists the new routes.
+- **Design system.** `OrderSummary` drops its empty thumbnail column when no line has a photo (see its changelog).
+- **Tests.** The order view-model (statuses, rows, UTC date, variant text, Polish), the key format and generator, and the route
+  rule are tested. `pnpm check:ai`, typecheck and test pass; the happy path of `/orders/view` with a real token was not driven
+  through a real Stripe payment (the hosted page could not be automated), only rendered from a fixture and probed for bad tokens.
+- **Not changed.** `checkout/success` and `cart` still use legacy markup with English copy. A guest cannot ask for a new order
+  link from the storefront (the plugin's `orders/access-link` has no page). No Cloudflare (Workers, D1, R2) variant of the
+  storefront exists yet.
+
 ## 2026-11-16 (review fixes)
 
 ### fix: the shop UI refresh, after a code review — Claude Code

@@ -34,7 +34,7 @@ and schema, so they are part of the contract.
 
 ## Features
 
-**Storefront** (Astro 7, server-rendered, English and Polish copy)
+**Storefront** (Astro 7, server-rendered; English or Polish copy, chosen per deployment by the site's default locale)
 
 - **Shop listing:** a category bar, sort, and a filter drawer (a full-screen sheet on a phone) with in stock, size, brand
   (multi-select) and price presets. Every option shows its result count and the "Show N results" button updates live;
@@ -45,6 +45,10 @@ and schema, so they are part of the contract.
 - **Bundles and membership:** a fixed-price bundle lists what it includes and the saving ("$109 instead of $147"); a
   membership has a recurring price with a trial.
 - **Shop the look:** a photo with numbered points; each point opens a product and one dialog adds the whole kit to the cart.
+- **Your order:** the signed link in the order emails opens `/orders/view`: order number, payment and fulfilment status, a
+  progress track, lines and totals. The page is never cached or indexed and sends no referrer, because the token is a secret.
+- **Category and brand URLs:** `/shop/c/<slug>` and `/shop/brand/<slug>` (the URLs the plugin gives those collections) lead to
+  the filtered shop; an unknown slug is a real 404.
 - **Home, cart, search and a blog:** hero with category pills, rails, a spotlight with callouts, FAQ and newsletter; cart and
   Stripe-hosted Checkout; full-text search; posts, tags and RSS from the EmDash blog template.
 
@@ -54,8 +58,10 @@ and schema, so they are part of the contract.
   sends price ids and quantities only).
 - Checkout Sessions, a durable webhook pipeline (a paid order is created exactly once), refunds, disputes, subscriptions,
   inventory with stock reservation while a checkout is open, and guest order links.
-- An admin **Commerce** page (key and webhook health, resync, reconcile, abandoned-checkout cleanup) and MCP tools so an
+- An admin **Commerce** page (key and webhook health, resync, reconcile, abandoned-checkout cleanup) and 19 MCP tools so an
   agent can run the same operations.
+- Plugin options the demo shop leaves **off**: promotion codes, fixed shipping rates, Stripe Tax and embedded Checkout (see
+  the plugin README, "Options"). Order emails need an EmDash email provider.
 
 **Admin** (EmDash)
 
@@ -68,6 +74,8 @@ and schema, so they are part of the contract.
 - Tokens (Cloudflare orange on warm charcoal, soft corners) and props-driven Astro components; the storefront only shapes data
   into props.
 - Lints that fail on a raw colour, a shadow or a gradient, and a test of the token text and control colour pairs against WCAG contrast.
+- The package holds more components than the demo uses (account, reviews, returns, events and others); only what the
+  storefront renders is a feature of the shop.
 
 **Built to be driven by people and AI agents**
 

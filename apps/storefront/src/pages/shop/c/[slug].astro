@@ -1,0 +1,15 @@
+---
+import { decodeSlug } from "emdash";
+import { fetchCatalogProducts } from "../../../utils/commerce-fetch";
+
+// `/shop/c/{slug}` is the URL pattern the plugin gives a category (search results and sitemaps use it). The shop
+// filters in the page, so a known category goes to the filtered listing and an unknown one is a real 404.
+const slug = decodeSlug(Astro.params.slug);
+const catalog = slug ? await fetchCatalogProducts(Astro.url.origin, { category: slug, limit: 1 }).catch(() => null) : null;
+
+if (!slug || !catalog || catalog.items.length === 0) {
+	return Astro.rewrite("/404");
+}
+
+return Astro.redirect(`/shop?category=${encodeURIComponent(slug)}`, 301);
+---

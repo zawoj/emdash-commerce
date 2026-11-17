@@ -19,6 +19,7 @@ import { fileURLToPath } from "node:url";
 import {
 	checkEnv,
 	classifyStripeKey,
+	encryptionKeyFrom,
 	isNodeVersionAtLeast,
 	isPlaceholder,
 	isWebhookSecret,
@@ -93,7 +94,7 @@ const ensureEnvFile = () => {
 
 const ensureEncryptionKey = () => {
 	if (isCheckOnly || !isPlaceholder(parseEnv(readEnv()).EMDASH_ENCRYPTION_KEY)) return;
-	writeEnvValue("EMDASH_ENCRYPTION_KEY", randomBytes(32).toString("hex"));
+	writeEnvValue("EMDASH_ENCRYPTION_KEY", encryptionKeyFrom(randomBytes(32)));
 	console.log("Generated EMDASH_ENCRYPTION_KEY (kept in .env; do not change it later, stored secrets depend on it)");
 };
 

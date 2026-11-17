@@ -71,7 +71,7 @@ Site settings have `title` and `tagline`. The title renders in the header, the h
 ## Visual character
 
 Public chrome comes from `@emdash-commerce/design-system`: a flat wireframe in the Cloudflare palette (a warm charcoal
-ink ramp plus an orange accent, system fonts, square corners, 1px outlines, no shadow, gradient or motion, photos shown as shot), and the
+ink ramp plus an orange accent, system fonts, soft corners, 1px outlines, no shadow, gradient or motion, photos shown as shot), and the
 header/footer/tab bar composed in `src/layouts/Base.astro`. Site name renders as a text wordmark (no
 logo SVG). Shell copy is in `src/features/shell/copy.ts` (en / pl from `getSiteLocale()`).
 
@@ -91,6 +91,8 @@ Commerce reads use `utils/commerce-fetch.ts` against `/_emdash/api/plugins/strip
 | Shop            | `/shop`         | `pages/shop/index.astro`, `features/catalog/domain/listing.ts` |
 | Product         | `/shop/[slug]`  | `pages/shop/[slug].astro`, `features/catalog/components/ProductBuyBox.astro` |
 | Cart            | `/cart`         | `pages/cart.astro` (plugin cart API) |
+| Your order      | `/orders/view?token=` | `pages/orders/view.astro`, `features/orders/` (the signed link in the order emails; the plugin's `orders/view`; never cached or indexed, no referrer) |
+| Category, brand | `/shop/c/[slug]`, `/shop/brand/[slug]` | the URL patterns the plugin gives those collections: 301 to `/shop?category=` / `?brand=`, a real 404 for an unknown slug |
 
 ## Image with points (`image-hotspots` plugin)
 

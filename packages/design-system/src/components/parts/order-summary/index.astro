@@ -9,6 +9,8 @@ type Props = OrderSummaryProps
 
 const { heading, headingLevel = 2, lines = [], linesLabel, rows, total, savings, taxRows = [] } = Astro.props
 const Heading = `h${headingLevel}` as const
+// A summary whose lines have no photos (a guest order page, which knows titles and amounts only) drops the thumbnail column.
+const hasThumbs = lines.some((line) => line.image)
 ---
 
 <section class="order-summary">
@@ -17,8 +19,8 @@ const Heading = `h${headingLevel}` as const
     lines.length > 0 && (
       <ul class="order-summary__lines" aria-label={linesLabel}>
         {lines.map((line) => (
-          <li class="order-summary__line">
-            <span class="order-summary__thumb">{line.image && <Image {...line.image} />}</span>
+          <li class:list={['order-summary__line', { 'order-summary__line--plain': !hasThumbs }]}>
+            {hasThumbs && <span class="order-summary__thumb">{line.image && <Image {...line.image} />}</span>}
             <span class="order-summary__line-text">
               <span class="order-summary__line-name">{line.name}</span>
               {line.variantText && <span class="order-summary__line-variant">{line.variantText}</span>}
@@ -105,6 +107,10 @@ const Heading = `h${headingLevel}` as const
     grid-template-columns: 56px minmax(0, 1fr) auto; /* token-lint-ignore: thumbnail column */
     gap: var(--space-12);
     align-items: start;
+  }
+
+  .order-summary__line--plain {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .order-summary__thumb {
