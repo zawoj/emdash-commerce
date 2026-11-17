@@ -50,7 +50,8 @@ pnpm --filter @emdash-commerce/storefront build:cloudflare
 cd apps/storefront && pnpm exec wrangler dev --port 4361     # reads .dev.vars; cron: curl localhost:4361/cdn-cgi/local/scheduled
 ```
 
-Stop the Node dev server first or use another port; the two targets keep separate data (`data.db` vs `.wrangler/state`).
+Stop the Node dev server first or use another port; the two targets keep separate data (`data.db` vs `.wrangler/state`). The
+end-to-end suite uses neither: `pnpm test:e2e:smoke:cloudflare` keeps its state in a throwaway `.e2e-cloudflare/` (`docs/testing.md`).
 
 ## Deploy
 
@@ -186,6 +187,12 @@ workerd 1.20261116.1, Stripe sandbox, no Cloudflare account (nothing was logged 
   (`/cdn-cgi/local/scheduled`) ran `[plugin:stripe-commerce] Maintenance run finished { failed: 0 }`.
 - A guest order-link request signed a token on workerd (the access-token secret was generated and stored encrypted); the
   link was in the dev email log. Opening the link was not checked on this target.
+
+On 2026-11-17 (same machine and versions) the Playwright suite also ran against this target: `pnpm test:e2e:smoke:cloudflare`
+(`astro dev` on workerd, throwaway local D1/R2 state in `.e2e-cloudflare/`, 41 passed, 4 skipped known-issue cases) and the purchase
+project (3 passed: cart quantity, a sandbox purchase through hosted Checkout with the signed webhook and the emailed order link,
+the lookup-page link), plus a measurement in the suite that the server really is `workerd`. It runs in CI on every pull request
+(smoke) and weekly (purchase). It is the dev server, not the built Worker; details and limits in `docs/testing.md`.
 
 Not checked: a real Cloudflare deploy, a real domain and passkey login, an email provider, the Deploy button, Workers Builds,
 `emdash site import` into D1, behaviour under Workers CPU or subrequest limits, `wrangler dev --remote`.

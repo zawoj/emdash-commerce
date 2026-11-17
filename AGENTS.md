@@ -57,6 +57,7 @@ keys, `stripe listen`, seed, reset, troubleshooting). Governance: [`CONTRIBUTING
 | `pnpm lint` | oxlint (zero errors in CI) |
 | `pnpm changeset` | Add a changeset when a publishable package changes (`docs/releasing.md`) |
 | `pnpm test:e2e:smoke` · `pnpm test:e2e` | Playwright: no secrets · plus a real Stripe-sandbox purchase (`pnpm test:e2e:install` once) |
+| `pnpm test:e2e:smoke:cloudflare` · `pnpm test:e2e:cloudflare` | The same Playwright suite on the Cloudflare target (`astro dev` on workerd, local D1/R2 in `.e2e-cloudflare/`, port 4381; `docs/testing.md`) |
 | `pnpm check:ai` | `.ai/` layout, `YYYY-MM-DD-slug.md` names, memory index |
 | `pnpm typecheck` · `pnpm test` · `pnpm build` | Validation gate (`nx run-many`) — run all three before calling work done |
 
