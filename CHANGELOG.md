@@ -22,6 +22,8 @@ scope: `.ai/decisions/2026-11-17-community-release-scope.md`.
   button cannot build this monorepo** (the app depends on `workspace:*` packages and the button needs an isolated subdirectory).
   A deployed site needs an email provider, the Workers Paid plan is the safe choice, and `pnpm seed` cannot seed a deployed site
   (it uses the dev login).
+- **Workflow hardening after the first zizmor run.** Every `actions/checkout` sets `persist-credentials: false` (no job pushes), and
+  Dependabot has a 7-day `cooldown` for both ecosystems.
 - **Storefront pages.** `/cart` and `/checkout/success` rebuilt on design-system components with en and pl copy; new
   `/orders/lookup` (and `POST /api/orders/access-link`) so a guest can ask for a new order link without learning whether an order
   exists; `/orders/view` links to it when a link is invalid. Stable `data-testid` hooks for the e2e suite. Design system: cart
