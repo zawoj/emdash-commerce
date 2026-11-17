@@ -1,0 +1,45 @@
+name: Feature request
+description: Propose a new capability or improvement
+title: "[feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Start a [Discussion](https://github.com/zawoj/emdash-commerce/discussions) when you want design feedback before implementation.
+        Features that change behaviour usually need agreement before a PR.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: What pain does this solve? Who benefits?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should change at a high level (storefront, plugin-stripe, design-system, docs, …)?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Likely scope
+      options:
+        - label: Storefront (`apps/storefront`)
+        - label: Stripe plugin (`packages/plugin-stripe`)
+        - label: Image hotspots plugin (`packages/plugin-image-hotspots`)
+        - label: Design system (`packages/design-system`)
+        - label: Tooling / CI / docs only

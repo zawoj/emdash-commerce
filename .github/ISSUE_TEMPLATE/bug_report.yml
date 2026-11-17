@@ -1,0 +1,81 @@
+name: Bug report
+description: Something broke in emdash-commerce
+title: "[bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please fill in every section so we can reproduce the issue.
+        Do **not** paste Stripe keys, webhook secrets, encryption keys, or order access tokens.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you saw, including any error message.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. pnpm install && pnpm bootstrap
+        2. pnpm dev
+        3. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: main @ abc1234 or @emdash-commerce/storefront 0.0.1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: How you run it
+      options:
+        - Node.js + SQLite (default demo)
+        - Cloudflare-style deployment (self-built)
+        - Other (describe in logs)
+    validations:
+      required: true
+
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: 24.22.1
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or stack trace
+      description: Redact secrets before pasting.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: reproduced
+    attributes:
+      label: Human reproduction
+      options:
+        - label: A human reproduced this on the commit or version above (not agent output alone)
+          required: true

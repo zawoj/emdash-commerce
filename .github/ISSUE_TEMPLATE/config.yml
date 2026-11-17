@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ideas and Q&A
+    url: https://github.com/zawoj/emdash-commerce/discussions
+    about: Feature ideas, questions, and design discussion before an issue or PR.
+  - name: Report a security vulnerability
+    url: https://github.com/zawoj/emdash-commerce/security/advisories/new
+    about: Private reporting through GitHub Security Advisories (see SECURITY.md).
