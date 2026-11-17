@@ -33,6 +33,15 @@ the four colour-contrast `test.fixme` cases.
    It found three late dependencies (`@astrojs/react/server.js`, `stripe`, `astro/container`) and pre-bundles them in the
    Cloudflare SSR environment's `optimizeDeps.include` (`.ai/memory/cloudflare-dev-cold-cache-reoptimize.md`).
 
+## Follow-up pass (same day, after the owner asked to fix the remaining items and run them)
+- Accounts: npm was logged in as another user (`payloadjs`) and the `@emdash-commerce` organisation does not exist; npm creates
+  organisations on the website only, so the release stays with the owner. Wrangler was not logged in; a request for a Cloudflare
+  API token timed out. GitHub (admin, no branch protection) was available.
+- Fixed in parallel streams: site import into a fresh shop (`COMMERCE_DEFER_RELATIONS`), the duplicated cart-line warning and the
+  plural counts; email verified with Mailpit (owner's choice; a deployed Worker cannot reach a local Mailpit); a real deploy tried on
+  a `--temporary` account (blocked: R2 forbidden, 5 MiB asset cap; nothing left behind, no Stripe webhook was created).
+  Separate logs: `2026-11-17-mailpit-delivery.md`, `2026-11-17-cloudflare-temporary-account-deploy.md`.
+
 ## Verification
 On the merged branch:
 - `pnpm check:ai`, `pnpm lint` (0 errors), `pnpm typecheck`, `pnpm test` and `pnpm build` all pass.

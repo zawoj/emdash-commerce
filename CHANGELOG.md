@@ -42,8 +42,16 @@ Five parallel agent streams, each in its own worktree, merged into one branch. R
   `unavailableText` and `notice`). The cart count and the low-stock text use plural forms (`Intl.PluralRules`: "1 item in the
   cart", "Last item"; Polish one/few/many). `CountBadge`, the site header and the tab bar take optional `labelForms` and `locale`.
   Changeset `cart-warning-once-and-plural-count`.
-- **Not covered:** a real Cloudflare account (the button, the deploy workflow on GitHub, the token seed, D1 import and SMTP
-  delivery from a deployed Worker); the npm organisation and first release, which are owner-only steps (the three packages pass
+- **Mailpit for email tests.** `pnpm mail:dev` starts a pinned Mailpit (v1.33.0, Docker) with a throwaway CA and `localhost`
+  certificate, so EmDash's SMTP provider (STARTTLS, verified certificate, login) can be tested locally (`docs/email.md`). A real
+  sandbox purchase on the **built** Node server delivered the order confirmation and the guest order link to Mailpit, and the link
+  opened the order. The Cloudflare dev server delivers too when `NODE_EXTRA_CA_CERTS` is set for the astro process (Miniflare
+  passes it to workerd), which corrects an earlier note.
+- **Real-deploy attempt.** The generated template was deployed with `wrangler deploy --temporary` (no account login). A
+  temporary preview account cannot host the shop: R2 is forbidden and assets over 5 MiB are refused (an EmDash admin chunk is
+  5.7 MB; normal accounts allow 25 MiB). It also showed that a first `wrangler deploy` refuses to create a Worker without the
+  `secrets.required` secrets, so `docs/cloudflare.md` now uses `--secrets-file` for the first deploy.
+- **Not covered:** a real Cloudflare account (the button, the token seed, D1 import and SMTP delivery from a deployed Worker); the npm organisation and first release, which are owner-only steps (the three packages pass
   `pnpm publish --dry-run`).
 
 ## 2026-11-17 (README roadmap)
