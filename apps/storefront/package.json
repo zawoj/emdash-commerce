@@ -12,15 +12,22 @@
     "build": "astro build",
     "preview": "astro preview --port 4360",
     "start": "node --env-file-if-exists=.env ./dist/server/entry.mjs",
-    "typecheck": "astro check",
+    "dev:cloudflare": "DEPLOY_TARGET=cloudflare astro dev --port 4360",
+    "build:cloudflare": "DEPLOY_TARGET=cloudflare astro build",
+    "preview:cloudflare": "DEPLOY_TARGET=cloudflare astro preview --port 4360",
+    "deploy:cloudflare": "pnpm build:cloudflare && wrangler deploy",
+    "types:cloudflare": "wrangler types",
+    "typecheck": "astro check && tsc -p tsconfig.cloudflare.json",
     "test": "vitest run"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "14.3.4",
+    "@astrojs/node": "^11.1.5",
+    "@astrojs/react": "^7.0.0",
+    "@emdash-cms/cloudflare": "1.5.0",
     "@emdash-commerce/design-system": "workspace:*",
     "@emdash-commerce/plugin-image-hotspots": "workspace:*",
     "@emdash-commerce/plugin-stripe": "workspace:*",
-    "@astrojs/node": "^11.1.5",
-    "@astrojs/react": "^7.0.0",
     "astro": "7.3.2",
     "emdash": "^1.3.0",
     "react": "19.2.3",
@@ -29,10 +36,43 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@cloudflare/workers-types": "^5.20261117.1",
     "axe-core": "4.14.0",
     "happy-dom": "20.9.0",
     "typescript": "6.0.3",
-    "vitest": "4.1.5"
+    "vitest": "4.1.5",
+    "wrangler": "^4.163.0"
   },
-  "description": "Mock Cloudflare-merch storefront on EmDash (Astro, Node + SQLite): catalog, cart and Stripe Checkout through the stripe-commerce plugin."
+  "description": "Mock Cloudflare-merch storefront on EmDash (Astro): catalog, cart and Stripe Checkout through the stripe-commerce plugin. Runs on Node + SQLite or on Cloudflare Workers + D1 + R2.",
+  "cloudflare": {
+    "label": "EmDash Commerce",
+    "products": [
+      "D1",
+      "R2",
+      "Durable Objects"
+    ],
+    "categories": [
+      "storage"
+    ],
+    "bindings": {
+      "EMDASH_ENCRYPTION_KEY": {
+        "description": "Encrypts secrets EmDash stores in D1 (plugin settings, the order-link secret). Format `emdash_enc_v1_` + 43 base64url characters: generate it with `npx emdash secrets generate`. A hex key is rejected. Never change it once the database holds a secret."
+      },
+      "STRIPE_SECRET_KEY": {
+        "description": "Stripe **secret or restricted key** (`sk_test_...` / `rk_test_...` for a sandbox). Create it in the [Stripe dashboard](https://dashboard.stripe.com/test/apikeys). A key saved in the admin (Plugins, Stripe commerce, Settings) wins over this one."
+      },
+      "STRIPE_WEBHOOK_SECRET": {
+        "description": "Optional. Signing secret (`whsec_...`) of the webhook endpoint. Leave it empty and press **Register webhook** in the Commerce admin page instead: the secret is then stored encrypted in the database."
+      },
+      "COMMERCE_ACCESS_TOKEN_SECRET": {
+        "description": "Optional. Signs the guest order links in emails. Generated and stored encrypted on first use when left empty."
+      },
+      "DB": {
+        "description": "D1 database: the EmDash schema, content, orders and plugin storage. Migrations run on the first request."
+      },
+      "MEDIA": {
+        "description": "R2 bucket for uploaded media (product photos)."
+      }
+    }
+  }
 }
