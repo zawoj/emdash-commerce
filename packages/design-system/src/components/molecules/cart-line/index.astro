@@ -38,7 +38,7 @@ const totalCompareAt = line.previousLinePrice ?? (hasMany ? undefined : line.pre
     {line.priceChangedNote && <p class="cart-line__changed">{line.priceChangedNote}</p>}
     {
       line.isUnavailable && line.unavailableText && (
-        <InlineNotice tone={noticeTones.warning}>{line.unavailableText}</InlineNotice>
+        <InlineNotice tone={noticeTones.warning} toneLabel={line.unavailableLabel}>{line.unavailableText}</InlineNotice>
       )
     }
     {line.notice && <InlineNotice tone={line.notice.tone} toneLabel={line.notice.toneLabel}>{line.notice.text}</InlineNotice>}

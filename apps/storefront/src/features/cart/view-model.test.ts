@@ -68,4 +68,11 @@ describe("applyCartIssues", () => {
 		const lines = cartPageOf(emptyCart, "en", cartCopy.en, new Map(), new Map()).lines;
 		expect(applyCartIssues(lines, emptyCart, cartCopy.en)).toEqual(lines);
 	});
+
+	it("gives an issue line one warning: the reason in unavailableText, no second notice with the same text", () => {
+		const [line] = cartPageOf(lineCart, "en", cartCopy.en, new Map([["prod_1", "hat"]]), new Map()).lines;
+		expect(line?.unavailableText).toBe("Sold out");
+		expect(line?.unavailableLabel).toBe("Warning");
+		expect(line?.notice).toBeUndefined();
+	});
 });
