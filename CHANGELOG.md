@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-11-17 (community release)
+
+### feat: community repo conventions, release mechanics, Cloudflare target, rebuilt storefront pages, e2e tests — Claude Code, Cursor
+One pull request assembled from parallel agent streams (each in its own worktree, merged into one branch). Positioning and
+scope: `.ai/decisions/2026-11-17-community-release-scope.md`.
+- **Community repo conventions.** `SECURITY.md` (private advisories only), `CONTRIBUTING.md` (paths, gates, our AI policy),
+  Contributor Covenant 2.1, PR and issue templates, `CODEOWNERS`, Dependabot, oxlint (`pnpm lint`, no repo-wide formatter, 0 errors)
+  and `.editorconfig`; CI pins third-party actions to commit SHAs, runs lint, and adds CodeQL and zizmor. Why: match what EmDash and
+  `cloudflare/*` repositories ship, without policies we do not run (no CLA). ADR `community-repo-conventions`.
+- **Release mechanics.** Changesets with `changelog-github`, the three packages (`plugin-stripe`, `plugin-image-hotspots`,
+  `design-system`) made publishable (metadata, provenance, a `files` allow-list that ships TypeScript source like EmDash's own
+  plugins, peer dependencies), `PLUGIN_VERSION` read from `package.json`, a release workflow and `docs/releasing.md`. Tarballs
+  verified with `pnpm pack`, `publint --strict`, an install into a clean project and an EmDash site build. Nothing is published.
+  No `emdash-plugin.jsonc`: both plugins are native and the registry takes sandboxed plugins only. Outside the code: create the
+  npm organisation `@emdash-commerce`, add `NPM_TOKEN`, enable "Allow GitHub Actions to create and approve pull requests".
+- **Cloudflare target.** `DEPLOY_TARGET=cloudflare` runs the same storefront on Workers + D1 + R2 (`wrangler.jsonc`,
+  `src/worker.ts`, `*:cloudflare` scripts); Node + SQLite stays the default. Verified on workerd without a Cloudflare account:
+  build, `wrangler deploy --dry-run`, seed, a sandbox purchase with a signed webhook, and the cron task. The Stripe plugin needed
+  no code change; `workers-compat.test.ts` keeps it free of Node-only APIs. `docs/cloudflare.md`. **The Deploy to Cloudflare
+  button cannot build this monorepo** (the app depends on `workspace:*` packages and the button needs an isolated subdirectory).
+  A deployed site needs an email provider, the Workers Paid plan is the safe choice, and `pnpm seed` cannot seed a deployed site
+  (it uses the dev login).
+- **Storefront pages.** `/cart` and `/checkout/success` rebuilt on design-system components with en and pl copy; new
+  `/orders/lookup` (and `POST /api/orders/access-link`) so a guest can ask for a new order link without learning whether an order
+  exists; `/orders/view` links to it when a link is invalid. Stable `data-testid` hooks for the e2e suite. Design system: cart
+  line, order summary rows and order confirmation take test ids (see its changelog).
+
 ## 2026-11-17 (release readiness)
 
 ### fix: encryption key format, guest order page, category and brand URLs, docs that matched the code — Claude Code
