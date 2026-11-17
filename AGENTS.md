@@ -67,6 +67,7 @@ keys, `stripe listen`, seed, reset, troubleshooting). Governance: [`CONTRIBUTING
 | AI onboarding: architecture map, what you can build, ready prompts, how to re-theme the catalog | `docs/ai-guide.md` |
 | Running the shop from zero (prerequisites, Stripe sandbox, env, webhook secret, seed, first purchase, reset, troubleshooting) | `docs/getting-started.md` |
 | Cloudflare target (Workers + D1 + R2), deploy limits, Deploy button | `docs/cloudflare.md` |
+| Email on a deployed site: SMTP env vars or admin settings, which provider is active, how to test delivery, Workers limits | `docs/email.md` |
 | Changesets and npm publish (`@emdash-commerce`) | `docs/releasing.md` |
 | The test pyramid: unit, design-system lints, Playwright e2e | `docs/testing.md` |
 | Commerce agent skills (install, API, storefront, extend plugin) | `skills/` (`skills/README.md`); EmDash core skills in `apps/storefront/.agents/skills/` |

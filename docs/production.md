@@ -80,4 +80,4 @@ site, Cloudflare, or Claude Code's `--header` flag against EmDash.
 - `pnpm seed` signs in through the dev login, which a deployed site does not have: it cannot seed production. Create the
   catalog in the admin or over MCP, or import a local site (`docs/cloudflare.md`, step 6).
 - Passkeys work only on the hostname that created them; email sign-in and the shop's order emails need an email
-  provider (Settings → Email: SMTP or a provider plugin; none is active on a fresh deploy); sandboxed plugins on Cloudflare need the Workers Paid plan.
+  provider (Settings → Email: SMTP or a provider plugin; none is active on a fresh deploy: [email.md](email.md)); sandboxed plugins on Cloudflare need the Workers Paid plan.
