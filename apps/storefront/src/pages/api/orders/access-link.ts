@@ -1,18 +1,14 @@
 import type { APIRoute } from "astro";
 
+import { readAccessLinkInput } from "../../../features/orders/access-link-input";
 import { commerceApiBase, commerceMutationInit, parseApiEnvelope } from "../../../utils/commerce-fetch";
 
 export const prerender = false;
 
 /** Forwards guest order-link requests to the Stripe plugin (same response whether or not the order exists). */
 export const POST: APIRoute = async ({ request }) => {
-	const form = await request.formData().catch(() => null);
-	const json = form
-		? { email: String(form.get("email") ?? ""), orderNumber: String(form.get("orderNumber") ?? "") }
-		: await request.json().catch(() => null);
-	if (!json || typeof json.email !== "string" || typeof json.orderNumber !== "string") {
-		return new Response("Invalid input", { status: 400 });
-	}
+	const json = await readAccessLinkInput(request);
+	if (!json) return new Response("Invalid input", { status: 400 });
 	const init = commerceMutationInit(json);
 	const res = await fetch(`${new URL(request.url).origin}${commerceApiBase}/orders/access-link`, {
 		...init,

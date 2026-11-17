@@ -15,13 +15,18 @@ const adminEntry = createRequire(createRequire(import.meta.url).resolve("emdash"
 // ones and the other way round.
 const isCloudflare = process.env.DEPLOY_TARGET === "cloudflare";
 
+// Where the Node target keeps its state. Both default to the folders next to this file; the end-to-end suite points
+// them at a throwaway directory (`.e2e/`, see docs/testing.md) so a test run never touches `data.db` or `uploads/`.
+const databaseFile = process.env.EMDASH_DATABASE_FILE || "./data.db";
+const uploadsDirectory = process.env.EMDASH_UPLOADS_DIR || "./uploads";
+
 const nodeRuntime = async () => {
 	const [{ default: node }, { sqlite }] = await Promise.all([import("@astrojs/node"), import("emdash/db")]);
 	return {
 		adapter: node({ mode: "standalone" }),
-		database: sqlite({ url: "file:./data.db" }),
+		database: sqlite({ url: `file:${databaseFile}` }),
 		storage: local({
-			directory: "./uploads",
+			directory: uploadsDirectory,
 			baseUrl: "/_emdash/api/media/file",
 		}),
 	};

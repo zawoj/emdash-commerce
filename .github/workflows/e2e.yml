@@ -1,0 +1,135 @@
+# End-to-end tests (Playwright). See docs/testing.md and the "End-to-end tests" section of CONTRIBUTING.md.
+#
+# smoke     Needs no secrets: a storefront dev server without any Stripe key, a throwaway SQLite database, Chromium.
+#           Runs on every pull request and on push to main.
+# purchase  A real test purchase against a Stripe *sandbox* (hosted Checkout, webhooks through `stripe listen`).
+#           Runs only on a manual run (workflow_dispatch) and weekly, only in zawoj/emdash-commerce.
+#           Repository secret (Settings, Secrets and variables, Actions): STRIPE_SANDBOX_SECRET_KEY, an sk_test_ or
+#           rk_test_ key of a Stripe sandbox (restricted-key permissions: docs/getting-started.md). The suite refuses
+#           any other key. The Stripe CLI reads the same key from STRIPE_API_KEY (the non-interactive form of
+#           `stripe listen --api-key`, kept out of the process list), so no `stripe login` is needed.
+
+name: E2E
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Mondays, 05:17 UTC.
+    - cron: "17 5 * * 1"
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      # Version comes from package.json `packageManager`.
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ".node-version"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm test:e2e:install --with-deps
+
+      - name: Smoke tests
+        run: pnpm test:e2e:smoke
+
+      - name: Upload the report and traces
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: e2e-smoke-report
+          path: |
+            playwright-report/
+            test-results/
+            .e2e/server.log
+            .e2e/server-first.log
+            .e2e/seed.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  purchase:
+    if: github.repository == 'zawoj/emdash-commerce' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      STRIPE_CLI_VERSION: "1.55.11"
+      # sha256 of stripe_<version>_linux_x86_64.tar.gz, from the release's stripe-linux-checksums.txt.
+      STRIPE_CLI_SHA256: "c710bdb63045ea8e4c3d218efe4c269a90a32bd807c1306a29438e54f80bcfdc"
+      STRIPE_CLI_TELEMETRY_OPTOUT: "1"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ".node-version"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm test:e2e:install --with-deps
+
+      - name: Install the Stripe CLI (pinned, checksum verified)
+        run: |
+          set -euo pipefail
+          archive="stripe_${STRIPE_CLI_VERSION}_linux_x86_64.tar.gz"
+          curl -fsSL -o "${RUNNER_TEMP}/${archive}" "https://github.com/stripe/stripe-cli/releases/download/v${STRIPE_CLI_VERSION}/${archive}"
+          echo "${STRIPE_CLI_SHA256}  ${RUNNER_TEMP}/${archive}" | sha256sum --check --strict
+          mkdir -p "${RUNNER_TEMP}/stripe-cli"
+          tar -xzf "${RUNNER_TEMP}/${archive}" -C "${RUNNER_TEMP}/stripe-cli" stripe
+          echo "${RUNNER_TEMP}/stripe-cli" >> "${GITHUB_PATH}"
+
+      - name: Check that the sandbox key works with the Stripe CLI
+        env:
+          STRIPE_API_KEY: ${{ secrets.STRIPE_SANDBOX_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${STRIPE_API_KEY}" ]; then
+            echo "::error::The repository secret STRIPE_SANDBOX_SECRET_KEY is not set."
+            exit 1
+          fi
+          stripe --version
+          # Prints the webhook signing secret: discard it, only the exit status matters here.
+          stripe listen --print-secret > /dev/null
+
+      - name: Purchase tests (Stripe sandbox)
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SANDBOX_SECRET_KEY }}
+        run: pnpm exec playwright test --project=purchase
+
+      # stripe-listen.log is left out on purpose: it prints the webhook signing secret.
+      - name: Upload the report and traces
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: e2e-purchase-report
+          path: |
+            playwright-report/
+            test-results/
+            .e2e/server.log
+            .e2e/server-first.log
+            .e2e/seed.log
+          if-no-files-found: ignore
+          retention-days: 7
