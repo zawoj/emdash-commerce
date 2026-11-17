@@ -4,6 +4,32 @@ Design tokens and every visual component of the EmDash storefront as props-drive
 This package owns **visuals only** — no data logic, no imports from any app. See [`CHANGELOG.md`](./CHANGELOG.md)
 for what changed in the package itself and why.
 
+## Install
+
+```bash
+pnpm add @emdash-commerce/design-system
+```
+
+Requires Astro 7 (a peer dependency). The package ships its Astro, TypeScript and CSS source; Astro and Vite compile it in
+your site. Import the tokens once in a layout and use the components from the barrel:
+
+```astro
+---
+import { Button } from "@emdash-commerce/design-system";
+import "@emdash-commerce/design-system/reset.css";
+import "@emdash-commerce/design-system/tokens.css";
+---
+
+<Button variant="primary" href="/shop">Shop</Button>
+```
+
+Client scripts are separate subpaths (`@emdash-commerce/design-system/mini-cart`, …) so a `<script>` never pulls in the
+components. The demo storefront also lists the package under `vite.ssr.noExternal`; a plain install from npm builds
+without it (checked with `astro build` on the packed tarball).
+
+The `token-lint` and `wireframe-lint` binaries ship too (`pnpm exec token-lint src`). This package is a community
+project for [EmDash](https://github.com/emdash-cms/emdash) and is not part of it.
+
 The package is **de-branded**: no logos or brand photos; site chrome uses a text wordmark from `siteName`.
 
 The look is a **warm ink + orange wireframe with no decoration**, in the Cloudflare palette: one warm neutral ramp

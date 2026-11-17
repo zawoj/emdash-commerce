@@ -1,5 +1,8 @@
+import packageJson from "../../../package.json" with { type: "json" };
+
 export const PLUGIN_ID = "stripe-commerce" as const;
-export const PLUGIN_VERSION = "0.2.0" as const;
+/** The package version, so a `changeset version` bump is the only place the number changes. */
+export const PLUGIN_VERSION: string = packageJson.version;
 
 /** Plugin storage collections (machine state: atomic counters, claims, queues, indexes). */
 export const STORAGE = {
