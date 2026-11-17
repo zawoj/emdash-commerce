@@ -62,8 +62,13 @@ const sent = Astro.url.searchParams.get("sent") === "1";
 			>
 				{copy.lookupSubmit}
 			</Button>
-			<div class:list={["order-lookup__notice", !sent && "order-lookup__notice--hidden"]}>
-				<InlineNotice tone={noticeTones.success} data-testid="order-lookup-notice" data-order-lookup-notice>
+			<!-- The hooks sit on the wrapper: InlineNotice does not forward data-* attributes. -->
+			<div
+				class:list={["order-lookup__notice", !sent && "order-lookup__notice--hidden"]}
+				data-testid="order-lookup-notice"
+				data-order-lookup-notice
+			>
+				<InlineNotice tone={noticeTones.success}>
 					{copy.lookupSuccess}
 				</InlineNotice>
 			</div>
