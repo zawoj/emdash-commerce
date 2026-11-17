@@ -18,9 +18,14 @@
     "seed": "node scripts/seed-demo.mjs",
     "bootstrap": "node scripts/bootstrap.mjs",
     "doctor": "node scripts/bootstrap.mjs --check",
-    "art": "node scripts/art/index.mjs"
+    "art": "node scripts/art/index.mjs",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
     "nx": "22.7.0",
     "sharp": "0.34.5"
   },
