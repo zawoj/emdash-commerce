@@ -56,6 +56,7 @@ keys, `stripe listen`, seed, reset, troubleshooting). Governance: [`CONTRIBUTING
 | `pnpm art` | Regenerates the mock product art (`scripts/art/` → `apps/storefront/public/merch/`, PNG, committed) |
 | `pnpm lint` | oxlint (zero errors in CI) |
 | `pnpm changeset` | Add a changeset when a publishable package changes (`docs/releasing.md`) |
+| `pnpm test:e2e:smoke` · `pnpm test:e2e` | Playwright: no secrets · plus a real Stripe-sandbox purchase (`pnpm test:e2e:install` once) |
 | `pnpm check:ai` | `.ai/` layout, `YYYY-MM-DD-slug.md` names, memory index |
 | `pnpm typecheck` · `pnpm test` · `pnpm build` | Validation gate (`nx run-many`) — run all three before calling work done |
 
@@ -67,6 +68,7 @@ keys, `stripe listen`, seed, reset, troubleshooting). Governance: [`CONTRIBUTING
 | Running the shop from zero (prerequisites, Stripe sandbox, env, webhook secret, seed, first purchase, reset, troubleshooting) | `docs/getting-started.md` |
 | Cloudflare target (Workers + D1 + R2), deploy limits, Deploy button | `docs/cloudflare.md` |
 | Changesets and npm publish (`@emdash-commerce`) | `docs/releasing.md` |
+| The test pyramid: unit, design-system lints, Playwright e2e | `docs/testing.md` |
 | Commerce agent skills (install, API, storefront, extend plugin) | `skills/` (`skills/README.md`); EmDash core skills in `apps/storefront/.agents/skills/` |
 | The storefront: routes, features, rules | `apps/storefront/AGENTS.md` |
 | The Stripe plugin: layers, HTTP API, how to extend | `packages/plugin-stripe/docs/` (`architecture.md` · `api.md` · `extending.md`) · `.ai/memory/emdash-plugin-stripe-extending.md` · `.ai/decisions/2026-11-12-emdash-stripe-commerce-architecture.md` |
@@ -102,6 +104,10 @@ keys, `stripe listen`, seed, reset, troubleshooting). Governance: [`CONTRIBUTING
   `test` is `token-lint` — no raw colours or sizes outside the tokens.
 - New or changed behaviour ships with a test. Assert what the consumer receives, not the implementation; cover the seam
   between two individually-correct helpers.
+- End-to-end: `pnpm test:e2e:smoke` (no secrets; run it when you touch a page, route, cart or order page) and
+  `pnpm test:e2e` (adds the Stripe purchase suite with an `sk_test_`/`rk_test_` key and the Stripe CLI). The suite starts its
+  own server on 4380 with a throwaway DB in `.e2e/` and never touches `data.db`. Locate by role, label or `data-testid`;
+  web-first assertions, no fixed sleeps, no retries; prove a spec by mutation. Details: `docs/testing.md`.
 - Before calling work done run `pnpm check:ai`, `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build`. Green gates
   are not proof the feature works — for anything user-visible, run it (dev server, curl, browser).
 

@@ -26,6 +26,24 @@ scope: `.ai/decisions/2026-11-17-community-release-scope.md`.
   `/orders/lookup` (and `POST /api/orders/access-link`) so a guest can ask for a new order link without learning whether an order
   exists; `/orders/view` links to it when a link is invalid. Stable `data-testid` hooks for the e2e suite. Design system: cart
   line, order summary rows and order confirmation take test ids (see its changelog).
+- **End-to-end tests.** A Playwright suite: `pnpm test:e2e:smoke` needs no secrets and runs in CI on every PR (40 tests: pages,
+  routes, filters, cart, order pages and their headers, axe at desktop and phone viewports); `pnpm test:e2e` adds a real
+  Stripe-sandbox purchase (hosted Checkout, webhook, success page, emailed link, order page), run weekly and on demand. It uses its
+  own dev server on port 4380 and a throwaway database in `.e2e/` (`EMDASH_DATABASE_FILE` and `EMDASH_UPLOADS_DIR` move the
+  storefront's SQLite file and uploads; defaults unchanged). 25 source mutations were each caught. Bugs it found and fixed: the
+  order-link API answered 400 to every JSON request (the lookup form never worked with JavaScript), the lookup notice hooks never
+  reached the DOM, and the phone back link did not name its target. Four colour-contrast cases are `test.fixme` (reduced-opacity
+  states in the design system). Outside the code: add the repository secret `STRIPE_SANDBOX_SECRET_KEY` for the weekly purchase
+  job; Stripe CLI 1.55.11 refused a bare `stripe listen --forward-to ...` and needed `--all-snapshot` (1.40.3 starts without it;
+  `docs/getting-started.md` has a troubleshooting row, the quickstart still shows the bare command). `docs/testing.md`.
+- **Docs and agent skills.** README restructured in EmDash's style (community notice, features verified against the code, Mermaid
+  flow, packages marked "once published", honest limitations), `ROADMAP.md` as the one labelled place for plans, agent skills
+  `skills/building-commerce-site` and `skills/extending-stripe-plugin` in EmDash's format (linked from the storefront's
+  `.agents/skills`), refreshed `AGENTS.md` and `docs/ai-guide.md` (Cloudflare and release prompts), and the dev order-link
+  walkthrough (`/_emdash/api/dev/emails`, `/orders/lookup`) in `docs/getting-started.md`.
+- **Not covered by this PR.** Nothing is published to npm; the Cloudflare target was not deployed to a real account and has no
+  Playwright coverage; order emails were only seen through EmDash's dev console provider; the demo still wears the Cloudflare-merch
+  name and palette (owner's decision, see the scope ADR).
 
 ## 2026-11-17 (release readiness)
 

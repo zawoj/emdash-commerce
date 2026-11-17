@@ -98,8 +98,9 @@ flowchart LR
 - Category and brand URLs: `/shop/c/<slug>`, `/shop/brand/<slug>` → filtered shop (unknown slug → 404).
 - Home, search, blog (posts, tags, RSS) on the EmDash blog template.
 - Second runtime target: **Cloudflare** (`docs/cloudflare.md`).
-- Stable **`data-testid`** hooks on cart checkout, order lookup and checkout success for browser e2e; **Vitest** unit and
-  integration tests across packages (no committed Playwright suite in CI yet).
+- **Tests:** Vitest unit and integration tests across packages, and a **Playwright** suite (`pnpm test:e2e:smoke` runs in CI on
+  every PR without secrets; `pnpm test:e2e` adds a real Stripe-sandbox purchase, run weekly and on demand) — see
+  [docs/testing.md](docs/testing.md).
 
 **Commerce backend** (`stripe-commerce` plugin)
 
@@ -193,6 +194,7 @@ Mock Cloudflare-merch shop with seeded data (art from `scripts/art/`).
 | `pnpm changeset` | Add a changeset when a publishable package changes |
 | `pnpm check:ai` | `.ai/` layout and memory index |
 | `pnpm typecheck` · `pnpm test` · `pnpm build` | Validation gate |
+| `pnpm test:e2e:install` · `pnpm test:e2e:smoke` · `pnpm test:e2e` | Chromium for Playwright (once) · browser tests, no secrets · plus a real sandbox purchase (Stripe key and Stripe CLI) |
 
 Cloudflare (from repo root): `pnpm --filter @emdash-commerce/storefront dev:cloudflare --port 4361` (use a port other
 than 4360 if the Node dev server runs). Stop detached Astro with `npx astro dev stop` in `apps/storefront`.
@@ -203,6 +205,7 @@ than 4360 if the Node dev server runs). Stop detached Astro with `npx astro dev 
 - [`SECURITY.md`](SECURITY.md) — report vulnerabilities via GitHub Security Advisories
 - [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) — Contributor Covenant 2.1
 - [`docs/releasing.md`](docs/releasing.md) — Changesets and `@emdash-commerce` on npm
+- [`docs/testing.md`](docs/testing.md) — unit, lint, and end-to-end tests
 
 ## Built for agents
 
@@ -221,7 +224,7 @@ From the plugin and demo scope — not a bug list for drive-by fixes:
 - **Shipping, tax, promo codes, embedded Checkout** — plugin options the demo leaves off.
 - **`pnpm seed` needs the dev login** — not for production deploys; use admin, MCP, or site import + catalog resync.
 - **Deploy button** cannot build this monorepo subdirectory without a standalone copy or published packages.
-- **No Playwright e2e in CI yet** — hooks exist; browser suite is on the [roadmap](ROADMAP.md).
+- **E2E covers the Node target only** — the Cloudflare target is verified by hand (see [docs/cloudflare.md](docs/cloudflare.md)), not by Playwright.
 - See also **`packages/plugin-stripe/README.md` § Limitations** and **`docs/ai-guide.md` § Not built**.
 
 ## Trademarks

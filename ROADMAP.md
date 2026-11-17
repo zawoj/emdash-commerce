@@ -18,7 +18,7 @@ Work the maintainers intend to tackle when capacity allows, in rough priority. *
 | **npm organisation and first release** | Create `@emdash-commerce` on npm, wire `NPM_TOKEN`, merge the pending Changesets "Version Packages" PR — see [docs/releasing.md](docs/releasing.md). |
 | **Email on deployed sites** | Document and optionally automate EmDash email provider setup (SMTP or provider plugin) so order confirmation and guest order-link emails deliver outside dev. |
 | **Production `seed.json` hygiene** | Remove or gate the `feedback` collection (Notes dev tool) from `apps/storefront/seed/seed.json` for real production deploys — called out in [docs/cloudflare.md](docs/cloudflare.md) and [docs/production.md](docs/production.md). |
-| **Playwright e2e** | Browser tests for the shop happy path and the Cloudflare target. The storefront and design system already expose stable `data-testid` hooks on cart, checkout success and order lookup; a committed Playwright suite does not exist yet. |
+| **Playwright e2e on the Cloudflare target** | The Playwright suite ([docs/testing.md](docs/testing.md)) covers the Node target; the Cloudflare target is verified by hand. Also open: four colour-contrast cases (`test.fixme`) caused by reduced-opacity states in the design system. |
 
 ## Explicitly not planned (for this repo)
 

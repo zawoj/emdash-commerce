@@ -262,6 +262,7 @@ A database created before the move to USD still has a PLN-only `currency` select
 | Symptom | Cause and fix |
 | --- | --- |
 | Checkout fails, or the cart shows an item as "not synced" | The catalog is not in Stripe yet. Run `pnpm seed` again with a key configured (it syncs at the end), or press **Resync catalog** on the Commerce page and wait: the background task does 25 entities per five minutes. Calling the `commerce_catalog_sync` tool (or `admin/catalog/sync`) repeatedly drives it faster. Details: `.ai/memory/emdash-plugin-stripe-resync-is-slow-by-design.md`. |
+| `stripe listen` refuses to start and asks you to specify events | Reported with Stripe CLI 1.55.11 (the version the e2e setup ran against; 1.40.3 starts without it): add `--all-snapshot` to the command, e.g. `stripe listen --all-snapshot --forward-to localhost:4360/_emdash/api/plugins/stripe-commerce/webhook`. |
 | `stripe listen` shows `[400]` for every event | Wrong `STRIPE_WEBHOOK_SECRET` (it differs per CLI login). Copy the secret `stripe listen` printed into `.env`, clear any stale value in the admin plugin settings, restart the server. |
 | `stripe listen` shows `[503]` | No webhook secret configured at all. Same fix. |
 | Paid at Stripe, no order in the admin | The webhook did not arrive or failed. Is `stripe listen` running, forwarding to the right port, with the same account as your key? The Commerce page lists failed or dead webhook events and can replay one. **Reconcile now** fetches events the site missed. |
