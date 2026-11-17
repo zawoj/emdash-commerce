@@ -100,7 +100,8 @@ Two things worth knowing:
   key there once and later change `.env`, the old admin value is still used. Clear the setting in the admin to fall back
   to `.env`.
 - Variables for the seed script are read from your shell, not from `.env`: `EMDASH_URL` (default
-  `http://localhost:4360`; set it when you run on another port) and `SEED_SYNC_TIMEOUT_SECONDS` (default 300).
+  `http://localhost:4360`; set it when you run on another port), `SEED_SYNC_TIMEOUT_SECONDS` (default 300) and, only for a
+  deployed site, `EMDASH_TOKEN` (an `ec_pat_…` access token; locally the dev login is used and no token is needed).
 
 ## 4. Start the server and the webhook forwarder
 
@@ -163,7 +164,9 @@ With the server running:
 pnpm seed
 ```
 
-On a fresh database the seed first applies the schema through the dev login, then creates, in this order:
+On a fresh database the seed first applies the schema through the dev login. It also creates the dev-only `feedback` collection
+(the Notes tool of the editing pill, `apps/storefront/seed/dev-tools.json`), which the production seed leaves out. Then it
+creates, in this order:
 
 - the site identity (title and tagline);
 - the attribute vocabulary, brands and categories;
@@ -192,7 +195,11 @@ Each photo is uploaded once to the media library (matched by file name). No netw
   restart, then run `pnpm seed` again (or press "Resync catalog" on the Commerce page).
 
 Why this matters: a product can only be bought once its prices exist in Stripe. A resync only *queues* the work and the
-background task syncs 25 entities every five minutes, so the seed drives it itself.
+background task syncs 25 entities every five minutes, so the seed drives it itself. `pnpm catalog:resync` runs only that last
+step (e.g. after a content import). The seed exits with code 1 when the sync times out or has failures.
+
+**A deployed site** cannot be seeded through the dev login: `EMDASH_URL=https://… EMDASH_TOKEN=ec_pat_… pnpm seed` uses an
+access token instead (scopes, setup wizard, import alternative: `docs/production.md`, "Seeding a deployed site").
 
 ## 6. Sign in to the admin
 

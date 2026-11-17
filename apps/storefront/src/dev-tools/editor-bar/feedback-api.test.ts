@@ -83,7 +83,7 @@ describe('createFeedbackApi', () => {
   it('names the fix when the collection is missing', async () => {
     const fetcher = vi.fn(async () => json({}, 404))
     const error = (await createFeedbackApi(fetcher as unknown as typeof fetch).list().catch((e: unknown) => e)) as FeedbackError
-    expect(error.message).toContain('emdash seed seed/seed.json --no-content')
+    expect(error.message).toContain('emdash seed seed/dev-tools.json --no-content')
   })
 
   it('reports an unreachable server', async () => {

@@ -120,7 +120,10 @@ subscriber sends confirmation with view link.
 `pnpm seed` (repo root) uses dev login, loads `scripts/lib/merch-catalog.mjs`, uploads committed PNG art, writes Home
 fields, then queues catalog resync when a sandbox key is set.
 
-Requires **dev server running**. Not available on deployed Worker (`import.meta.env.DEV` false).
+Without `EMDASH_TOKEN` it requires the **dev server running** (dev login). Against a deployed site set `EMDASH_URL` and
+`EMDASH_TOKEN` (an `ec_pat_…` token with the `admin` scope; the setup wizard must be finished): it then uses bearer auth,
+checks the scopes before writing and drives the catalog sync. `pnpm catalog:resync` runs only the sync (needed after
+`emdash site import`). Details: `docs/production.md`, "Seeding a deployed site".
 
 ## Production and Cloudflare
 

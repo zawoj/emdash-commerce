@@ -65,7 +65,7 @@ const problemFor = (status: number): FeedbackProblem => {
 }
 
 const MESSAGES: Record<FeedbackProblem, string> = {
-  [FEEDBACK_PROBLEM.MISSING]: 'The "feedback" collection does not exist in this database. Create it with: pnpm --filter @emdash-commerce/storefront exec emdash seed seed/seed.json --no-content',
+  [FEEDBACK_PROBLEM.MISSING]: 'The "feedback" collection does not exist in this database. Create it with: pnpm seed (dev server running), or pnpm --filter @emdash-commerce/storefront exec emdash seed seed/dev-tools.json --no-content',
   [FEEDBACK_PROBLEM.FORBIDDEN]: 'Not allowed to read or write comments — sign in to the EmDash admin as an editor.',
   [FEEDBACK_PROBLEM.OTHER]: 'The comments could not be saved or loaded.',
 }

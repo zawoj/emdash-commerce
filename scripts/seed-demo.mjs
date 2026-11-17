@@ -7,14 +7,21 @@
  * Dependency-free (Node >= 24), idempotent: everything is matched by slug or name, so running it again updates in place.
  *
  * Usage:  pnpm seed [-- --only site,apparel,accessory,bundle,membership,home]
- * Env:    EMDASH_URL                    base URL of the running storefront (default http://localhost:4360)
+ * Env:    EMDASH_URL                    base URL of the storefront (default http://localhost:4360; a deployed site: https://...)
+ *         EMDASH_TOKEN                  personal access token (ec_pat_..., admin -> Settings -> API Tokens). Set: bearer auth,
+ *                                       works against a deployed site, never calls a dev route, needs the setup wizard done.
+ *                                       Unset: the dev login of `astro dev`.
  *         SEED_SYNC_TIMEOUT_SECONDS     how long the final Stripe catalog sync may take (default 300)
  *
  * After the products it queues the plugin's catalog resync and drives it to the end (Stripe Products and Prices
  * for every variant), when a Stripe key is configured; without a key it prints what to run later. Never against a
- * live key.
+ * live key. A sync that times out or has failures ends the script with exit code 1.
  *
- * Needs the dev server running (dev login) on a database that already has the schema: see "Fresh clone" in README.md.
+ * With the dev login it also creates the dev-only `feedback` collection (seed/dev-tools.json), which the production
+ * seed leaves out; with a token it never does. With a token it first checks the scopes it needs and stops before
+ * writing when one is missing (docs/production.md, "Seeding a deployed site").
+ *
+ * Dev login: needs the dev server running. A fresh database gets the schema through the dev setup. See "Fresh clone" in README.md.
  * Each photo is uploaded once to the EmDash media library (matched by file name).
  */
 import { existsSync, readFileSync } from "node:fs";
@@ -36,63 +43,17 @@ import {
 	SITE,
 	SIZES,
 } from "./lib/merch-catalog.mjs";
+import { ensureDevTools } from "./lib/dev-tools.mjs";
+import { AUTH_MODE, createClient, preflightScopes, resolveTarget, SeedAccessError } from "./lib/emdash-client.mjs";
 import { syncStripeCatalog } from "./lib/sync-stripe-catalog.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ART = join(ROOT, "apps", "storefront", "public", "merch");
-const ORIGIN = (process.env.EMDASH_URL ?? "http://localhost:4360").replace(/\/+$/, "");
-const BASE = `${ORIGIN}/_emdash/api`;
 const PLUGIN = "stripe-commerce";
 
 // ---------------------------------------------------------------- http
-let cookie = "";
-
-const storeCookies = (res) => {
-	const pairs = res.headers.getSetCookie().map((line) => line.split(";")[0]);
-	if (pairs.length === 0) return;
-	const jar = new Map(cookie.split("; ").filter(Boolean).map((pair) => pair.split(/=(.*)/s).slice(0, 2)));
-	for (const pair of pairs) {
-		const [name, value] = pair.split(/=(.*)/s);
-		jar.set(name, value);
-	}
-	cookie = [...jar].map(([name, value]) => `${name}=${value}`).join("; ");
-};
-
-const login = async () => {
-	const dev = async (path) => {
-		const res = await fetch(`${ORIGIN}${path}`, { headers: { cookie }, signal: AbortSignal.timeout(60_000) });
-		storeCookies(res);
-		return { ok: res.ok, text: await res.text() };
-	};
-	let result = await dev("/_emdash/api/auth/dev-bypass");
-	if (!result.ok && result.text.includes("SETUP_REQUIRED")) {
-		// A fresh database: apply seed/seed.json (collections, sample content) through the dev setup, then sign in.
-		await dev("/_emdash/api/setup/dev-bypass?content=1");
-		result = await dev("/_emdash/api/auth/dev-bypass");
-	}
-	if (!result.ok) throw new Error(`dev login failed: ${result.text.slice(0, 300)}`);
-};
-
-const call = async (method, path, { body, form, retry = true } = {}) => {
-	const headers = { "X-EmDash-Request": "1", cookie };
-	let payload;
-	if (form) payload = form;
-	else if (body !== undefined) {
-		payload = JSON.stringify(body);
-		headers["Content-Type"] = "application/json";
-	}
-	const res = await fetch(`${BASE}${path}`, { method, headers, body: payload, signal: AbortSignal.timeout(180_000) });
-	storeCookies(res);
-	const text = await res.text();
-	if (!res.ok) {
-		if (retry && (res.status === 401 || res.status === 403) && text.includes("NOT_AUTHENTICATED")) {
-			await login();
-			return call(method, path, { body, form, retry: false });
-		}
-		throw new Error(`${method} ${path} -> ${res.status} ${text.slice(0, 600)}`);
-	}
-	return text ? JSON.parse(text) : {};
-};
+let client;
+const call = (method, path, options) => client.call(method, path, options);
 
 const unwrap = (response) => response.data ?? response;
 
@@ -446,8 +407,8 @@ const point = (n, spot, rest) => ({ id: `point-${n}`, x: spot.x, y: spot.y, ...r
 
 /** The Homepage entry: CTA band, shop-the-look points on the desk setup, spotlight callouts on the jacket. */
 const seedHome = async () => {
-	const home = await find("home", "home");
-	if (!home) throw new Error('No "home" entry: the schema is missing, see "Fresh clone" in README.md');
+	// A deployed site has the schema from seed.json but no sample content (the setup wizard asks for it): create the entry.
+	const home = (await find("home", "home")) ?? (await ensure("home", { title: "Homepage" }, { slug: "home", publish: false }));
 	const lookSpots = Object.entries(HOME.look.products);
 	const calloutSpots = Object.entries(HOME.spotlight.callouts);
 	const data = {
@@ -476,11 +437,32 @@ const SYNC_TIMEOUT_MS = Math.max(10, Number(process.env.SEED_SYNC_TIMEOUT_SECOND
 const syncCatalog = () => syncStripeCatalog({ call: (method, path, options) => call(method, path, options), plugin: PLUGIN, timeoutMs: SYNC_TIMEOUT_MS });
 
 // ---------------------------------------------------------------- main
+const DEV_TOOLS_SEED = join(ROOT, "apps", "storefront", "seed", "dev-tools.json");
+
+/** The token scopes each part of the seed uses (the plugin's admin routes need the admin scope). */
+const scopesFor = (wants) => {
+	const products = ["apparel", "accessory", "bundle", "membership"].some(wants);
+	const scopes = new Set();
+	if (wants("site")) scopes.add("settings:manage");
+	if (products || wants("home")) ["content:read", "content:write", "media:read", "media:write"].forEach((scope) => scopes.add(scope));
+	if (products) scopes.add("admin");
+	return [...scopes];
+};
+
 const main = async () => {
 	const flag = process.argv.indexOf("--only");
 	const only = flag === -1 ? null : process.argv[flag + 1].split(",");
 	const wants = (name) => only === null || only.includes(name);
-	await login();
+	client = createClient({ target: resolveTarget() });
+	await client.login();
+	if (client.mode === AUTH_MODE.TOKEN) {
+		console.log(`seeding ${client.origin} with an access token`);
+		await preflightScopes(client, scopesFor(wants));
+	} else {
+		// A dev server only: the Notes tool of the editing pill needs its collection, which the production seed leaves out.
+		const created = await ensureDevTools({ call, fragmentPath: DEV_TOOLS_SEED });
+		if (created.length > 0) console.log(`dev tools: created the ${created.join(", ")} collection`);
+	}
 	if (wants("site")) await seedSiteIdentity();
 	const products = ["apparel", "accessory", "bundle", "membership"];
 	const hasProducts = products.some(wants);
@@ -493,11 +475,12 @@ const main = async () => {
 		if (wants("membership")) await seedMembership(v);
 	}
 	if (wants("home")) await seedHome();
-	if (hasProducts) await syncCatalog();
+	const outcome = hasProducts ? await syncCatalog() : null;
 	console.log("done");
+	if (outcome === "timeout" || outcome === "failed") process.exitCode = 1;
 };
 
 main().catch((error) => {
-	console.error(error instanceof Error ? error.message : error);
+	console.error(error instanceof SeedAccessError ? `seed: ${error.message}` : error instanceof Error ? error.message : error);
 	process.exit(1);
 });
