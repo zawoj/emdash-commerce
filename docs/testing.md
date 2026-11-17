@@ -162,11 +162,11 @@ logs are uploaded as an artifact when a job fails (the Stripe CLI log is left ou
 
 ### Known issues the suite documents
 
-Left out of the page checks, kept as `test.fixme` in `e2e/tests/a11y.spec.ts` with the reason, so they run again once fixed.
-Both are in `packages/design-system`:
-
-- A sold-out product card dims its title with `opacity: 0.6`: colour contrast below 4.5:1 (axe `color-contrast`, serious).
-- A cart line that is not ready for checkout is dimmed with `opacity: 0.55`: the same.
+None are left out of the page checks: the strict axe check covers every page whole. The two dimmed states that once failed
+colour contrast (a sold-out product card, a cart line that is not ready for checkout) have their own cases in
+`e2e/tests/a11y.spec.ts`, which first assert that the state is on the page. The cart case runs only without a Stripe key
+(then nothing is synced and the line is unavailable); with a sandbox key the line is purchasable and the case is skipped.
+A dimmed state is a faded photo plus `--text-secondary` text, never `opacity` on text.
 
 Smaller things seen and not asserted: the cart badge's spoken text for one item is "1 items in the cart" (the label
 template has no singular form), and the quantity stepper's two buttons share the accessible name "Quantity" in the cart.

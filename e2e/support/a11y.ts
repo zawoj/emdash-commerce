@@ -15,7 +15,7 @@ interface ViolationSummary {
 
 /**
  * serious and critical axe violations of the page as it is now, with the selectors that break them.
- * `exclude` leaves out parts of the page that have a documented known issue (see a11y.spec.ts).
+ * `exclude` leaves out parts of the page by selector (none at present: no known issues remain).
  */
 export const blockingViolations = async (page: Page, exclude: readonly string[] = []): Promise<ViolationSummary[]> => {
 	const builder = new AxeBuilder({ page }).withTags(WCAG_TAGS);

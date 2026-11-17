@@ -34,3 +34,4 @@ Layout, naming and rules: [../README.md](../README.md). Read this index at sessi
 - [stripe listen needs an event selection](stripe-listen-needs-an-event-selection.md) — CLI 1.55 exits for a bare --forward-to; add --all-snapshot; STRIPE_API_KEY selects the account; the Ready line prints the secret
 - [InlineNotice drops data-* attributes](inline-notice-drops-data-attributes.md) — a data-testid or script hook on InlineNotice never reaches the DOM; hook a wrapper instead
 - [The mini-cart repeats the cart-line test id](mini-cart-repeats-the-cart-line-test-id.md) — cart-page locators must be scoped to main; the header dialog renders the same lines a moment after load
+- [Dim text with a token, not opacity](dimmed-states-use-text-secondary-not-opacity.md) — opacity on text blends it into the surface and fails axe color-contrast (4.34:1 / 3.73:1); fade only the photo and use --text-secondary; the cart-line case needs a run without a Stripe key

@@ -184,12 +184,15 @@ const totalCompareAt = line.previousLinePrice ?? (hasMany ? undefined : line.pre
     outline: 2px solid var(--focus-ring);
   }
 
-  .cart-line--unavailable .cart-line__media,
-  .cart-line--unavailable .cart-line__name,
-  .cart-line--unavailable .cart-line__variant,
-  .cart-line--unavailable .cart-line__unit,
-  .cart-line--unavailable .cart-line__total {
+  /* Dimmed by colour, not opacity: only the photo is faded, the text keeps the muted token (AA on the surface). */
+  .cart-line--unavailable .cart-line__media {
     opacity: 0.55;
+  }
+
+  .cart-line--unavailable .cart-line__name a,
+  .cart-line--unavailable .cart-line__unit,
+  .cart-line--unavailable .cart-line__total :global(.price) {
+    color: var(--text-secondary);
   }
 
   @media (max-width: 640px) {
