@@ -131,8 +131,9 @@ checks the scopes before writing and drives the catalog sync. `pnpm catalog:resy
 - **Cloudflare:** `DEPLOY_TARGET=cloudflare`, D1 + R2, Worker secrets — **[references/production.md](references/production.md)** /
   `docs/cloudflare.md`.
 
-Deploy button on a monorepo subdirectory **does not work** today (`workspace:*` siblings). Use Workers Builds with repo
-root + `apps/storefront` or wait for standalone copy / published packages.
+Deploy button on a monorepo subdirectory **does not work** (`workspace:*` siblings). The generated standalone copy
+(`pnpm template:cloudflare`, branch `cloudflare-template`, `docs/cloudflare.md`) is what the button points at (not tried with an
+account); Workers Builds with repo root + `apps/storefront` is the other option.
 
 ## Where to read
 

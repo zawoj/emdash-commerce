@@ -1,0 +1,128 @@
+# Cloudflare template: generate the standalone copy of apps/storefront, prove it builds outside the monorepo, and
+# publish it to the orphan `cloudflare-template` branch that the Deploy to Cloudflare button points at.
+# How and why: docs/cloudflare.md ("The Deploy button") and .ai/decisions/2026-11-17-cloudflare-deploy-template.md.
+#
+# - pull_request (only when a path the template is made of changes): build job only, nothing is published.
+# - push to main (same paths) and workflow_dispatch: build job, then the publish job force-pushes the branch.
+
+name: Cloudflare template
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/storefront/**"
+      - "packages/**"
+      - "scripts/template/**"
+      - ".github/workflows/cloudflare-template.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/storefront/**"
+      - "packages/**"
+      - "scripts/template/**"
+      - ".github/workflows/cloudflare-template.yml"
+
+# Two publishes must not interleave; a newer run replaces a pending one but never cancels a running push.
+concurrency:
+  group: cloudflare-template-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+# Default-deny at the workflow level; the publish job asks for the one write it needs.
+permissions: {}
+
+jobs:
+  build:
+    name: Generate, install, build, dry-run
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      # Version comes from package.json `packageManager`.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .node-version
+
+      # `pnpm pack` of the three packages needs no install of the monorepo.
+      - name: Generate the template
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: node scripts/template/index.mjs "$RUNNER_TEMP/template" --sha "${SOURCE_SHA:0:7}"
+
+      # The copy lives under RUNNER_TEMP, outside the checkout, so pnpm cannot see the workspace: this is what
+      # Cloudflare does with the branch. No lockfile exists yet; this install writes the one the branch ships.
+      - name: Install the copy
+        working-directory: ${{ runner.temp }}/template
+        run: pnpm install --ignore-workspace
+
+      - name: Typecheck the copy
+        working-directory: ${{ runner.temp }}/template
+        run: pnpm run typecheck
+
+      - name: Build the copy (Cloudflare target)
+        working-directory: ${{ runner.temp }}/template
+        run: pnpm run build
+
+      # Validates the bundle and the bindings; needs no Cloudflare account and uploads nothing.
+      - name: wrangler deploy --dry-run
+        working-directory: ${{ runner.temp }}/template
+        run: pnpm exec wrangler deploy --dry-run
+
+      # Ship sources and the lockfile, not installs or build output.
+      - name: Strip install and build output
+        working-directory: ${{ runner.temp }}/template
+        run: rm -rf node_modules dist .astro .wrangler
+
+      - name: Upload the template
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cloudflare-template
+          path: ${{ runner.temp }}/template
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish the cloudflare-template branch
+    needs: build
+    if: github.event_name != 'pull_request' && github.repository == 'zawoj/emdash-commerce'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # force-push the orphan cloudflare-template branch
+    steps:
+      - name: Download the template
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cloudflare-template
+          path: template
+
+      # No checkout: the branch is an orphan made from the artifact alone, and the token is only handed to the push.
+      - name: Commit and force-push
+        working-directory: template
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)"
+          echo "::add-mask::$auth"
+          git init --initial-branch=cloudflare-template
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          git commit --quiet -m "Generated from ${REPOSITORY}@${SOURCE_SHA}"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" \
+            push --force "https://github.com/${REPOSITORY}.git" cloudflare-template

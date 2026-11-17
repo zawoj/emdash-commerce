@@ -74,7 +74,7 @@ Facts that surprise people (each has a memory file):
 
 Not built (say so when you ask for it, the agent will plan it as new work): shipping rates and tax rules beyond the plugin
 options, discount codes beyond Stripe promotion codes, customer accounts, digital downloads, a real multi-currency cart,
-Playwright e2e for Cloudflare, one-click Deploy button for this monorepo without a standalone copy or published packages.
+Playwright e2e for Cloudflare. The Deploy button works only from the generated `cloudflare-template` branch (`pnpm template:cloudflare`), and nobody has pressed it yet.
 
 ## 4. Prompts
 
@@ -175,7 +175,7 @@ first. Then write the PR description: what changed and why, how it was verified,
 
 ```text
 I want this storefront on Cloudflare Workers. Read docs/cloudflare.md and .ai/decisions/2026-11-17-cloudflare-target-switch.md.
-Do not promise the Deploy button works for this monorepo (workspace:* siblings). Walk me through local workerd first
+Do not point the Deploy button at this monorepo (workspace:* siblings); the generated `cloudflare-template` branch is for it, and it is untried. Walk me through local workerd first
 (dev:cloudflare on a non-4360 port), seed with EMDASH_URL, restart after first seed, stripe listen, then build:cloudflare
 and what wrangler secrets I must set myself. Never log in to my account or print secrets. Say what you verified vs what
 needs a real Cloudflare account.

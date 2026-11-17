@@ -155,18 +155,58 @@ Do not put secret values in `wrangler.jsonc` `vars`, `astro.config.mjs` or `impo
 | Background work | the plugin's cron runs in the Node process | the `* * * * *` Worker cron calls the same scheduled task (`commerce-maintenance`) |
 | Dev login | yes | `astro dev` yes, deployed no (passkey) |
 
+## The Deploy button and the template branch
+
+`pnpm template:cloudflare [outDir] [--npm]` (`scripts/template/`) writes a self-contained copy of the storefront, by default
+into `.template/cloudflare` (git-ignored; an existing folder is replaced only if the script generated it, marker
+`.template-generated`). The copy:
+
+- has the app files (`src`, `public`, `seed`, `wrangler.jsonc`, `astro.config.mjs`, the tsconfigs, the generated EmDash types)
+  and leaves out tests, the Vitest config, the Nx `project.json`, `AGENTS.md`, agent skills, MCP configs, `.env*`, `data.db`;
+- **vendors** the three packages in `vendor/<name>/`: `pnpm pack` per package, extracted, so the `files` allow-list of each
+  package decides what is in it exactly as for npm (no tests, no real-host harness). The manifest depends on them with
+  `file:./vendor/<name>`. With `--npm` it depends on `^<version>` from the registry instead (for the day the packages are
+  published; they are not yet, so use vendor mode);
+- has its own `package.json`: no `workspace:`/`catalog:` spec (the generator throws if one is left), `packageManager` and
+  `engines` from the root, the root's `pnpm.overrides`, `pnpm.onlyBuiltDependencies` (`esbuild`, `sharp`, `workerd`, otherwise
+  pnpm 10 skips their install scripts), and the **Cloudflare build as the default**: `build` = `DEPLOY_TARGET=cloudflare astro build`,
+  `deploy` = `wrangler deploy` (the two scripts Cloudflare's button pre-fills), `dev` on port 4361. The `cloudflare` metadata
+  block (label, bindings, descriptions) is carried over;
+- has its own `README.md` (unofficial community demo notice, the Deploy button, the secrets, link back), `.dev.vars.example`
+  and `LICENSE`;
+- is checked for anything reaching outside its folder: every relative specifier in code and config files is resolved and the
+  generator fails if one leaves the root (the check found `vitest.config.ts` pointing at `../../scripts`, which is excluded).
+  `astro.config.mjs` is copied unchanged: the Node branch stays in it but is only used when `DEPLOY_TARGET` is not `cloudflare`.
+
+`.github/workflows/cloudflare-template.yml` runs the generator in CI, installs the copy outside the checkout with
+`pnpm install --ignore-workspace`, runs `typecheck`, `build` and `wrangler deploy --dry-run`, and (on a push to `main` or a
+manual run) force-pushes the result, with the lockfile that install wrote, as a single commit to the orphan branch
+`cloudflare-template`. On a pull request it only builds. The button URL is:
+
+```
+https://deploy.workers.cloudflare.com/?url=https://github.com/zawoj/emdash-commerce/tree/cloudflare-template
+```
+
+The first run of the workflow creates the branch; until then the URL 404s. Run it from the Actions tab (**Run workflow**) after
+merging. The decision and its alternatives: `.ai/decisions/2026-11-17-cloudflare-deploy-template.md`.
+
+Verified locally on 2026-11-17 (macOS, Node 24.22.1, no Cloudflare account): the copy generated into a directory outside the
+repository (`/tmp`), `pnpm install --ignore-workspace` (a new lockfile), `pnpm run typecheck` (0 errors), `pnpm run build`,
+`wrangler deploy --dry-run` (same bindings as above: `EMDASH_ROOMS`, `SESSION`, `DB`, `MEDIA`, `IMAGES`, `ASSETS`) and the built
+Worker under `wrangler dev --port 4364` with dummy secrets: `/` and `/shop` answered 200 (an empty catalog), `/_emdash/admin`
+redirected to `/_emdash/admin/setup`, the plugin's `catalog/products` returned `{"items":[]}`, `/merch/*.png` assets were
+served. Not verified: the Deploy button itself and the Cloudflare-side clone/provision/build flow (needs an account), the
+GitHub Actions workflow on GitHub (zizmor passes locally; it was not run there), `--npm` mode against a registry (nothing
+is published), a deployed site.
+
 ## Known limits and things to know
 
-- **Deploy to Cloudflare button: it cannot deploy this repo as it stands.** Cloudflare's docs state that a button URL with a
-  subdirectory treats that subdirectory as the root of the new repository, and the application must be fully isolated in it
-  with all its dependencies, otherwise the build fails. `apps/storefront` depends on the sibling workspace packages
-  `@emdash-commerce/design-system`, `plugin-stripe` and `plugin-image-hotspots` (`workspace:*`), which are not on npm and
-  would not be copied. The URL
-  `https://deploy.workers.cloudflare.com/?url=https://github.com/zawoj/emdash-commerce/tree/main/apps/storefront` would
-  therefore fail to build; the `cloudflare` block in `apps/storefront/package.json` (label, products, bindings with
-  descriptions) is in place so it works the day a standalone copy exists (a generated repo that vendors the three packages, or
-  publishing them to npm). Not tried — the button clones into a Cloudflare account.
-- **What does work for one-click-ish deploys: Workers Builds on this repo.** In the dashboard, Workers & Pages → Create →
+- **The Deploy to Cloudflare button works from a generated branch, not from this repo.** A button URL with a subdirectory
+  makes Cloudflare treat that subdirectory as the root of a new repository and needs it fully isolated, and
+  `apps/storefront` depends on sibling `workspace:*` packages, so `.../tree/main/apps/storefront` cannot build. The standalone
+  copy is generated: see [The Deploy button and the template branch](#the-deploy-button-and-the-template-branch).
+  The button itself was **not clicked**: it clones into a Cloudflare account, and no account was used.
+- **The other option: Workers Builds on this repo with a root directory.** In the dashboard, Workers & Pages → Create →
   import the Git repository, set the **root directory** to `apps/storefront` (Cloudflare supports monorepos this way), build
   command `pnpm --filter @emdash-commerce/storefront build:cloudflare` (run from the repository root, so the workspace
   installs), deploy command `pnpm exec wrangler deploy`, and add the two secrets as build/runtime variables. Not tried here.
