@@ -196,7 +196,6 @@ project (3 passed: cart quantity, a sandbox purchase through hosted Checkout wit
 the lookup-page link), plus a measurement in the suite that the server really is `workerd`. It runs in CI on every pull request
 (smoke) and weekly (purchase). It is the dev server, not the built Worker; details and limits in `docs/testing.md`.
 
-
 Email (`docs/email.md`): under the local workerd dev server SMTP settings saved through the admin API, and a send reached a real
 SMTP server through STARTTLS to its login step; no message was delivered from Workers.
 
