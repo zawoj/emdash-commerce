@@ -86,6 +86,12 @@ Decision: `.ai/decisions/2026-11-13-emdash-commerce-catalog-relations-and-orders
 - A required repeater sub-field no longer breaks draft autosave: every sub-field of the line and gallery repeaters is
   optional (the old option repeaters, which had the bug, are removed).
 
+## 0.3.1
+
+### Patch Changes
+
+- [#13](https://github.com/zawoj/emdash-commerce/pull/13) [`a64b557`](https://github.com/zawoj/emdash-commerce/commit/a64b55759924a24e68795de27c3567e308e0a633) Thanks [@zawoj](https://github.com/zawoj)! - The maintenance cron task skips every remaining step once a step has been cut off at the end of its time budget. Before, a timer that fired a millisecond early could start the next step with a budget that was already spent.
+
 ## 0.3.0
 
 ### Minor Changes
