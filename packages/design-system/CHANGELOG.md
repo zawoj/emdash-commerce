@@ -1,10 +1,29 @@
 # Changelog — @emdash-commerce/design-system
 
+## 0.1.0
+
+### Minor Changes
+
+- [#2](https://github.com/zawoj/emdash-commerce/pull/2) [`e0ab676`](https://github.com/zawoj/emdash-commerce/commit/e0ab676ddd5b82c24f0c9f7a70ead4363421ff4b) Thanks [@zawoj](https://github.com/zawoj)! - First public release of the commerce packages for EmDash, a community project that is not part of EmDash itself.
+
+  - `@emdash-commerce/plugin-stripe` adds the `stripe-commerce` plugin: a catalog with product types, variants and prices, carts, Stripe Checkout, orders and signature-verified webhooks, plus an admin editor for products and orders.
+  - `@emdash-commerce/plugin-image-hotspots` adds the `image-hotspots:hotspots` field widget for placing numbered points on an image, and `normaliseValue` to read the stored value on your site.
+  - `@emdash-commerce/design-system` adds the design tokens and the props-driven Astro components used by the demo storefront.
+
+  All three packages ship TypeScript and Astro source, like EmDash's own plugins, so Astro and Vite compile them in your site. See each package's README for installation and registration in `astro.config.mjs`.
+
+### Patch Changes
+
+- [#9](https://github.com/zawoj/emdash-commerce/pull/9) [`1a98555`](https://github.com/zawoj/emdash-commerce/commit/1a98555e87138cee97af733fd900e03726548586) Thanks [@zawoj](https://github.com/zawoj)! - `CountBadge`, the site header's cart link (`countLabelForms`, `countLocale`) and the tab bar badge can speak the count in the plural form of the language ("1 item in the cart", "5 items in the cart") through the new optional `labelForms` and `locale` props; without them the single `labelTemplate` is used as before. `CartLine` takes an optional `unavailableLabel` ("Warning") that is spoken before `unavailableText`, so an unavailable line needs only `unavailableText` and shows its reason once.
+
+- [#9](https://github.com/zawoj/emdash-commerce/pull/9) [`17b9f13`](https://github.com/zawoj/emdash-commerce/commit/17b9f1308b0d7dcbf241f2c3b1a064545de1287f) Thanks [@zawoj](https://github.com/zawoj)! - `ProductCard` (sold out) and `CartLine` (not ready for checkout) keep their text readable: only the photo is faded now, and the title, name and prices use the `--text-secondary` token instead of a reduced opacity, which had dropped them below WCAG AA contrast (4.34:1 and 3.73:1, now 5.97:1 on the light surface).
+
 Newest on top. Each entry says what changed in the package and why.
 
 ## 2026-11-17
 
 ### fix: plural forms for the spoken cart count, one reason on an unavailable cart line
+
 - `CountBadge` gains optional `labelForms` (texts per plural category) and `locale`; the server render and the script that
   rewrites the count on `cart:changed` both pick the form with `Intl.PluralRules` (`utils/plural-label.ts`, exported as
   `@emdash-commerce/design-system/plural-label`), so one item reads "1 item in the cart", not "1 items". `SiteHeader`'s
@@ -15,6 +34,7 @@ Newest on top. Each entry says what changed in the package and why.
   `unavailableText` (+ `unavailableLabel`), and `notice` stays for other statuses.
 
 ### fix: dimmed sold-out cards and unavailable cart lines keep AA text contrast
+
 - `ProductCard` (sold out) and `CartLine` (unavailable) dimmed their text with `opacity` (0.6 / 0.55), which blended the ink
   into the surface: 4.34:1 for the card title and 3.73:1 for the line name and price (axe `color-contrast`). Only the photo is
   faded now (`opacity` on the `<img>`, no `filter`, so `wireframe-lint` and the global photo filter are untouched); the title,
@@ -22,16 +42,19 @@ Newest on top. Each entry says what changed in the package and why.
   `token-contrast.test.mjs`, 11.09:1 on the dark one). The sold-out badge and the warning notice are not dimmed.
 
 ### feat: optional e2e hooks on cart lines, order summary rows and order confirmation
+
 - `CartLine` sets `data-testid="cart-line"` on each row; `SummaryRow.testId` renders on the value cell; `OrderConfirmation`
   accepts optional `textTestId` and `numberTestId` so the storefront success page can poll without `innerHTML`.
 
 ### fix: OrderSummary drops the empty thumbnail column when no line has a photo
+
 - Every line used to reserve a 56 px thumbnail box, so an order shown without photos (the guest order page knows titles and
   amounts only) had a column of blank squares. When no line carries an `image` the box and its grid column are gone.
 
 ## 2026-11-16
 
 ### chore: remove two unused sections, export the icon names
+
 - `ActivityIndex` and `BrandMarquee` (and `brandMarqueeTones`, their types) are removed: the home page stopped using them with
   the `ShopHero` redesign and nothing else did. `CollectionBento`, `ProductGrid` and `CategoryTile` are also not used by the
   storefront and stay.
@@ -43,6 +66,7 @@ Newest on top. Each entry says what changed in the package and why.
 ## 2026-11-15
 
 ### feat: soft corners, a filter dialog, a category bar and calmer product and home blocks
+
 - **Corners.** `--radius-card` and `--radius-panel` are 20 px, `--radius-field` 12 px, `--radius-control` and `--radius-chip` pills
   (`--radius-xs…lg` 4, 8, 12, 20 px, `--radius-full` 999 px). `wireframe-lint` no longer requires radius tokens to be `0`
   (a component `border-radius` must still be a token); shadow, gradient, blur, motion and uppercase stay banned.
@@ -62,6 +86,7 @@ Newest on top. Each entry says what changed in the package and why.
   through the action bar, and the dead `details[data-listing-filters]` selector is gone from `bottom-bars.css`.
 
 ### feat: Cloudflare palette (orange on warm charcoal), replaces the blue wireframe ink
+
 - The skin is now a warm ink + orange wireframe taken from the Cloudflare merch look: the `--ink-0…1000` ramp is warm
   neutral (800 is the charcoal `#404041`), a new `--orange-50…900` ramp holds `#F6821F` (500) and the amber `#FBAD41`
   (300). Token names are unchanged; every other wireframe rule stays (square corners, 1px outlines, no shadow, gradient,
@@ -87,15 +112,18 @@ Newest on top. Each entry says what changed in the package and why.
 - Prop and tone names are unchanged (`voltText`, `brandMarqueeTones.volt`, `collectionTileTones.volt`): they are API.
 
 ### fix: option chips carry "Sold out" only when the option is sold out
+
 - `OptionChip` rendered a visually hidden `Sold out` note on every chip, so the text of an in-stock chip contained it.
   The note now exists only for a sold-out option (server render and `syncVariantChips`, via `utils/sold-out-note`,
   exported as `./sold-out-note`) and reads `, sold out`, so the accessible name is "XL" versus "XL, sold out".
 
 ### fix: product gallery filter never leaves the gallery empty
+
 - `product-gallery:filter` shows the chosen group's photos, else the untagged ones, else all (`product-gallery-core`,
   exported for tests).
 
 ### feat: blue wireframe skin, no decoration (replaces the volt sportswear skin)
+
 - Look taken from the zavcode design system: a blue-tinted ink ramp, system fonts, square corners, 1px outlines, no shadow,
   gradient, blur, transition, transform or animation, sentence case. Tokens keep their names; values are overwritten and
   the extra tokens (`--text-case`, `--tracking-*`, `--*-stretch`, semantic radii) are neutral. Removed: `--volt*`,
@@ -117,16 +145,20 @@ Newest on top. Each entry says what changed in the package and why.
 ## 2026-11-13
 
 ### fix: LookDialog kit steps for products without variant axes
+
 - Axis-less products record their sole sellable variant when their step is shown; kit navigation refreshes the next step so Next can advance through Run Cap and Run Socks. `variantPickId` centralises the pick id.
 
 ### fix: BoardHero display line fits its tiles without horizontal overflow
+
 - Board line type uses `pre-line`, a container-relative `max-width`, and slightly reduced `cqw` caps so short volt/black copy does not spill past the tile at tablet and phone widths.
 
 ### fix: LookDialog kit summary — totals, labels, and buy-set action
+
 - Kit picks sync only for the active step (no silent default selections for later products), so the summary total matches chosen lines only; undecided rows show `notChosen`.
 - Summary footer adds outline `buySet` beside `addAll`; copy gains `notChosen` and `buySet`.
 
 ### fix: ShopTheLook hotspots open the look dialog
+
 - Hotspots now carry `data-look-open` / `data-look-for` like row actions when a `dialog` is configured.
 
 ### feat: initial import (de-branded)
@@ -138,20 +170,24 @@ Newest on top. Each entry says what changed in the package and why.
 ## 2026-11-11
 
 ### feat: TurnstileSlot — the place of a Cloudflare Turnstile widget in a form
+
 - New `parts/turnstile-slot` (`TurnstileSlot`, type `TurnstileSlotProps`) and `utils/turnstile.ts` (`@emdash-commerce/design-system/turnstile`): the slot a form carries for the Managed widget in its `interaction-only` appearance, so nothing shows unless Cloudflare needs the visitor and then the challenge takes the row (`size: flexible`, the page's language). The script loads once, lazily (a slot near the screen, or a touched field of its form), keeps the form's `cf-turnstile-response` field current and renews an expired token. A submit that comes before the token is ready is held with a short status line (props `pendingText`, `errorText`) and sent when the token arrives; a widget that cannot run lets the form go and the server refuses it. A form that sends in place dispatches `turnstile:reset` after each attempt (a token works once). A challenge scrolls to the middle of the screen, clear of the phone's fixed bottom bars (`--bottom-bar-offset`). No copy inside; renders nothing without the app's site key.
 - `ReviewForm`: a `captcha` slot above the submit button.
 - Preview: `/components/commerce/` shows the status lines (drawn statically, no Cloudflare).
 
 ### feat: LookDialog — the shop-the-look variant dialog and kit stepper
+
 - New `parts/look-dialog` (`LookDialog`, types `LookDialogProps`, `LookDialogCopy`, `LookProductChoice`, `LookPrice`, `LookVariant`): one native modal `<dialog>` per look. Single mode picks a variant of one product (photo per colour, `Price` with the Omnibus note, `VariantPicker`, low-stock `Availability`, size guide, "see details", add to cart); kit mode steps through every product ("Product n of N" + progress, next / skip / back), then a summary with "change" per item, the total and "add all". Centred modal from 768px, bottom sheet with a grab handle and the buttons at the bottom below (safe-area padding, page scroll locked, slide-up under `prefers-reduced-motion: no-preference`). All copy is props.
 - `ShopTheLook`: optional `dialog` and per-item `choiceId`; with them a row's button (`data-look-open`) and the look's button (`data-look-kit`) open the dialog, without them they stay links.
 - New utils: `variant-availability` (value availability, `resolveChoice`, `settleChoice`), `variant-choice` (`syncVariantChips`, shared with the product page's buy box), `look-kit` (pure stepper, `addAll` with partial failure, `formatMinor`), `look-dialog` (the DOM controller and `setLookCartAdapter`). Exports in `package.json`.
 - Preview: `/views/look-dialog/` (fixtures `look-dialog.ts`), both modes at phone and desktop width.
 
 ### fix: a product with one photo fills the phone gallery
+
 - `ProductGallery`: on phones a lone slide takes the full width; the 86% peek stays for two or more photos.
 
 ### feat: phone shopping-app chrome — TabBar, ActionBar, BackLink
+
 - New `chrome/tab-bar` (`TabBar`, `tabBarActions`, `tabBarIcons`): five tabs, fixed to the bottom on phones (<= 767px), white with a hairline, 56px + `env(safe-area-inset-bottom)`, solid glyph and a short bar over the current tab, a count badge slot. Tabs reuse the header's openers (`data-site-drawer-open`, `data-site-search-open`, `data-mini-cart-open`); `drawer-script.ts` and `search-dialog.astro` now bind every opener on the page.
 - New `chrome/action-bar` (`ActionBar`, `utils/action-bar.ts`, `action-bar-core.ts`): a page's primary action (caption, value, full-width primary button) that replaces the tab bar. `watch` shows it only once an element has scrolled out of the top of the screen (IntersectionObserver plus a scroll listener, because the observer alone misses a jump), `proxy` forwards the press to the page's own control, `mirror` keeps price / label / disabled in step with the buy box. `chrome/bottom-bars.css` holds the shared rules: which bar yields to which, the reserved space (`--bottom-bar-offset`, set on `<body>`), bars stepping aside while a text field is focused, `scroll-padding-bottom`.
 - New `atoms/back-link` (`BackLink`): the app-style back bar. `Breadcrumbs` renders it on phones for the nearest linkable ancestor (`parent-crumb.ts`) and hides the trail; new optional `backLabel`. `PageMain` exposes `--page-main-padding-top` so the bar sits flush under the header.
@@ -159,31 +195,37 @@ Newest on top. Each entry says what changed in the package and why.
 - Tokens: `--tab-bar-height` 56px, `--action-bar-height` 72px, `--bottom-bar-offset`. Preview: tab bar on every shop view, action bars on `/views/product/` and `/views/cart/`, phone iframes in `/components/chrome/`.
 
 ### fix: promise strip and address form on phones and tablets
+
 - `PromiseList` (strip): under 1100px three equal cells, icon above a wrapping line, no horizontal scroller cutting the last promise.
 - `AddressForm`: a container query — below 1000px of form width the street is a full row and house / flat numbers split the next one, so the flat label stays on one line.
 
 ### fix: responsive and touch QA (phone, tablet portrait and landscape)
+
 - Tablet layouts: `BoardHero` is photo + three brand tiles in one row from 601 to 900px (was a stretched phone stack); `ProductSpotlight` caps the stacked photo at 620px; `ShopTheLook` and `StorySplit` stay two columns down to 700px (look rows fold their action under the text up to 900px); `Faq` splits from 720px; `ChoiceList` hides the decorative glyph tile on phones so descriptions get a readable measure; `Breadcrumbs` wrap on phones instead of ellipsis stubs; `CheckoutLayout` bars use `--page-gutter`.
 - Touch: under `pointer: coarse` text links (`ProductRail`, `TileTitle`, `VariantPicker`, `Breadcrumbs`, `ListingFilters`, `ShopTheLook`, `StorySplit`, `BoardHero`, `Faq`, `OrderCard`, `CheckoutRecap`, footer links, header logo), checkboxes/radios, pagination, scroll buttons, `sm` buttons and range inputs reach 44px. Inputs, the sort select and the newsletter field use 16px (no iOS zoom).
 - Mega menu (`site-header/mega-menu.ts`): on a touch screen wider than 1100px the first tap on an item with a panel opens it, the second follows the link (before, a tap navigated and the panel never opened).
 - Tokens: `--type-label-caps-xs` 11 -> 12px, `--type-label-caps-2xs` 10 -> 11px. `ProductCard` pins the price row to the bottom so prices line up in a row.
 
 ### feat: `ProductDetails` is three tabs (Overview | Specs | Manufacturer in English), new `Tabs` molecule
+
 - New `Tabs` (molecules): WAI-ARIA tabs over named slots (`tab-<id>`): `role=tablist/tab/tabpanel`, `aria-selected`, `aria-controls`/`aria-labelledby`, roving tabindex, arrows/Home/End with activation on move, `#id` hash opens a tab. Label typography, solid `--text-primary` underline (grows with motion tokens, none under reduced motion), hairline under the bar, below 480px the labels drop to the normal font width so three short labels fit without scrolling (the bar still scrolls when a longer label overflows). Without the script: no bar, every panel visible and stacked under its own heading (visually hidden once the bar is on, and always when only one tab is left). Logic in `utils/tabs-core.ts` (tested in `apps/web`) and `utils/tabs.ts`.
 - `ProductDetails`: tabs in the fixed order description, specification, manufacturer; a tab without content is not rendered, one tab left shows no bar. New required prop `tabLabels` (`productDetailsTabs` ids); removed `isCompact` and the accordion/sticky side column. Delivery and returns is not a tab: a compact block under the tabbed area. A long specification (> 8 rows) is two balanced columns from 1100px. The "Read more" clamp is measured again when its tab becomes visible.
 - Preview product view: all tabs, plus a second instance with only specification and delivery.
 
 ### feat: `Faq` is a two-column split with an optional help card
+
 - `Faq`: a third (sticky, `--header-height` offset) for the optional `eyebrow`, the display `heading`, an optional `intro` and the optional `help` card (`FaqHelp`: heading, text, a primary `Button`, a secondary text link); two thirds for the full-width accordion (no 800px cap, answers keep a readable measure). Phones stack heading, intro, questions, then the card (the aside is `display: contents`). Without `help` the left column holds heading and intro only. No longer wrapped in `ContentTile`; works on a `data-surface="dark"` band (the button flips to white).
 - Exports `FaqHelp`; the preview gets `/views/faq/` (with the card, without, contact button only, dark surface) and the FAQ at the end of the store view.
 
 ### feat: manufacturer panel in the product details, spec rows that a script can follow
+
 - `ProductDetails`: optional `manufacturer` panel (same shape as `specification`) rendered after the specification, before delivery; the preview product view shows one.
 - `SpecRow` / `SpecTable`: optional `key` (rendered as `data-spec-key`) and `isHidden` (`hidden` on the row) so a script can rewrite or reveal a row (the Fusion facts follow the chosen variant). Values keep their line breaks (`white-space: pre-line`).
 
 ## 2026-11-10
 
 ### fix: wave 3 QA — cart line prices, phone filters, breadcrumbs, option chips, current menu item
+
 - `CartLine`: the unit price renders as "N x price" only for a quantity above one; a single item shows its price once, in the line total (a price-change comparison moves there).
 - `ListingFilters` / `ListingToolbar`: below 900px the panel's own summary row is hidden; the toolbar toggle opens and closes the panel with the details animation and keeps `aria-expanded` / `aria-controls`. The auto-submit forms drop blank fields (`formdata`) and a form with no field navigates to the bare path.
 - `Breadcrumbs`: one line, middle crumbs shrink first with an ellipsis, the first and the current crumb keep their text.
@@ -191,9 +233,11 @@ Newest on top. Each entry says what changed in the package and why.
 - `SiteHeader` / `PrimaryNav`: `ChromeMenuItem.isCurrent` underlines the top item and sets `aria-current`.
 
 ### fix: search panel product names in normal case
+
 - `SearchPanel` result titles use `--type-title-md` (a product name is never condensed caps), like every other item title.
 
 ### fix: browsing QA — footer overflow on a phone, "Read more" shown on a short description, compact product details
+
 - `SiteFooter`: below 640px the link columns wrap their text (`white-space: normal`, list items `width: 100%` + `overflow-wrap: anywhere`),
   so the contact e-mail no longer pushed the page 7px wider than the viewport (every page scrolled sideways on a phone).
 - `SiteFooter` between 1101px and ~1300px (five no-wrap columns plus a 96px gap) and between 640 and 1100px (legal row) no longer
@@ -204,11 +248,13 @@ Newest on top. Each entry says what changed in the package and why.
   the specification / delivery panels share one row of three equal columns instead of a lone text above empty space.
 
 ### fix: product spotlight keeps the photo's proportions
+
 - The stage no longer crops the photo to 4:3 with `object-fit: cover` (that moved every callout, which is a percentage of the
   photo, off its feature on a portrait packshot). The photo keeps its own ratio from `image.width` / `height`, is at most 720px
   tall on a wide screen and is centred on the accent surface; on a phone it fills the width.
 
 ### feat: pickup-point picker offers the carrier's map widget; script-made results are styled
+
 - `PickupPointPicker` gets `geowidget` (`PickupPointGeowidget`: token, script and style URLs, `config`, `language`, button
   labels): a "choose on the map" button (hidden until the script runs) that loads InPost Geowidget v5 on first open and turns
   its pick into the chosen radio (the pick is completed through the picker's own `endpoint?code=`). `pointFromGeowidget` maps the
@@ -218,6 +264,7 @@ Newest on top. Each entry says what changed in the package and why.
 - Preview: `/shared/commerce/` shows the picker with the map button (placeholder token, so InPost's widget reports a token error).
 
 ### refactor: Nike-style mega menu and full-screen drawer
+
 - `site-header` primary-nav: no chevrons, hidden-until-focus disclosure button, touching hover areas; `mega-panel`: centred
   text columns (`minmax(180px, 226px)`, max 6 per row, `LONG_COLUMN_LINKS` splits a long column in two), per-column "All"
   link from `allLabel`, 30ms stagger, quick close; scrim blurs the page. `mega-menu.ts`: swap dwell, scroll/blur close.
@@ -225,6 +272,7 @@ Newest on top. Each entry says what changed in the package and why.
   a readable column on tablets. Preview fixture `shopMenu` is now a sportswear navigation (`shopMenuWithTiles` shows tiles).
 
 ### feat: mega menu on desktop, drill-down drawer on phone
+
 - `ChromeMenuItem` gains `groups` (`ChromeMenuGroup`: label, optional href, links), `featured` (`ChromeMenuFeatured`, max 2)
   and `allLabel`; `children` still renders a flat menu as one column. New `HeaderDrawerCopy` and `SiteHeader` props
   `drawer`, `idPrefix`, `openMenuIndex` (gallery only: renders a panel open). New export `MobileMenuDrawer` (`staticLevel`
@@ -239,6 +287,7 @@ Newest on top. Each entry says what changed in the package and why.
 - Preview: `shopMenu` fixture has columns and tiles; `/components/chrome/` shows both open panels and both drawer levels.
 
 ### fix: sticky footer and bands that meet it
+
 - `reset.css`: `body` flex column with `min-height: 100dvh` (`100vh` fallback); `body > main` grows; `body > footer` /
   `.site-footer` never shrink; `html { overflow-x: clip }` (moved from `PageHero`).
 - New convention `data-band` on a section's root (set on `Newsletter`, `BrandMarquee`, `Banner`, `StatusPage`,
@@ -246,8 +295,8 @@ Newest on top. Each entry says what changed in the package and why.
   bottom padding and breaks out to the full viewport width, so it meets the footer as one surface.
 - `Newsletter`: side padding is the page gutter (the copy lines up with the header and the footer).
 
-
 ### feat: animated collapsibles, animated drawers and overlays that stay above zooming photos
+
 - New `utils/details-motion.ts` (`@emdash-commerce/design-system/details-motion`, pure helpers in `details-motion-core.ts`):
   opt-in `data-details-motion` on a `<details>` animates open and close with the Web Animations API (height, content
   fade + 8px rise, `--duration-collapse` / `--ease-out`). A second click mid-run reverses from the current height,
@@ -264,6 +313,7 @@ Newest on top. Each entry says what changed in the package and why.
 - Tokens: `--duration-collapse` (280ms), `--ease-in`.
 
 ### feat: ProductDetails part; ProductCard hover image, size row and badge stacking fix
+
 - New `ProductDetails` (`parts/product-details`): full-width product details area — long description in the default
   slot on a ~72ch measure (quiet h3/h4), optional `highlights`, a sticky side column with `specification` and
   `delivery` panels (always open on desktop, accordions on a phone), and a collapsed 420px view with a fade and an
@@ -279,18 +329,21 @@ Newest on top. Each entry says what changed in the package and why.
   animation (the attribute is toggled with the media query; desktop panels stay always open, unanimated).
 
 ### feat: account, orders and returns parts
+
 - New `ThumbStack`, `OrderProgress`, `OrderCard`, `AccountLinks`, `ReturnList`, `ReturnRequest`.
 - `OrderListItem`: `status`, `detail`, `images`, `moreLabel` (`statuses` only without a single status).
   `StatusBadge`: `variant` chip | line. `Button`: new `outline` variant (secondary actions on light pages, where
   `inverse` is white on white).
 
 ### feat: checkout, cart and discount parts
+
 - New `SecureNote`, `CheckoutRecap`, `OrderConfirmation`; icons `lock`, `smartphone`, `gift`.
 - `CheckoutLayout.summaryToggle` (folded summary on phones), `OrderSummary.savings`, `CartLineContent.previousLinePrice`
   / `savingsText`, `EmptyState.links` / `linksLabel`, `StatusPage.secondaryAction` / `search` / `links`.
 - Coupon form: link → field + Apply, applied code as a removable volt chip with its saving, error under the field.
 
 ### feat: AuthShell and AuthState (auth pages), form field states
+
 - `AuthShell` (parts/auth-shell): split layout, props `heading`, `lead`, `brand` (`eyebrow`, `headline`,
   `benefitsLabel`, `benefits[{icon,text}]`, optional `image` — black/volt board without it); slots default, `notice`,
   `links`. `AuthState` (`tone` success | error | pending, `title?`, `text`, `toneLabel?`, default slot = actions).
@@ -298,6 +351,7 @@ Newest on top. Each entry says what changed in the package and why.
 - Preview: `/views/auth/{login,register,forgot-password,reset-password,verify-email}/`.
 
 ### feat: homepage section library (store variants B–D)
+
 - Ten new sections in `blocks/sections/`, all props-in (no copy inside), light and dark, 1440 → 390,
   motion behind reduced motion, exported from `src/index.ts`:
   - `BoardHero` — the brand board as a hero: campaign photo tile, volt "GO" block, black "KEEP GOING"
@@ -324,6 +378,7 @@ Newest on top. Each entry says what changed in the package and why.
   group, proof near the CTA, honest urgency).
 
 ### feat: storefront polish against nike.com/pl, fusionworld.com and the brand board
+
 - Tokens: `--page-gutter` (16→48px), `--header-height`, `--utility-bar-height`, `--hero-height`,
   `--band-height`, `--stroke-thin/bold/bar`.
 - `PageHero`: optional `image` (full-bleed photo hero on the scrim, copy bottom-left, huge condensed
@@ -347,6 +402,7 @@ Newest on top. Each entry says what changed in the package and why.
   hairlines only).
 
 ### feat: volt sportswear skin
+
 - Tokens (`src/tokens/index.css`) rewritten: neutral `--ink-*` ramp; `--volt` / `--accent` with
   `--on-accent` (a fill only), `--accent-hover`; `--control-solid` / `--on-control-solid` and `--hot`
   flip per surface; `--surface-hover`; `--image-filter: none`, `--image-scrim`, `--shadow-overlay`;
@@ -375,6 +431,7 @@ Newest on top. Each entry says what changed in the package and why.
 ## 2026-11-09
 
 ### fix: storefront catalog, header and chrome (UX audit)
+
 - `SiteHeader`: the main menu is its own `primary-nav` file. A top-level item with a second level gets a disclosure button
   (`aria-expanded`, Escape closes, a click or focus outside closes); its sub-links are tab stops only while the panel is
   open or hovered, so keyboard focus passes the menu in one stop per item. New optional `subMenuLabelTemplate`
@@ -392,6 +449,7 @@ Newest on top. Each entry says what changed in the package and why.
   shopper can pick, never a sold-out one (falls back to the radio group).
 
 ### fix: checkout, cart and locale switcher parts added with the storefront (entries that were missing)
+
 - `CheckoutLayout` (part): the checkout's two columns, the step as one `<form>` posting to `action`, the sticky order
   summary beside it (under it on a phone) and an `actions` slot that sticks to the bottom of a phone screen.
 - `CartLines`: a visually hidden twin of the "update" button comes first in the form, so Enter in a quantity field
@@ -401,6 +459,7 @@ Newest on top. Each entry says what changed in the package and why.
 - `Banner` (section): a promotion strip on the dark surface with an H2, text, one button and an optional photo.
 
 ### feat: commerce components for the storefront (cart, checkout, account, listing)
+
 - Atoms `OptionChip`, `QuantityStepper`, `InlineNotice`, `StatusBadge`, `CountBadge`; molecules `VariantPicker`,
   `CartLine`, `FreeShippingProgress`, `CouponForm`, `Disclosure`, `ToggleSection`, `AddressCard`, `Timeline`,
   `AccountNav`, `PromiseList`; parts `ProductGallery`, `ListingFilters`, `ListingToolbar`, `SpecTable`, `MiniCart`,
@@ -418,6 +477,7 @@ Newest on top. Each entry says what changed in the package and why.
 ## 2026-10-19
 
 ### feat: the starters' sections and shop parts — basic, ecommerce and marketplace render the DS
+
 - New components for what the starters draw: `PageMain` (the page's `<main>` column),
   `PageHero` (a CMS page's eyebrow/H1/lead/action on the light or dark band), `PageContent`,
   `Contact`, `ImageBlock`, the shop's `Price`, `Availability`, `ProductCard` and `ProductDetail`
@@ -431,6 +491,7 @@ Newest on top. Each entry says what changed in the package and why.
   image; `reset.css` ships a `.visually-hidden` utility.
 
 ### fix: `data-surface="light"` switches back to the light tokens inside a dark container
+
 - The light semantic tokens were declared on `:root` only, so a light popover inside the dark header
   (the header's search dialog, the starters' search suggestions) stayed dark. They are now declared
   for `:root, [data-surface='light']`. Found by opening the starters' search suggestions live.
@@ -438,6 +499,7 @@ Newest on top. Each entry says what changed in the package and why.
 ## 2026-10-18
 
 ### feat: blue wireframe with no decoration (owner, 2026-10-18)
+
 - One blue ink scale replaces the grays; the scale is renamed `--neutral-*` → `--ink-*` so the name
   fits any colour.
 - No decorative styling: every radius token is 0 (circles included), one system font for body and
@@ -452,6 +514,7 @@ Newest on top. Each entry says what changed in the package and why.
   (`--logo-filter-ink` / `--logo-filter-muted`).
 
 ### feat: the package arrives as the monorepo's one design system, in a wireframe skin
+
 - Ported from a production content platform built on the `basic` starter: its tier architecture
   (tokens → atoms → molecules → parts → blocks → chrome), component conventions and `token-lint`.
 - Re-skinned as a wireframe: grayscale palette with a dark-fill accent, system font stacks

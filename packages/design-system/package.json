@@ -1,6 +1,6 @@
 {
   "name": "@emdash-commerce/design-system",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Shop storefront design system: a warm ink and orange wireframe with no decoration (the Cloudflare palette) — design tokens and every visual component as props-driven Astro components, no app logic, no imports from any app.",
   "keywords": [
     "astro-component",

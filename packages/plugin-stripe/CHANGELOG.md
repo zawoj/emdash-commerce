@@ -6,6 +6,7 @@ Decision: `.ai/decisions/2026-11-13-emdash-commerce-catalog-relations-and-orders
 0.2 local data is wiped and the demo catalog re-seeded instead of migrated (`0001`, `0002` stay as no-op data migrations).
 
 ### Added
+
 - **Native EmDash relations** for every link between plugin collections (declared as `RelationDefinition`s, created
   through `applySeed`, read and written only through `RelationsPort`; a page of 50 children, no cursor; the in-memory
   port in `./testing` follows the same rules, pinned by a contract suite). Relations that are read in full are bounded
@@ -47,6 +48,7 @@ Decision: `.ai/decisions/2026-11-13-emdash-commerce-catalog-relations-and-orders
 - `content:beforeDelete` hook, `CatalogMirror.writePriceActive`, real-host tests against an in-memory SQLite EmDash.
 
 ### Changed
+
 - Cross-collection links are native relations, not scalar `reference` ids: the variant's `product`, the price's `product` /
   `variant`, the order's `customer`, subscription / payment / timeline links. Payments and order events keep an indexed
   scalar `order_id` (and `subscription_id`) next to the relation for queries.
@@ -56,6 +58,7 @@ Decision: `.ai/decisions/2026-11-13-emdash-commerce-catalog-relations-and-orders
   new `orderStatus` / `paymentStatus` fields.
 
 ### Breaking (for sites, storefronts and extension authors)
+
 - **Data model.** `product_variants.option_values` is now a relation and the free-text `options` repeaters on products and
   variants are gone (use a product type and attributes); the JSON line items of an order are replaced by the `lines`
   repeater; the order's single status is split: the 0.2 `order_status` field held the **payment** status and now holds the
@@ -75,12 +78,31 @@ Decision: `.ai/decisions/2026-11-13-emdash-commerce-catalog-relations-and-orders
   fields cannot be written with `ctx.content`.
 
 ### Fixed
+
 - Images picked from the media library (no `src`) now reach the storefront API through one resolver for every product,
   variant and gallery image.
 - Trashing a variant or product archives its Stripe objects and settles the links (they stayed `pending`, due since 1970);
   an inactive variant archives its managed price and reactivating restores it; cron settles any link whose entity is gone.
 - A required repeater sub-field no longer breaks draft autosave: every sub-field of the line and gallery repeaters is
   optional (the old option repeaters, which had the bug, are removed).
+
+## 0.3.0
+
+### Minor Changes
+
+- [#2](https://github.com/zawoj/emdash-commerce/pull/2) [`e0ab676`](https://github.com/zawoj/emdash-commerce/commit/e0ab676ddd5b82c24f0c9f7a70ead4363421ff4b) Thanks [@zawoj](https://github.com/zawoj)! - First public release of the commerce packages for EmDash, a community project that is not part of EmDash itself.
+
+  - `@emdash-commerce/plugin-stripe` adds the `stripe-commerce` plugin: a catalog with product types, variants and prices, carts, Stripe Checkout, orders and signature-verified webhooks, plus an admin editor for products and orders.
+  - `@emdash-commerce/plugin-image-hotspots` adds the `image-hotspots:hotspots` field widget for placing numbered points on an image, and `normaliseValue` to read the stored value on your site.
+  - `@emdash-commerce/design-system` adds the design tokens and the props-driven Astro components used by the demo storefront.
+
+  All three packages ship TypeScript and Astro source, like EmDash's own plugins, so Astro and Vite compile them in your site. See each package's README for installation and registration in `astro.config.mjs`.
+
+### Patch Changes
+
+- [#9](https://github.com/zawoj/emdash-commerce/pull/9) [`2612930`](https://github.com/zawoj/emdash-commerce/commit/2612930b43bbba0b349cc9c47518f6716951249a) Thanks [@zawoj](https://github.com/zawoj)! - Saving many variants at once no longer loses managed prices, and saving without a Stripe key no longer touches the rows. The managed price of each variant is now converged under its own lock instead of one lock per product: twenty variant saves used to queue behind each other past EmDash's 5 s hook timeout, and a variant whose hook timed out was left without a price (its option showed as unavailable) and could leave its lock held for five minutes. Without a Stripe key, a price or variant save also no longer gets `stripe_sync_status = failed` written into its row right after the save, a write that on Cloudflare D1 could collide with the next save or publish of the same row (`409 CONFLICT`, "Content changed while the operation was in progress"); the sync link still records the failure and backs off, and a real Stripe error still marks the row `failed`.
+
+- [#9](https://github.com/zawoj/emdash-commerce/pull/9) [`6b5f970`](https://github.com/zawoj/emdash-commerce/commit/6b5f970da2e4cb543a0382806729dae1b3054456) Thanks [@zawoj](https://github.com/zawoj)! - A fresh shop can now receive `emdash site import`. EmDash's importer treats every relation definition as content, and the plugin creates 19 of them on its first start, so the import was refused with `TRANSFER_TARGET_NOT_EMPTY`. Start the target shop with `COMMERCE_DEFER_RELATIONS=1` (a plain environment variable, not a secret): while the site has no relation, the plugin creates its collections without relations and without the fields bound to them, and skips its data migrations. Import the package, then remove the variable and restart: the plugin completes the schema as it does for any upgrade, without duplicating a relation. A site that already has relations is not affected by the variable. Do not create products by hand while it is set, because the product form has no variant, price or category pickers until the relations exist.
 
 ## 0.2.0 — 2026-11-12
 
@@ -89,11 +111,13 @@ decision: `.ai/decisions/2026-11-12-emdash-stripe-commerce-architecture.md`). Do
 `docs/api.md`, `docs/extending.md`.
 
 ### Fixed
+
 - Product option rows and variant option value rows no longer require their sub-fields: EmDash validates draft
   autosaves, so an editor adding an empty row got "Autosave failed". Data migration `0002-optional-option-sub-fields`
   updates existing databases (`SchemaPort.setFieldValidation`).
 
 ### Added
+
 - Catalog model = Stripe model: products, variants (each a Stripe Product) and many one-time or recurring prices per
   product or variant, in several currencies. One-way sync with price immutability (new Stripe Price on a terms change,
   reuse on revert), adoption by metadata, version-carrying idempotency keys and drift detection.
@@ -121,6 +145,7 @@ decision: `.ai/decisions/2026-11-12-emdash-stripe-commerce-architecture.md`). Do
   EmDash context) exports; Stripe event fixtures captured from a sandbox.
 
 ### Breaking (vs 0.1 / the prototype)
+
 - **Data model.** `products` no longer carries a price (prices are their own collection); `orders` has new fields
   (`payment_status` became `order_status`, money, line items, Stripe ids) and statuses; plugin storage collections `stripe_products`, `stripe_events`, `order_index`,
   `cart_index`, `carts` were replaced (`catalog_links`, `commerce_carts`, `webhook_inbox`, `record_index`, ...).

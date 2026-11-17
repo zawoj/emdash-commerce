@@ -1,6 +1,6 @@
 {
   "name": "@emdash-commerce/plugin-image-hotspots",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Image hotspots field widget for EmDash CMS: place numbered points on an image, link them to products or callouts. Community project, not official.",
   "keywords": [
     "emdash",
