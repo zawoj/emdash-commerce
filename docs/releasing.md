@@ -64,7 +64,8 @@ leave EmDash reporting a stale version; a test in each plugin pins that.
   [trusted publishing](https://docs.npmjs.com/trusted-publishers) can replace the token (the workflow already has
   `id-token: write`).
 - **Actions may open pull requests.** Settings, Actions, General, "Allow GitHub Actions to create and approve pull
-  requests" must be on, or the "Version Packages" pull request cannot be created. A pull request opened with the default
+  requests" must be on, or the "Version Packages" pull request cannot be created. It is on since 2026-11-17 (the default
+  `GITHUB_TOKEN` permission stays read-only); the first "Version Packages" pull request is #10. A pull request opened with the default
   `GITHUB_TOKEN` does not trigger other workflows, so `ci.yml` does not run on it; either run the checks by pushing an
   empty commit to its branch, or give the action a GitHub App or personal-access token through `github-token` (EmDash
   uses a GitHub App).

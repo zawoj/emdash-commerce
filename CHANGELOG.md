@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-17 (release plumbing switched on)
+
+### docs: record the first template publish and the Version Packages pull request — Claude Code
+- The merge of #9 ran `cloudflare-template.yml` on `main`, which published the `cloudflare-template` branch, so the README's
+  Deploy button now has a target. The button itself was not pressed against an account.
+- The release workflow failed with "GitHub Actions is not permitted to create or approve pull requests". The repository
+  setting "Allow GitHub Actions to create and approve pull requests" is now on (default token permission still read-only),
+  and the re-run opened "Version Packages" (#10).
+- Not done: merging #10. It publishes to npm, which needs the `@emdash-commerce` organisation and the `NPM_TOKEN` secret first.
+
 ## 2026-11-17 (roadmap items)
 
 ### feat: Deploy-button template, seeding and email for deployed sites, Cloudflare e2e, contrast fixes (branch `t3/implement-roadmap-items`) — Claude Code
