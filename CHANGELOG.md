@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-11-17 (roadmap items)
+
+### feat: Deploy-button template, seeding and email for deployed sites, Cloudflare e2e, contrast fixes (branch `t3/implement-roadmap-items`) — Claude Code
+Five parallel agent streams, each in its own worktree, merged into one branch. Run log: `.ai/runs/2026-11-17-roadmap-items.md`.
+- **Standalone Cloudflare template.** `pnpm template:cloudflare [outDir] [--npm]` generates a self-contained copy of
+  `apps/storefront`: the three workspace packages are vendored from `pnpm pack` into `vendor/` (or `--npm` once published),
+  Cloudflare is the default build, and the generator fails if any path leaves the copy. `.github/workflows/cloudflare-template.yml`
+  builds the copy outside the workspace, runs `wrangler deploy --dry-run` and force-pushes the orphan branch `cloudflare-template`,
+  which the README's Deploy button points at. Why: the button needs an isolated repository root, and the app depends on
+  `workspace:*` siblings that are not on npm. ADR `cloudflare-deploy-template`. Outside the code: run the workflow on `main` once
+  to create the branch (the button gives 404 until then), and exempt that branch from any branch protection that blocks force-pushes.
+- **Seeding a deployed site.** With `EMDASH_URL` and `EMDASH_TOKEN` (a personal access token, `admin` scope), `pnpm seed` uses bearer
+  auth instead of the dev login. It checks scopes before writing, stops while the setup wizard is unfinished, creates the `home`
+  entry if missing and exits 1 when the Stripe sync fails. `pnpm catalog:resync` drives only the resync, which is required after
+  `emdash site import` because Stripe ids live in plugin storage. Documented in `docs/production.md`, including that the importer
+  refuses a fresh shop (the plugin's relation rows) and the local workaround. ADR `production-seeding`.
+- **Production seed hygiene.** The Notes dev tool's `feedback` collection moved from `seed/seed.json` (the seed the build inlines)
+  to `seed/dev-tools.json`, which only `pnpm seed` applies, and only against a dev server.
+- **Email on a deployed site.** `docs/email.md` covers EmDash's built-in SMTP provider (`EMAIL_SMTP_*` or Settings → Email), how
+  the active provider is chosen, testing, and the limits (no port 25, TLS required, no OAuth2). `pnpm run doctor` reports whether
+  the SMTP variables form a configuration EmDash accepts, without printing values. Verified with a sandbox purchase whose
+  confirmation and order-link emails reached a local SMTP sink. ADR `email-through-emdash-smtp`. Outside the code: configure SMTP
+  on every deployed site.
+- **Playwright on the Cloudflare target.** `E2E_TARGET=cloudflare` (`pnpm test:e2e:smoke:cloudflare`, `pnpm test:e2e:cloudflare`)
+  runs the same specs on workerd (`astro dev` with the Cloudflare adapter), with throwaway D1/R2 state in `.e2e-cloudflare/` on
+  port 4381, and checks that the server really is workerd. A `smoke-cloudflare` CI job runs on every PR, and the weekly purchase job
+  covers this target too. Fixed along the way: a race in the add-to-cart helper. ADR `e2e-cloudflare-target`.
+- **Colour contrast.** A sold-out product card and an unavailable cart line now fade only the photo and use `--text-secondary`
+  for the text (was 4.34:1 / 3.73:1, now 5.97:1). The four `test.fixme` cases are real tests and the axe page checks exclude
+  nothing. Changeset `dimmed-states-text-contrast`.
+- **Fixes to docs and tooling.** Every mention of `pnpm doctor` is now `pnpm run doctor`, because bare `pnpm doctor` runs pnpm's
+  own silent built-in command. README and ROADMAP now match what shipped.
+- **Not covered:** a real Cloudflare account (the button, the deploy workflow on GitHub, the token seed, D1 import and SMTP
+  delivery from a deployed Worker); the npm organisation and first release, which are owner-only steps (the three packages pass
+  `pnpm publish --dry-run`).
+
 ## 2026-11-17 (README roadmap)
 
 ### docs: README section "Limitations (honest)" becomes "Roadmap" — Claude Code
