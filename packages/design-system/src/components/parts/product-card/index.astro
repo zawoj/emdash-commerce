@@ -189,9 +189,13 @@ const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => si
     font: var(--type-text-regular-sm);
   }
 
-  .product-card--sold-out .product-card__img:not(.product-card__img--hover),
-  .product-card--sold-out .product-card__title {
+  /* Dimmed by colour, not opacity: only the photo is faded, the title keeps the muted token (AA on the surface). */
+  .product-card--sold-out .product-card__img:not(.product-card__img--hover) {
     opacity: 0.6;
+  }
+
+  .product-card--sold-out .product-card__title {
+    color: var(--text-secondary);
   }
 
   .product-card__body {

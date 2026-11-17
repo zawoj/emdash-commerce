@@ -4,6 +4,13 @@ Newest on top. Each entry says what changed in the package and why.
 
 ## 2026-11-17
 
+### fix: dimmed sold-out cards and unavailable cart lines keep AA text contrast
+- `ProductCard` (sold out) and `CartLine` (unavailable) dimmed their text with `opacity` (0.6 / 0.55), which blended the ink
+  into the surface: 4.34:1 for the card title and 3.73:1 for the line name and price (axe `color-contrast`). Only the photo is
+  faded now (`opacity` on the `<img>`, no `filter`, so `wireframe-lint` and the global photo filter are untouched); the title,
+  line name, unit price and line total use `--text-secondary` (5.97:1 on the light surface, already asserted by
+  `token-contrast.test.mjs`, 11.09:1 on the dark one). The sold-out badge and the warning notice are not dimmed.
+
 ### feat: optional e2e hooks on cart lines, order summary rows and order confirmation
 - `CartLine` sets `data-testid="cart-line"` on each row; `SummaryRow.testId` renders on the value cell; `OrderConfirmation`
   accepts optional `textTestId` and `numberTestId` so the storefront success page can poll without `innerHTML`.
