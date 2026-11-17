@@ -66,11 +66,11 @@ end-to-end suite uses neither: `pnpm test:e2e:smoke:cloudflare` keeps its state 
    pnpm exec wrangler secret put STRIPE_SECRET_KEY        # sk_test_… or rk_test_… (sandbox)
    ```
 
-   On a brand-new account the Worker does not exist yet: Wrangler offers to create it when you put the first secret, or run
-   the deploy (step 2) first and set the secrets right after; until they exist the shop answers `NOT_CONFIGURED`.
-   `wrangler.jsonc` lists both under `secrets.required` (used for `wrangler types` and a warning in local dev when one is
-   missing; whether `wrangler deploy` refuses a missing one was not tried). Both prompts and the first deploy were not run:
-   they need an account.
+   On a brand-new account the Worker does not exist yet, so `wrangler secret put` cannot run first, and **`wrangler deploy`
+   refuses to create the Worker while a `secrets.required` secret is missing** (verified 2026-11-17, wrangler 4.164.0: "The
+   following required secrets have not been set"). Give the first deploy a secrets file instead:
+   `wrangler deploy --secrets-file <file>` (dotenv or JSON lines `NAME=value`; keep the file outside the repo, mode 600, and
+   delete it afterwards). Later secrets: `wrangler secret put`. The Deploy button prompts for the required ones.
 
 2. **Build and deploy.**
 
@@ -250,5 +250,32 @@ the lookup-page link), plus a measurement in the suite that the server really is
 Email (`docs/email.md`): under the local workerd dev server SMTP settings saved through the admin API, and a send reached a real
 SMTP server through STARTTLS to its login step; no message was delivered from Workers.
 
-Not checked: a real Cloudflare deploy, a real domain and passkey login, an email delivered from a Worker, the Deploy button, Workers Builds,
-`emdash site import` into D1, behaviour under Workers CPU or subrequest limits, `wrangler dev --remote`.
+### Verified on a real deploy (temporary preview account)
+
+On 2026-11-17 the generated template (`pnpm template:cloudflare`, `pnpm install --ignore-workspace`, `pnpm run build`; Node
+24.22.1, wrangler 4.164.0) was deployed with `wrangler deploy --temporary`, a disposable Cloudflare account that needs no
+login. **The deploy did not complete, so nothing past it (setup wizard, seed, webhook, purchase, cron) ran on real
+infrastructure.** What the attempt established:
+
+- `--temporary` is a hidden flag; Wrangler solves a proof-of-work challenge, creates the account ("claim within 60 minutes")
+  and reuses it for later commands (`wrangler d1 list|delete`, `kv namespace delete --temporary` work against it).
+- **Asset limit: 5 MiB per file.** The first upload failed with `Invalid manifest: file size of 5724665 exceeds 5242880 limit
+  [code: 10304]`. The offender is an EmDash admin chunk (`dist/client/_astro/lib.*.js`, 5.7 MB: ProseMirror and lowlight,
+  built from `@emdash-cms/admin`). A normal account allows 25 MiB, so this is the temporary account's limit, not a bug in the
+  shop. In a scratch copy only, splitting that chunk with `vite.build.rolldownOptions.output.advancedChunks` (3.7 MB and
+  5.05 MB pieces) let all 206 assets upload, so the repo's build is unchanged.
+- **Required secrets block a first deploy**: see Deploy step 1 (`--secrets-file`). With it, Wrangler listed the bindings
+  `EMDASH_ROOMS` (Durable Object), `SESSION` (KV, auto-created), `DB` (D1, auto-created as `emdash-commerce`), `MEDIA` (R2
+  bucket), `IMAGES`, `ASSETS`, and the two secrets.
+- **R2 is not available on a temporary account.** Wrangler does not create the bucket named in `wrangler.jsonc`: its
+  existence check `GET /r2/buckets/emdash-commerce-media` answers 403, and the script upload then fails with `R2 bucket
+  'emdash-commerce-media' not found [code: 10085]`. `wrangler r2 bucket create ... --temporary` answers `Authentication
+  error [code: 10000]`. The shop stores uploads in R2, so a temporary account cannot host it; the verification stopped
+  there. Everything created (D1 database, KV namespace) was deleted; no Worker or webhook was ever created.
+
+Still not checked: a deploy that completes (needs a real account with R2), the Deploy button, a real domain and passkey
+login, the seed over REST against D1/R2, Stripe webhook delivery to a Worker, a purchase on a deployed Worker, the cron on a
+deployed Worker, whether an optional secret set with `wrangler secret put` reaches the Worker (see
+`.ai/memory/wrangler-passes-only-required-secrets-to-the-worker.md`), an email delivered from a Worker, Workers Builds,
+`emdash site import` into D1, behaviour under Workers CPU or subrequest limits, `wrangler dev --remote`, and which Workers
+plan a temporary account has.

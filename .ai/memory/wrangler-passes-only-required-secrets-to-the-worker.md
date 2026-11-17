@@ -28,5 +28,5 @@ Found 2026-11-17 while running the purchase suite on workerd (wrangler 4.163.0, 
   `secrets.required` gave `source: "env"` and selected `emdash-builtin-smtp`. For local runs save SMTP in Settings → Email (works,
   verified) instead of listing the names permanently: a listed secret becomes mandatory for every deploy and the Deploy button.
   `smtp.source` (`env` / `db` / `null`) in that response tells which one is active.
-- What a **deployed** Worker does with a secret set by `wrangler secret put` that is not listed was **not** tested.
+- What a **deployed** Worker does with a secret set by `wrangler secret put` that is not listed is **still untested**: the 2026-11-17 attempt on a temporary preview account never got a Worker up (no R2, 5 MiB asset limit: `cloudflare-temporary-account-cannot-host-the-shop.md`). New finding from it: `wrangler deploy` of a new Worker *refuses* while a `secrets.required` secret is missing, so the first deploy needs `--secrets-file`.
 - The astro process's own environment never reaches workerd; only these files do.
