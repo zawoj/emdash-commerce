@@ -15,10 +15,8 @@ Work the maintainers intend to tackle when capacity allows, in rough priority. *
 | --- | --- |
 | **npm organisation and first release** | Create `@emdash-commerce` on npm, wire `NPM_TOKEN`, merge the pending Changesets "Version Packages" PR — see [docs/releasing.md](docs/releasing.md). Owner-only steps; the packages pass `pnpm publish --dry-run`. Afterwards switch the Cloudflare template workflow to `pnpm template:cloudflare --npm`. |
 | **Prove the deploy paths on a real Cloudflare account** | Run the `cloudflare-template` workflow on `main`, press the Deploy button, then seed the site with `EMDASH_TOKEN` and send an order email through a real SMTP relay from the deployed Worker. Today all three paths are verified only locally (workerd, built Node server, a local SMTP sink) — see [docs/cloudflare.md](docs/cloudflare.md), [docs/production.md](docs/production.md), [docs/email.md](docs/email.md). |
-| **`emdash site import` into a fresh shop** | The commerce plugin creates its relation definitions at startup, so EmDash's importer refuses a brand-new shop as "not empty" (`TRANSFER_TARGET_NOT_EMPTY`); today the workaround is a manual `DELETE` ([docs/production.md](docs/production.md), "Export / import instead"). Create them lazily or teach the import path about them. |
 | **HTTP email provider** | EmDash's built-in provider is SMTP only; a small provider plugin over an HTTP API (through the `email:deliver` hook) would serve relays without SMTP. See [docs/email.md](docs/email.md). |
 | **E2E against the built Worker** | The Cloudflare e2e run uses `astro dev` on workerd with local D1/R2 (it needs the dev login to seed); the built Worker under `wrangler dev` is covered only by a manual check ([docs/testing.md](docs/testing.md)). |
-| **Small copy and a11y gaps** | The unavailable cart line shows its warning twice (`CartLine` renders both `unavailableText` and `notice`); the cart count reads "1 items in the cart" (no plural form in `features/shell/copy.ts`). |
 
 ## Explicitly not planned (for this repo)
 

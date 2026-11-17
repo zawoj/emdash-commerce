@@ -32,6 +32,16 @@ Five parallel agent streams, each in its own worktree, merged into one branch. R
   nothing. Changeset `dimmed-states-text-contrast`.
 - **Fixes to docs and tooling.** Every mention of `pnpm doctor` is now `pnpm run doctor`, because bare `pnpm doctor` runs pnpm's
   own silent built-in command. README and ROADMAP now match what shipped.
+- **Site import into a fresh shop.** EmDash 1.5's importer counts every `_emdash_relations` row as content, and the Stripe
+  plugin created 19 of them on first start, so `emdash site import --analyze` refused every new shop
+  (`TRANSFER_TARGET_NOT_EMPTY`). A target started with `COMMERCE_DEFER_RELATIONS=1` now gets its collections without relations
+  until the import brings them in; remove the variable and restart, and the plugin completes the schema. It is opt-in because the
+  admin needs the relation fields from the first "New product". ADR `site-import-into-a-fresh-shop`, changeset
+  `site-import-fresh-shop`.
+- **Cart copy.** An unavailable cart line shows its warning once (the storefront passed the same message as both
+  `unavailableText` and `notice`). The cart count and the low-stock text use plural forms (`Intl.PluralRules`: "1 item in the
+  cart", "Last item"; Polish one/few/many). `CountBadge`, the site header and the tab bar take optional `labelForms` and `locale`.
+  Changeset `cart-warning-once-and-plural-count`.
 - **Not covered:** a real Cloudflare account (the button, the deploy workflow on GitHub, the token seed, D1 import and SMTP
   delivery from a deployed Worker); the npm organisation and first release, which are owner-only steps (the three packages pass
   `pnpm publish --dry-run`).

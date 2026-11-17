@@ -63,9 +63,9 @@ against a real Cloudflare account.
 - Owner: run `cloudflare-template.yml` on `main` once and press the Deploy button with a real account. If branch protection
   covers all branches, exempt `cloudflare-template`.
 - Try the token seed, D1 import and SMTP delivery from a deployed Worker.
-- `emdash site import` into a fresh shop needs a manual `DELETE FROM _emdash_relations` (`docs/production.md`).
+- `emdash site import` into a fresh shop: fixed by `COMMERCE_DEFER_RELATIONS` (follow-up pass); a shop started without it still needs the `DELETE` or a fresh database.
 - On a deployed Worker, whether a secret set with `wrangler secret put` but not listed in `secrets.required` reaches the
   Worker was not tested (`.ai/memory/wrangler-passes-only-required-secrets-to-the-worker.md`).
 - The hosted-Checkout Pay step sometimes stalls past the 90 s wait (2 of about 5 Cloudflare purchase runs, none seen on Node).
   If the weekly job shows it, capture a trace and look at Stripe's side (adaptive currency selector, card-field focus).
-- The unavailable cart line shows its warning twice, and the cart count reads "1 items in the cart".
+- Fixed in the follow-up pass: the duplicated cart-line warning and the singular cart count.
