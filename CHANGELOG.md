@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-17 (README roadmap)
+
+### docs: README section "Limitations (honest)" becomes "Roadmap" — Claude Code
+- The README now has a **Roadmap** section that points to `ROADMAP.md` (the only place for plans) and names what is next,
+  with a call for contributions. The factual list of limits stays under it as **Limits today**, unchanged.
+- Why: a release announcement should lead with where the project is going, not with a list of gaps; the limits are still
+  stated, one level down.
+
 ## 2026-11-17 (release screenshots)
 
 ### docs: release screenshots in `docs/screenshots/release/` — Claude Code

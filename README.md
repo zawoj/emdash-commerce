@@ -213,7 +213,14 @@ than 4360 if the Node dev server runs). Stop detached Astro with `npx astro dev 
 [`skills/`](skills/README.md) teach commerce-specific tasks; EmDash's own skills ship under
 `apps/storefront/.agents/skills/`. Record changes in [`CHANGELOG.md`](CHANGELOG.md) and `.ai/` per [`.ai/README.md`](.ai/README.md).
 
-## Limitations (honest)
+## Roadmap
+
+What we intend to do next, and what this demo deliberately leaves out, is in [`ROADMAP.md`](ROADMAP.md) — the only place in
+the repo for plans (no dates, no promises). Next up: one-click Deploy to Cloudflare, production seeding, the first npm
+release under `@emdash-commerce`, email on deployed sites, and Playwright e2e on the Cloudflare target. Want to help? See
+[`CONTRIBUTING.md`](CONTRIBUTING.md) and open a [Discussion](https://github.com/zawoj/emdash-commerce/discussions).
+
+### Limits today
 
 From the plugin and demo scope — not a bug list for drive-by fixes:
 
