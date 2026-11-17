@@ -1,19 +1,24 @@
 # emdash-commerce
 
-Commerce for [EmDash](https://github.com/emdash-cms/emdash) (the Astro-based CMS): a Stripe plugin, an image-with-points
-field widget, a Cloudflare-orange design system, and a demo storefront that uses all three. One Nx + pnpm monorepo.
+[![CI](https://github.com/zawoj/emdash-commerce/actions/workflows/ci.yml/badge.svg)](https://github.com/zawoj/emdash-commerce/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-The demo shop is an **unofficial mock Cloudflare-merch store**: fictional products (tees, a windbreaker, desk gear, mugs,
-stickers, bundles and a membership), generated art, USD prices, Stripe **sandbox** only. It is not affiliated with
-Cloudflare, nothing is for sale and nothing ships. The theme is data, so the same code runs any other shop.
+Commerce for [EmDash](https://github.com/emdash-cms/emdash) (the Astro-based CMS): a Stripe plugin, an image-with-points
+field widget, a design system, and a demo storefront — one Nx + pnpm monorepo.
+
+> **Community project, not official.** This repository (`zawoj/emdash-commerce`, MIT) is maintained for the EmDash
+> community. It is **not** an official [EmDash](https://github.com/emdash-cms/emdash) or
+> [Cloudflare](https://www.cloudflare.com/) product, and neither endorses it. The demo is an **unofficial mock
+> Cloudflare-merch store**: fictional products, generated art, USD prices, Stripe **sandbox** only — nothing ships and
+> nothing is for sale. You may re-theme the catalog; keep any disclaimer honest.
 
 ![The storefront home page: a charcoal hero with an orange cloud, a featured tee and category pills](docs/screenshots/home.png)
 
-**New here? Two ways in:**
+**New here?**
 
-- **With an AI agent** (Claude Code, Codex, Cursor): open this repo in it and paste the prompt below, or read
-  [docs/ai-guide.md](docs/ai-guide.md), which has the architecture map, what you can build and a prompt for each job.
-- **By hand:** [docs/getting-started.md](docs/getting-started.md), from a fresh clone to a test purchase in the admin.
+- **With an AI agent:** read [`AGENTS.md`](AGENTS.md), [`docs/ai-guide.md`](docs/ai-guide.md), and root [`skills/`](skills/README.md);
+  paste the prompt from the AI guide.
+- **By hand:** [`docs/getting-started.md`](docs/getting-started.md) — clone to a test purchase.
 
 ```text
 You are in the emdash-commerce monorepo. Read AGENTS.md, .ai/README.md, .ai/memory/MEMORY.md and docs/ai-guide.md.
@@ -22,137 +27,206 @@ which commands and invariants matter. Do not change anything. Ask me what I want
 Rules: Stripe sandbox keys only, never print a secret, do not commit unless I ask.
 ```
 
-| Path | Package | What |
-|---|---|---|
-| `apps/storefront` | `@emdash-commerce/storefront` | The demo shop: Astro 7 SSR on EmDash (Node + SQLite + local uploads). Home, shop, product page, cart, Stripe Checkout. |
-| `packages/plugin-stripe` | `@emdash-commerce/plugin-stripe` | Backend-only commerce plugin (id `stripe-commerce`): catalog with variants and prices mirrored to Stripe, carts, Checkout Sessions, orders, refunds, disputes, subscriptions, a durable webhook pipeline. [README](packages/plugin-stripe/README.md) |
-| `packages/plugin-image-hotspots` | `@emdash-commerce/plugin-image-hotspots` | React field widget `image-hotspots:hotspots`: an image with points (a product per point, or a title and text). [README](packages/plugin-image-hotspots/README.md) |
-| `packages/design-system` | `@emdash-commerce/design-system` | Tokens (orange on warm charcoal) and props-driven Astro components: flat, soft corners, no shadows or gradients, no brand assets. [README](packages/design-system/README.md) |
+## Get started
 
-Plugin ids (`stripe-commerce`, `image-hotspots`) and the widget reference (`image-hotspots:hotspots`) are stored in content
-and schema, so they are part of the contract.
+Node **>= 24.22.1** (`.node-version`), pnpm **10**, [Stripe CLI](https://docs.stripe.com/stripe-cli) for local webhooks.
+Full walkthrough: **[`docs/getting-started.md`](docs/getting-started.md)**.
+
+```bash
+pnpm install
+pnpm bootstrap     # creates apps/storefront/.env, generates EMDASH_ENCRYPTION_KEY (emdash_enc_v1_…), asks for a
+                   # Stripe SANDBOX key, reads webhook secret from the CLI, refuses a live key
+pnpm dev           # http://localhost:4360
+stripe listen --forward-to localhost:4360/_emdash/api/plugins/stripe-commerce/webhook   # second terminal
+pnpm seed          # mock catalog, Homepage fields, Stripe catalog sync when a key is set
+pnpm doctor        # read-only health check
+```
+
+After the **first seed on an empty database**, restart the server once (`npx astro dev stop` in `apps/storefront`, then
+`pnpm dev`) — EmDash reads the site URL at startup and checkout needs it.
+
+Admin (dev only): `http://localhost:4360/_emdash/api/setup/dev-bypass?redirect=/_emdash/admin`.
+
+## Deploy
+
+| Target | Guide |
+| --- | --- |
+| **Cloudflare** (Workers + D1 + R2) | [`docs/cloudflare.md`](docs/cloudflare.md) — `DEPLOY_TARGET=cloudflare`, `dev:cloudflare`, `deploy:cloudflare` |
+| **Production habits** (export/import, webhooks, email) | [`docs/production.md`](docs/production.md) |
+
+**Deploy to Cloudflare button:** it **does not work** for this monorepo as-is. Cloudflare treats a URL subdirectory as
+the repo root; `apps/storefront` depends on sibling workspace packages (`workspace:*`), so a one-click clone cannot
+resolve them. Use **Workers Builds** with the repository root and build directory `apps/storefront`, or publish
+`@emdash-commerce/*` to npm first — see [`docs/cloudflare.md`](docs/cloudflare.md) and
+`.ai/memory/cloudflare-deploy-button-needs-an-isolated-subdirectory.md`.
+
+## How it works
+
+```mermaid
+flowchart LR
+  Browser["Browser"]
+  Storefront["apps/storefront<br/>Astro SSR"]
+  API["stripe-commerce<br/>HTTP API"]
+  EmDash["EmDash<br/>content + storage"]
+  Stripe["Stripe<br/>Checkout + API"]
+  Webhook["Webhook inbox"]
+  Order["Order in admin"]
+  Email["EmDash email"]
+  View["/orders/view"]
+
+  Browser --> Storefront
+  Storefront --> API
+  API --> EmDash
+  API --> Stripe
+  Stripe --> Webhook
+  Webhook --> API
+  API --> Order
+  Order --> Email
+  Email --> Browser
+  Browser --> View
+  View --> API
+```
 
 ## Features
 
-**Storefront** (Astro 7, server-rendered; English or Polish copy, chosen per deployment by the site's default locale)
+**Storefront** (Astro 7, SSR; English or Polish copy per deployment default locale)
 
-- **Shop listing:** a category bar, sort, and a filter drawer (a full-screen sheet on a phone) with in stock, size, brand
-  (multi-select) and price presets. Every option shows its result count and the "Show N results" button updates live;
-  applied filters are removable chips, the state lives in the URL, and the panel still works without JavaScript.
-- **Product pages:** size x colour variants with their own price, photos and stock; colour swaps the gallery; sold-out and
-  low-stock states; a delivery estimate, returns and payment promises beside the button; accordions for details; an
-  "Adding... / Added" button, a mini-cart and a sticky buy bar on a phone.
-- **Bundles and membership:** a fixed-price bundle lists what it includes and the saving ("$109 instead of $147"); a
-  membership has a recurring price with a trial.
-- **Shop the look:** a photo with numbered points; each point opens a product and one dialog adds the whole kit to the cart.
-- **Your order:** the signed link in the order emails opens `/orders/view`: order number, payment and fulfilment status, a
-  progress track, lines and totals. The page is never cached or indexed and sends no referrer, because the token is a secret.
-- **Category and brand URLs:** `/shop/c/<slug>` and `/shop/brand/<slug>` (the URLs the plugin gives those collections) lead to
-  the filtered shop; an unknown slug is a real 404.
-- **Home, cart, search and a blog:** hero with category pills, rails, a spotlight with callouts, FAQ and newsletter; cart and
-  Stripe-hosted Checkout; full-text search; posts, tags and RSS from the EmDash blog template.
+- Shop listing with category bar, sort, filter drawer (URL state, works without JS), live counts.
+- Product pages: variant grid, gallery, stock states, bundles and membership, shop-the-look hotspots.
+- **Cart** and **checkout success** pages built from the design system (`/cart`, `/checkout/success`).
+- **Guest orders:** signed link in mail → `/orders/view`; request a new link → `/orders/lookup`.
+- Category and brand URLs: `/shop/c/<slug>`, `/shop/brand/<slug>` → filtered shop (unknown slug → 404).
+- Home, search, blog (posts, tags, RSS) on the EmDash blog template.
+- Second runtime target: **Cloudflare** (`docs/cloudflare.md`).
+- Stable **`data-testid`** hooks on cart checkout, order lookup and checkout success for browser e2e; **Vitest** unit and
+  integration tests across packages (no committed Playwright suite in CI yet).
 
 **Commerce backend** (`stripe-commerce` plugin)
 
-- A catalog of products, variants and prices, mirrored to Stripe; carts whose amounts are derived on the server (the browser
-  sends price ids and quantities only).
-- Checkout Sessions, a durable webhook pipeline (a paid order is created exactly once), refunds, disputes, subscriptions,
-  inventory with stock reservation while a checkout is open, and guest order links.
-- An admin **Commerce** page (key and webhook health, resync, reconcile, abandoned-checkout cleanup) and 19 MCP tools so an
-  agent can run the same operations.
-- Plugin options the demo shop leaves **off**: promotion codes, fixed shipping rates, Stripe Tax and embedded Checkout (see
-  the plugin README, "Options"). Order emails need an EmDash email provider.
+- Catalog (variants, prices, brands, categories), server-priced carts, Stripe Checkout, webhook pipeline (paid order
+  exactly once), refunds, disputes, subscriptions, inventory reservation, guest order links.
+- Admin **Commerce** page and **19 MCP tools**.
+- Demo leaves **off:** promotion codes, shipping rates, Stripe Tax, embedded Checkout (plugin README, "Options").
 
-**Admin** (EmDash)
+**Admin** — EmDash CMS; **image-hotspots** widget for shop-the-look points.
 
-- Edit products, categories, brands, pages, posts and the home page in the EmDash admin.
-- **Image-hotspots widget:** pick a photo, click it to add points, drag or arrow-key them, and choose a product (or write a
-  title and text) for each one.
+**Design system** — tokens (Cloudflare-orange wireframe), props-driven Astro components, `token-lint` / `wireframe-lint`.
 
-**Design system**
+**Tooling** — `pnpm bootstrap`, `pnpm doctor`, `pnpm seed`, `pnpm art`, **oxlint** (`pnpm lint`), **Changesets**
+(`pnpm changeset`, `docs/releasing.md`), CI on every PR, `AGENTS.md`, `docs/ai-guide.md`, `.ai/`, root **`skills/`**.
 
-- Tokens (Cloudflare orange on warm charcoal, soft corners) and props-driven Astro components; the storefront only shapes data
-  into props.
-- Lints that fail on a raw colour, a shadow or a gradient, and a test of the token text and control colour pairs against WCAG contrast.
-- The package holds more components than the demo uses (account, reviews, returns, events and others); only what the
-  storefront renders is a feature of the shop.
+## Packages
 
-**Built to be driven by people and AI agents**
+| Path | npm (once published) | Role |
+| --- | --- | --- |
+| `apps/storefront` | *(private demo)* | Mock shop on EmDash (Node + SQLite or Cloudflare) |
+| `packages/plugin-stripe` | `pnpm add @emdash-commerce/plugin-stripe` | `stripe-commerce` backend |
+| `packages/plugin-image-hotspots` | `pnpm add @emdash-commerce/plugin-image-hotspots` | `image-hotspots:hotspots` widget |
+| `packages/design-system` | `pnpm add @emdash-commerce/design-system` | Storefront UI components and tokens |
 
-- `pnpm bootstrap` and `pnpm doctor` set up and check a fresh clone; `pnpm seed` is idempotent and builds the whole mock
-  catalog (generated PNG art, no network); `pnpm art` redraws the art.
-- [`AGENTS.md`](AGENTS.md), [`docs/ai-guide.md`](docs/ai-guide.md) (architecture map and a prompt per job) and the `.ai/`
-  folder (decisions, memory, run logs) let an agent start from a prompt and keep the record up to date.
+Nothing under `@emdash-commerce` is on npm yet — see [`docs/releasing.md`](docs/releasing.md). In this monorepo, the
+storefront consumes them via `workspace:*`.
+
+Plugin ids `stripe-commerce` and `image-hotspots` and widget ref `image-hotspots:hotspots` are stored in content: **do
+not rename**.
 
 ## Screenshots
 
-The mock Cloudflare-merch shop with the seeded data, light theme. Product art is generated by `scripts/art/`.
+Mock Cloudflare-merch shop with seeded data (art from `scripts/art/`).
 
 | | |
 |---|---|
 | ![Shop with the category bar and product grid](docs/screenshots/shop.png) | ![The filters drawer: in stock, size, brand with counts, price presets and a "Show 20 results" button](docs/screenshots/filters.png) |
-| **Shop:** category bar, sort and a borderless product grid | **Filters:** a drawer with live counts and "Show N results" |
 | ![A product page with size and colour variants, an add to cart button and promises](docs/screenshots/product.png) | ![The Desk Setup Bundle page listing what it includes and the saving](docs/screenshots/bundle.png) |
-| **Product page:** variants, promises beside the button, accordions | **Bundle:** what it includes and what you save |
 | ![Shop the desk setup: a photo with numbered points and a list of products](docs/screenshots/look.png) | ![The EmDash admin with the image-hotspots widget: a photo with five numbered points and a product per point](docs/screenshots/admin-hotspots.png) |
-| **Shop the look:** a point per product, one button for the kit | **Admin:** the image-hotspots widget on the home page |
-
-On a phone (390 px wide): the shop, the full-screen filter sheet and a product page.
 
 ![The shop, the filter sheet and a product page on a phone](docs/screenshots/mobile.png)
 
-## Quickstart
+## Documentation
 
-**Full walkthrough: [docs/getting-started.md](docs/getting-started.md)** (prerequisites, Stripe sandbox keys, every
-environment variable, the webhook secret, seeding, the admin login, resetting, troubleshooting). The short version, with
-Node >= 24.22.1 (`.node-version`), pnpm 10 and the [Stripe CLI](https://docs.stripe.com/stripe-cli) installed and logged in:
+### Repo docs
 
-```bash
-pnpm install
-pnpm bootstrap     # creates apps/storefront/.env, generates the encryption key, asks for your Stripe SANDBOX key,
-                   # reads the webhook secret from the Stripe CLI, prints the next steps (a live key is refused)
-pnpm dev           # terminal 1: http://localhost:4360
-stripe listen --forward-to localhost:4360/_emdash/api/plugins/stripe-commerce/webhook   # terminal 2
-pnpm seed          # the mock catalog, the Homepage fields, and the Stripe catalog sync
-pnpm doctor        # read-only check: toolchain, .env, dev server, seeded catalog
-```
+| File | Topic |
+| --- | --- |
+| [`docs/getting-started.md`](docs/getting-started.md) | Prerequisites, `.env`, webhooks, seed, purchase, reset |
+| [`docs/ai-guide.md`](docs/ai-guide.md) | Architecture map, prompts for agents |
+| [`docs/production.md`](docs/production.md) | Export/import, production webhooks and email |
+| [`docs/cloudflare.md`](docs/cloudflare.md) | Workers, D1, R2, deploy limits, what was verified |
+| [`docs/releasing.md`](docs/releasing.md) | Changesets and npm publish |
 
-After the very first seed on an empty database restart the server once (`npx astro dev stop` in `apps/storefront`, then
-`pnpm dev`): EmDash reads the site URL at startup and checkout needs it.
+### Package docs
 
-Open <http://localhost:4360/shop>, add a product and pay with test card `4242 4242 4242 4242`. The admin is at
-`/_emdash/admin`; sign in once with `http://localhost:4360/_emdash/api/setup/dev-bypass?redirect=/_emdash/admin`.
-Reset by stopping the server and deleting `apps/storefront/data.db*` and `apps/storefront/uploads/`.
+| File | Topic |
+| --- | --- |
+| [`packages/plugin-stripe/README.md`](packages/plugin-stripe/README.md) | Install, options, MCP, limitations |
+| [`packages/plugin-stripe/docs/architecture.md`](packages/plugin-stripe/docs/architecture.md) | Layers and data ownership |
+| [`packages/plugin-stripe/docs/api.md`](packages/plugin-stripe/docs/api.md) | HTTP API and errors |
+| [`packages/plugin-stripe/docs/extending.md`](packages/plugin-stripe/docs/extending.md) | Subscribers and site entrypoints |
+| [`packages/plugin-image-hotspots/README.md`](packages/plugin-image-hotspots/README.md) | Hotspots widget |
+| [`packages/design-system/README.md`](packages/design-system/README.md) | Tokens and conventions |
 
-EmDash keeps its schema (collections and fields) and content in the database, not in the repo
-(`.ai/memory/emdash-schema-lives-in-the-database.md`): the schema comes from `apps/storefront/seed/seed.json` through the
-dev login and the commerce collections are created by the `stripe-commerce` plugin when the server starts. `pnpm seed`
-(`scripts/seed-demo.mjs`, dependency-free and idempotent) adds the catalog from `scripts/lib/merch-catalog.mjs` and the
-Homepage fields, then queues the plugin's catalog resync and waits until Stripe has the products (sandbox key only; without
-a key it says what to run later). `EMDASH_URL` points it at another port. The product photos are committed mock art in
-`apps/storefront/public/merch/`, drawn by `scripts/art/` (`pnpm art`), so no network is needed.
+### Decisions and agent records
+
+| Path | Topic |
+| --- | --- |
+| [`.ai/decisions/`](.ai/decisions/) | ADRs (architecture, catalog v2, Cloudflare, Changesets, community conventions, …) |
+| [`.ai/memory/MEMORY.md`](.ai/memory/MEMORY.md) | Traps and lessons index |
+| [`.ai/runs/`](.ai/runs/) | Autonomous run logs |
+| [`ROADMAP.md`](ROADMAP.md) | Forward-looking plan (exception to “docs = actual state”) |
+
+### Agent skills
+
+| Skill | Path |
+| --- | --- |
+| Building a commerce site | [`skills/building-commerce-site/SKILL.md`](skills/building-commerce-site/SKILL.md) |
+| Extending the Stripe plugin | [`skills/extending-stripe-plugin/SKILL.md`](skills/extending-stripe-plugin/SKILL.md) |
+| EmDash core (vendored in storefront) | `apps/storefront/.agents/skills/` |
 
 ## Commands
 
 | Command | Does |
-|---|---|
-| `pnpm dev` | Storefront dev server (port 4360) |
-| `pnpm bootstrap` | First-run setup of `.env` (idempotent, never prints a secret, refuses a live Stripe key) |
-| `pnpm doctor` | Read-only check of the toolchain, `.env`, the dev server and the seeded catalog |
-| `pnpm seed` | Mock catalog and Homepage fields (dev server must run) |
-| `pnpm art` | Regenerates the mock product art into `apps/storefront/public/merch/` |
-| `pnpm typecheck` · `pnpm test` · `pnpm build` | The validation gate (`nx run-many`) |
-| `pnpm check:ai` | Validates the `.ai/` layout, file names and memory index |
+| --- | --- |
+| `pnpm dev` | Storefront on port **4360** |
+| `pnpm bootstrap` · `pnpm doctor` | First-run `.env` · health check |
+| `pnpm seed` · `pnpm art` | Demo catalog · regenerate product PNGs |
+| `pnpm lint` | oxlint (zero errors in CI) |
+| `pnpm changeset` | Add a changeset when a publishable package changes |
+| `pnpm check:ai` | `.ai/` layout and memory index |
+| `pnpm typecheck` · `pnpm test` · `pnpm build` | Validation gate |
 
-Astro 7's `astro dev` detaches: stop it with `npx astro dev stop` inside `apps/storefront`.
+Cloudflare (from repo root): `pnpm --filter @emdash-commerce/storefront dev:cloudflare --port 4361` (use a port other
+than 4360 if the Node dev server runs). Stop detached Astro with `npx astro dev stop` in `apps/storefront`.
 
-## For agents
+## Contributing · Security · Conduct · Releasing
 
-[`AGENTS.md`](AGENTS.md) is the map; [`docs/ai-guide.md`](docs/ai-guide.md) is the memo with the architecture and prompts;
-`.ai/README.md` describes the changelog, decisions, run logs and memory.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — setup, gates, PR rules
+- [`SECURITY.md`](SECURITY.md) — report vulnerabilities via GitHub Security Advisories
+- [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) — Contributor Covenant 2.1
+- [`docs/releasing.md`](docs/releasing.md) — Changesets and `@emdash-commerce` on npm
 
-Cloudflare and its marks belong to Cloudflare, Inc. This project is an independent demo and is neither endorsed by nor
-affiliated with it.
+## Built for agents
+
+[`AGENTS.md`](AGENTS.md) is the map. [`docs/ai-guide.md`](docs/ai-guide.md) lists architecture and copy-paste prompts.
+[`skills/`](skills/README.md) teach commerce-specific tasks; EmDash's own skills ship under
+`apps/storefront/.agents/skills/`. Record changes in [`CHANGELOG.md`](CHANGELOG.md) and `.ai/` per [`.ai/README.md`](.ai/README.md).
+
+## Limitations (honest)
+
+From the plugin and demo scope — not a bug list for drive-by fixes:
+
+- **No customer accounts** — guest email + signed order links only.
+- **Guest cannot get an order link from checkout UI alone** — use **`/orders/lookup`** (or the email link).
+- **One currency per cart**; no multi-currency cart or FX in the demo.
+- **No digital downloads**; fulfilment is a status field (no labels or tracking).
+- **Shipping, tax, promo codes, embedded Checkout** — plugin options the demo leaves off.
+- **`pnpm seed` needs the dev login** — not for production deploys; use admin, MCP, or site import + catalog resync.
+- **Deploy button** cannot build this monorepo subdirectory without a standalone copy or published packages.
+- **No Playwright e2e in CI yet** — hooks exist; browser suite is on the [roadmap](ROADMAP.md).
+- See also **`packages/plugin-stripe/README.md` § Limitations** and **`docs/ai-guide.md` § Not built**.
+
+## Trademarks
+
+Cloudflare and its marks are trademarks of Cloudflare, Inc. This project is independent and unaffiliated.
 
 ## License
 

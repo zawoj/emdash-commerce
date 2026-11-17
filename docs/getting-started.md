@@ -220,9 +220,21 @@ The dev login exists only in development. A deployed site uses passkeys and need
 5. In the admin open **Commerce**: the order appears under "Recent orders" with its number (`ORD-<year>-00001`), status
    paid and the total. The full record is under the **Orders** collection (lines, payment, timeline), and **Payments** and
    **Customers** have the matching entries. A confirmation email is sent through EmDash's email provider if one is
-   configured (none is needed to test).
+   configured (none is needed for the admin order list to update).
 
-If the order does not show up, jump to [Troubleshooting](#9-troubleshooting); nearly always it is the webhook secret.
+6. **Guest order link in development.** With the default console email provider, messages are not delivered to a real inbox.
+   After signing in through the [dev login](#6-sign-in-to-the-admin) (same browser session), open
+   <http://localhost:4360/_emdash/api/dev/emails> — JSON list of captured mails. Find the order confirmation and copy the
+   **View your order** link (it points at `/orders/view?token=…`). Open it in the browser: you should see the order number,
+   statuses, lines and totals. That page is never cached and must not be shared (the token is a bearer secret).
+
+7. **If you lose the email link**, open <http://localhost:4360/orders/lookup>, enter the email you used at Stripe Checkout
+   and the order number from the admin (for example `ORD-2026-00001`). The form always shows the same success message
+   whether or not a matching order exists; when it matches, EmDash sends another access-link email (again visible at
+   `/_emdash/api/dev/emails` in dev).
+
+If the order does not show up in the admin, jump to [Troubleshooting](#9-troubleshooting); nearly always it is the webhook secret.
+If `/orders/view` answers 500, check `EMDASH_ENCRYPTION_KEY` format — [troubleshooting](#9-troubleshooting).
 
 Checkouts you start and do not pay are cleaned up by the shop itself: Stripe expires the session, the stock hold is
 released, and the maintenance task removes the leftover records after a retention period (48 hours by default). To clean

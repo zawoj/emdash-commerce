@@ -23,13 +23,15 @@ code does and the technical why) — decisions, history and task ids go to the c
 
 ## Project overview
 
-Commerce for EmDash (Astro-based CMS): a Stripe plugin, an image-hotspots field widget, a design system and a demo
-storefront. The demo shop is an unofficial **mock Cloudflare-merch store** (fictional products, USD, generated art): the
-theme is data, see `docs/ai-guide.md`. An **Nx + pnpm monorepo**, each project an Nx project named after its folder. Runtime needs **Node >= 24.22.1**.
+Community commerce for EmDash (Astro-based CMS): a Stripe plugin, an image-hotspots field widget, a design system and a
+demo storefront — **not** an official EmDash or Cloudflare product (`zawoj/emdash-commerce`, MIT). The demo shop is an
+unofficial **mock Cloudflare-merch store** (fictional products, USD, generated art): the theme is data, see
+`docs/ai-guide.md`. An **Nx + pnpm monorepo**, each project an Nx project named after its folder. Runtime needs
+**Node >= 24.22.1**.
 
 | Folder | Nx project · package | Role | Port |
 | --- | --- | --- | --- |
-| `apps/storefront/` | `storefront` · `@emdash-commerce/storefront` | Astro 7 SSR shop on EmDash (Node + SQLite + local uploads). Own `AGENTS.md` and skills. Admin at `/_emdash/admin`. | `4360` |
+| `apps/storefront/` | `storefront` · `@emdash-commerce/storefront` | Astro 7 SSR shop on EmDash (Node + SQLite + local uploads, or Cloudflare — `docs/cloudflare.md`). Own `AGENTS.md` and `.agents/skills/`. Admin at `/_emdash/admin`. | `4360` (Node) |
 | `packages/plugin-stripe/` | `plugin-stripe` · `@emdash-commerce/plugin-stripe` | EmDash plugin `stripe-commerce`: catalog, carts, Checkout, orders, webhooks. Docs in `packages/plugin-stripe/docs/`. | — |
 | `packages/plugin-image-hotspots/` | `plugin-image-hotspots` · `@emdash-commerce/plugin-image-hotspots` | EmDash plugin `image-hotspots`: the `image-hotspots:hotspots` field widget. | — |
 | `packages/design-system/` | `design-system` · `@emdash-commerce/design-system` | Tokens and every visual component of the storefront. | — |
@@ -39,8 +41,11 @@ schema: never rename them.
 
 ## Setup & commands (project root)
 
-See `README.md` for the short quickstart and `docs/getting-started.md` for the full walkthrough (`.env`, Stripe sandbox keys, `stripe listen`, seed, reset, troubleshooting). Run everything through the root
-scripts or `pnpm nx …`; never guess Nx flags — check `pnpm nx <target> --help`.
+See `README.md` for the short quickstart and `docs/getting-started.md` for the full walkthrough (`.env`, Stripe sandbox
+keys, `stripe listen`, seed, reset, troubleshooting). Governance: [`CONTRIBUTING.md`](CONTRIBUTING.md),
+[`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md). Forward-looking plans live only in
+[`ROADMAP.md`](ROADMAP.md). Run everything through the root scripts or `pnpm nx …`; never guess Nx flags — check
+`pnpm nx <target> --help`.
 
 | Command | Does |
 | --- | --- |
@@ -49,6 +54,8 @@ scripts or `pnpm nx …`; never guess Nx flags — check `pnpm nx <target> --hel
 | `pnpm bootstrap` · `pnpm doctor` | First-run `.env` setup (idempotent, never prints a secret, refuses a live Stripe key) · read-only health check |
 | `pnpm seed` | Mock catalog (`scripts/lib/merch-catalog.mjs`) and Homepage fields (`scripts/seed-demo.mjs`; dev server must run) |
 | `pnpm art` | Regenerates the mock product art (`scripts/art/` → `apps/storefront/public/merch/`, PNG, committed) |
+| `pnpm lint` | oxlint (zero errors in CI) |
+| `pnpm changeset` | Add a changeset when a publishable package changes (`docs/releasing.md`) |
 | `pnpm check:ai` | `.ai/` layout, `YYYY-MM-DD-slug.md` names, memory index |
 | `pnpm typecheck` · `pnpm test` · `pnpm build` | Validation gate (`nx run-many`) — run all three before calling work done |
 
@@ -58,6 +65,9 @@ scripts or `pnpm nx …`; never guess Nx flags — check `pnpm nx <target> --hel
 | --- | --- |
 | AI onboarding: architecture map, what you can build, ready prompts, how to re-theme the catalog | `docs/ai-guide.md` |
 | Running the shop from zero (prerequisites, Stripe sandbox, env, webhook secret, seed, first purchase, reset, troubleshooting) | `docs/getting-started.md` |
+| Cloudflare target (Workers + D1 + R2), deploy limits, Deploy button | `docs/cloudflare.md` |
+| Changesets and npm publish (`@emdash-commerce`) | `docs/releasing.md` |
+| Commerce agent skills (install, API, storefront, extend plugin) | `skills/` (`skills/README.md`); EmDash core skills in `apps/storefront/.agents/skills/` |
 | The storefront: routes, features, rules | `apps/storefront/AGENTS.md` |
 | The Stripe plugin: layers, HTTP API, how to extend | `packages/plugin-stripe/docs/` (`architecture.md` · `api.md` · `extending.md`) · `.ai/memory/emdash-plugin-stripe-extending.md` · `.ai/decisions/2026-11-12-emdash-stripe-commerce-architecture.md` |
 | The image-hotspots plugin and React field widgets | `packages/plugin-image-hotspots/README.md` · `.ai/memory/emdash-react-field-widgets.md` |
@@ -92,8 +102,8 @@ scripts or `pnpm nx …`; never guess Nx flags — check `pnpm nx <target> --hel
   `test` is `token-lint` — no raw colours or sizes outside the tokens.
 - New or changed behaviour ships with a test. Assert what the consumer receives, not the implementation; cover the seam
   between two individually-correct helpers.
-- Before calling work done run `pnpm typecheck`, `pnpm test` and `pnpm build`. Green gates are not proof the feature
-  works — for anything user-visible, run it (dev server, curl, browser).
+- Before calling work done run `pnpm check:ai`, `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build`. Green gates
+  are not proof the feature works — for anything user-visible, run it (dev server, curl, browser).
 
 ## Security
 
