@@ -79,6 +79,13 @@ export default defineConfig({
 	fonts: [],
 	devToolbar: { enabled: false },
 	vite: {
+		// Cloudflare target: the SSR environment runs on workerd, and its dependency scan is not complete at start. The
+		// React renderer is found only on the first request; the re-optimization then deletes chunks workerd is loading
+		// ("The file does not exist ... deps_ssr/sequence-*.js") and the dev server exits, always on a cold Vite cache.
+		// Pre-bundling it up front removes the late discovery (docs/testing.md, .ai/memory/cloudflare-dev-cold-cache-reoptimize.md).
+		...(isCloudflare && {
+			environments: { ssr: { optimizeDeps: { include: ["@astrojs/react/server.js", "@emdash-commerce/plugin-stripe > stripe", "astro/container"] } } },
+		}),
 		resolve: {
 			alias: [{ find: /^@emdash-cms\/admin$/, replacement: adminEntry }],
 		},

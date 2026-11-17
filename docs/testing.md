@@ -141,13 +141,19 @@ What differs from a Node run (everything else in "What a run does" is the same):
 | Webhook secret | `STRIPE_WEBHOOK_SECRET` in the server's environment | stored as the plugin's encrypted setting through `PUT /_emdash/api/admin/plugins/stripe-commerce/settings` (what "Register webhook" does on a deployed site), because `wrangler.jsonc` declares `secrets.required` and wrangler then forwards only the required ones to the Worker: a `STRIPE_WEBHOOK_SECRET` in `.dev.vars` is dropped and every webhook answers 503 (`.ai/memory/wrangler-passes-only-required-secrets-to-the-worker.md`) |
 | Time | about 55 s for smoke | about 2.2 minutes for smoke, about 3 minutes with the purchase suite (workerd is slower to compile and to answer; the Stripe sync is the same) |
 
+**A cold Vite cache is covered.** The Cloudflare SSR environment found `@astrojs/react/server.js`, `stripe` and `astro/container`
+only while the first requests ran; the re-optimization deleted chunks workerd was loading and the dev server exited (CI is always
+cold). `apps/storefront/astro.config.mjs` pre-bundles them for `DEPLOY_TARGET=cloudflare` (`environments.ssr.optimizeDeps.include`);
+after deleting `apps/storefront/node_modules/.vite-dev` three cold runs passed with no "dependency optimized" line in the server logs
+(`.ai/memory/cloudflare-dev-cold-cache-reoptimize.md`).
+
 **The target is measured, not assumed.** After the warm-up the setup looks at the server's process group: a `workerd` process in
 it means the Worker runtime, none means Node. `e2e/tests/target.spec.ts` asserts that the measurement matches `E2E_TARGET`, so a
 switch that silently started the wrong server fails that spec instead of passing everything on the wrong runtime. Proven by
 mutation: making the Cloudflare target start the Node server fails it (`Expected: "workerd"`, `Received: "node"`).
 
-**Nothing is skipped because of the target.** All 41 smoke tests pass on both targets; the 4 skipped ones are the known
-accessibility `test.fixme` cases on both. The purchase suite passes on both (3 tests: cart quantity, the purchase with the emailed
+**Nothing is skipped because of the target.** All 45 smoke tests pass on both targets, none skipped
+(measured 2026-11-17, after the contrast fixes). The purchase suite passes on both (3 tests: cart quantity, the purchase with the emailed
 link, the lookup-page link).
 
 What the Cloudflare run does **not** cover: it is `astro dev` on workerd, so it is not the built Worker (`import.meta.env.DEV` is

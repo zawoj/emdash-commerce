@@ -47,7 +47,7 @@ passes secrets to workerd only from `.dev.vars` / `.env` (not the process enviro
 
 ## Consequences
 
-- `pnpm test:e2e:smoke:cloudflare`: 41 passed, 4 skipped (the known `test.fixme` contrast cases, as on Node); the purchase project passes
+- `pnpm test:e2e:smoke:cloudflare`: 45 passed, 0 skipped on both targets (the contrast cases were fixed by another stream; originally 41 + 4 `test.fixme`); the purchase project passes
   too (3 tests).
 - A spec that fails only on workerd points at a real difference between the targets, or at a race Node hides (the cart-cookie one).
 - Wrangler prints a warning that `wrangler.jsonc` has no `env.e2e` in the server log; harmless.
