@@ -1,5 +1,82 @@
 # Changelog
 
+## 2026-11-17 (community release)
+
+### feat: community repo conventions, release mechanics, Cloudflare target, rebuilt storefront pages, e2e tests — Claude Code, Cursor
+One pull request assembled from parallel agent streams (each in its own worktree, merged into one branch). Positioning and
+scope: `.ai/decisions/2026-11-17-community-release-scope.md`.
+- **Community repo conventions.** `SECURITY.md` (private advisories only), `CONTRIBUTING.md` (paths, gates, our AI policy),
+  Contributor Covenant 2.1, PR and issue templates, `CODEOWNERS`, Dependabot, oxlint (`pnpm lint`, no repo-wide formatter, 0 errors)
+  and `.editorconfig`; CI pins third-party actions to commit SHAs, runs lint, and adds CodeQL and zizmor. Why: match what EmDash and
+  `cloudflare/*` repositories ship, without policies we do not run (no CLA). ADR `community-repo-conventions`.
+- **Release mechanics.** Changesets with `changelog-github`, the three packages (`plugin-stripe`, `plugin-image-hotspots`,
+  `design-system`) made publishable (metadata, provenance, a `files` allow-list that ships TypeScript source like EmDash's own
+  plugins, peer dependencies), `PLUGIN_VERSION` read from `package.json`, a release workflow and `docs/releasing.md`. Tarballs
+  verified with `pnpm pack`, `publint --strict`, an install into a clean project and an EmDash site build. Nothing is published.
+  No `emdash-plugin.jsonc`: both plugins are native and the registry takes sandboxed plugins only. Outside the code: create the
+  npm organisation `@emdash-commerce`, add `NPM_TOKEN`, enable "Allow GitHub Actions to create and approve pull requests".
+- **Cloudflare target.** `DEPLOY_TARGET=cloudflare` runs the same storefront on Workers + D1 + R2 (`wrangler.jsonc`,
+  `src/worker.ts`, `*:cloudflare` scripts); Node + SQLite stays the default. Verified on workerd without a Cloudflare account:
+  build, `wrangler deploy --dry-run`, seed, a sandbox purchase with a signed webhook, and the cron task. The Stripe plugin needed
+  no code change; `workers-compat.test.ts` keeps it free of Node-only APIs. `docs/cloudflare.md`. **The Deploy to Cloudflare
+  button cannot build this monorepo** (the app depends on `workspace:*` packages and the button needs an isolated subdirectory).
+  A deployed site needs an email provider, the Workers Paid plan is the safe choice, and `pnpm seed` cannot seed a deployed site
+  (it uses the dev login).
+- **Workflow hardening after the first zizmor run.** Every `actions/checkout` sets `persist-credentials: false` (no job pushes), and
+  Dependabot has a 7-day `cooldown` for both ecosystems.
+- **Storefront pages.** `/cart` and `/checkout/success` rebuilt on design-system components with en and pl copy; new
+  `/orders/lookup` (and `POST /api/orders/access-link`) so a guest can ask for a new order link without learning whether an order
+  exists; `/orders/view` links to it when a link is invalid. Stable `data-testid` hooks for the e2e suite. Design system: cart
+  line, order summary rows and order confirmation take test ids (see its changelog).
+- **End-to-end tests.** A Playwright suite: `pnpm test:e2e:smoke` needs no secrets and runs in CI on every PR (40 tests: pages,
+  routes, filters, cart, order pages and their headers, axe at desktop and phone viewports); `pnpm test:e2e` adds a real
+  Stripe-sandbox purchase (hosted Checkout, webhook, success page, emailed link, order page), run weekly and on demand. It uses its
+  own dev server on port 4380 and a throwaway database in `.e2e/` (`EMDASH_DATABASE_FILE` and `EMDASH_UPLOADS_DIR` move the
+  storefront's SQLite file and uploads; defaults unchanged). 25 source mutations were each caught. Bugs it found and fixed: the
+  order-link API answered 400 to every JSON request (the lookup form never worked with JavaScript), the lookup notice hooks never
+  reached the DOM, and the phone back link did not name its target. Four colour-contrast cases are `test.fixme` (reduced-opacity
+  states in the design system). Outside the code: add the repository secret `STRIPE_SANDBOX_SECRET_KEY` for the weekly purchase
+  job; Stripe CLI 1.55.11 refused a bare `stripe listen --forward-to ...` and needed `--all-snapshot` (1.40.3 starts without it;
+  `docs/getting-started.md` has a troubleshooting row, the quickstart still shows the bare command). `docs/testing.md`.
+- **Docs and agent skills.** README restructured in EmDash's style (community notice, features verified against the code, Mermaid
+  flow, packages marked "once published", honest limitations), `ROADMAP.md` as the one labelled place for plans, agent skills
+  `skills/building-commerce-site` and `skills/extending-stripe-plugin` in EmDash's format (linked from the storefront's
+  `.agents/skills`), refreshed `AGENTS.md` and `docs/ai-guide.md` (Cloudflare and release prompts), and the dev order-link
+  walkthrough (`/_emdash/api/dev/emails`, `/orders/lookup`) in `docs/getting-started.md`.
+- **Not covered by this PR.** Nothing is published to npm; the Cloudflare target was not deployed to a real account and has no
+  Playwright coverage; order emails were only seen through EmDash's dev console provider; the demo still wears the Cloudflare-merch
+  name and palette (owner's decision, see the scope ADR).
+
+## 2026-11-17 (release readiness)
+
+### fix: encryption key format, guest order page, category and brand URLs, docs that matched the code — Claude Code
+- **Encryption key (a real onboarding bug).** EmDash 1.5 accepts only `emdash_enc_v1_` + 43 base64url characters, but
+  `pnpm bootstrap` generated a 64-character hex key, `pnpm doctor` demanded one and `.env.example`, the getting-started guide
+  and the plugin README said `openssl rand -hex 32`. A fresh clone therefore got a key EmDash rejects: the maintenance cron
+  failed and every route that reads the access-token secret (`orders/view`, the access-link email) answered 500. Bootstrap now
+  generates the right format, doctor checks it (a comma-separated rotation list is accepted), the old placeholder still counts
+  as a placeholder, docs say `npx emdash secrets generate`, and `.ai/memory/emdash-encryption-key-format.md` records the trap
+  (including: never swap the key on a database that already stored a secret).
+- **`/orders/view`.** The signed link in the order emails (the plugin's default `emails.orderViewPath`) led to a 404. The page
+  now shows the order number, payment and fulfilment status, a progress track, lines and totals from the plugin's `orders/view`
+  (`features/orders/`, en and pl). A bad or expired link is a 404 page with a way back to the shop, an unreachable plugin a 503;
+  the page is `no-store`, `noindex` and sends no referrer because the token is a bearer secret.
+- **`/shop/c/<slug>` and `/shop/brand/<slug>`.** The plugin declares these URL patterns for categories and brands (search results
+  and sitemaps use them) but the storefront had no route: both were 404. A known slug is now a 301 to `/shop?category=` /
+  `?brand=`, an unknown one a real 404. `missing-routes.test.ts` now allows a redirect only after the 404 rewrite and requires
+  both routes.
+- **Docs that disagreed with the code.** The plugin README counted 17 MCP tools and listed 15; there are 19 (`commerce_catalog_sync`
+  and `commerce_checkouts_sweep` are now in the table). The README says what the demo shop leaves off (promotion codes, shipping
+  rates, Stripe Tax, embedded Checkout), that the language is one per deployment, and that the design system holds components
+  the demo does not use. `apps/storefront/AGENTS.md` said "square corners" and now lists the new routes.
+- **Design system.** `OrderSummary` drops its empty thumbnail column when no line has a photo (see its changelog).
+- **Tests.** The order view-model (statuses, rows, UTC date, variant text, Polish), the key format and generator, and the route
+  rule are tested. `pnpm check:ai`, typecheck and test pass; the happy path of `/orders/view` with a real token was not driven
+  through a real Stripe payment (the hosted page could not be automated), only rendered from a fixture and probed for bad tokens.
+- **Not changed.** `checkout/success` and `cart` still use legacy markup with English copy. A guest cannot ask for a new order
+  link from the storefront (the plugin's `orders/access-link` has no page). No Cloudflare (Workers, D1, R2) variant of the
+  storefront exists yet.
+
 ## 2026-11-16 (review fixes)
 
 ### fix: the shop UI refresh, after a code review — Claude Code

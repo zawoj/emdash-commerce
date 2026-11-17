@@ -1,0 +1,23 @@
+# EditorConfig — matches existing per-package indentation (tabs in app/plugin code, 2 spaces in design-system).
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[packages/design-system/**]
+indent_style = space
+indent_size = 2
+
+[{apps/**,packages/plugin-*/**,scripts/**,*.md,*.yml,*.yaml,*.json,*.mjs,.github/**}]
+indent_style = tab
+indent_size = tab
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.astro]
+indent_style = tab

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import packageJson from "../../package.json" with { type: "json" };
 import { KV_KEY, PLUGIN_VERSION, STORAGE } from "../adapters/emdash/constants.js";
 import { resolveIntegrationIdentifier } from "../adapters/emdash/integration-identifier.js";
 import { buildCollectionDefinitions, buildSchemaDefinitions } from "../adapters/emdash/schema/collections.js";
@@ -32,8 +33,9 @@ describe("plugin definition", () => {
 
 	it("registers under the stable id and version with exactly the capabilities it needs", () => {
 		expect(plugin.id).toBe("stripe-commerce");
-		expect(plugin.version).toBe("0.2.0");
+		expect(plugin.version).toMatch(/^\d+\.\d+\.\d+/);
 		expect(plugin.version).toBe(PLUGIN_VERSION);
+		expect(plugin.version).toBe(packageJson.version);
 		expect(plugin.capabilities).toEqual(["content:read", "content:write", "content:publish", "content:revisions:read", "email:send", "hooks.content-policy:register"]);
 	});
 
@@ -136,7 +138,7 @@ describe("container", () => {
 		const [first, second] = await Promise.all([container.provider(), container.provider()]);
 		expect(first).toBe(second);
 		expect(configs).toHaveLength(1);
-		expect(configs[0]).toMatchObject({ secretKey: "sk_test_x", webhookSecret: "whsec_x", appVersion: "0.2.0", integrationIdentifier: expect.stringMatching(/^emdash-stripe-[a-z]{8}$/) });
+		expect(configs[0]).toMatchObject({ secretKey: "sk_test_x", webhookSecret: "whsec_x", appVersion: PLUGIN_VERSION, integrationIdentifier: expect.stringMatching(/^emdash-stripe-[a-z]{8}$/) });
 		const again = createContainer(ctx, options, {}, { env: {}, createProvider: (config) => (configs.push(config), fakeProvider()) });
 		await again.provider();
 		expect((configs[1] as { integrationIdentifier: string }).integrationIdentifier).toBe((configs[0] as { integrationIdentifier: string }).integrationIdentifier);

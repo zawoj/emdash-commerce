@@ -93,7 +93,7 @@ const resolveTarget = (file, target) => {
 }
 
 const KEBAB_MD_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*\.md$/
-const REPO_PATH_RE = /`((?:\.ai|tools|packages|plugins|apps\/[a-z0-9-]+)\/[A-Za-z0-9_.\/-]*[A-Za-z0-9_\/])`/g
+const REPO_PATH_RE = /`((?:\.ai|tools|packages|plugins|apps\/[a-z0-9-]+)\/[A-Za-z0-9_./-]*[A-Za-z0-9_/])`/g
 
 const withoutExamples = (text) => text.replace(/```[\s\S]*?```/g, '').replace(/<!--[\s\S]*?-->/g, '')
 

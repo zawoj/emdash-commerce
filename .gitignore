@@ -10,3 +10,8 @@ dist
 !**/.env.example
 
 .cache/
+
+# end-to-end suite: throwaway server state and Playwright output
+/.e2e/
+/playwright-report/
+/test-results/

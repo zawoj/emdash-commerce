@@ -3,7 +3,29 @@
  * touching the rest. No I/O here, so every rule is unit-tested (`bootstrap-env.test.mjs`).
  */
 
-const PLACEHOLDERS = new Set(["replace-with-openssl-rand-hex-32", "sk_test_replace_me", "whsec_replace_me", ""]);
+const PLACEHOLDERS = new Set([
+	"replace-with-emdash-secrets-generate",
+	// What `.env.example` shipped before EmDash 1.5 changed the key format; a copy made then is still a placeholder.
+	"replace-with-openssl-rand-hex-32",
+	"sk_test_replace_me",
+	"whsec_replace_me",
+	"",
+]);
+
+/** EmDash 1.5 only accepts `emdash_enc_v1_` plus 43 base64url characters (32 random bytes); a bare hex key is rejected at startup. */
+const ENCRYPTION_KEY_PATTERN = /^emdash_enc_v1_[A-Za-z0-9_-]{43}$/;
+
+/** A key in the format EmDash accepts. EmDash also takes a comma-separated list (key rotation): every entry must be valid. */
+export const isEncryptionKey = (value) => {
+	const entries = String(value ?? "")
+		.split(",")
+		.map((entry) => entry.trim())
+		.filter(Boolean);
+	return entries.length > 0 && entries.every((entry) => ENCRYPTION_KEY_PATTERN.test(entry));
+};
+
+/** A new encryption key from 32 random bytes (what `emdash secrets generate` prints). */
+export const encryptionKeyFrom = (bytes) => `emdash_enc_v1_${Buffer.from(bytes).toString("base64url")}`;
 
 /** True for an empty value or one of the placeholders `.env.example` ships. */
 export const isPlaceholder = (value) => value === undefined || PLACEHOLDERS.has(String(value).trim());
@@ -74,8 +96,8 @@ export const checkEnv = (env) => {
 		{
 			id: "encryption-key",
 			isRequired: true,
-			isOk: !isPlaceholder(env.EMDASH_ENCRYPTION_KEY) && /^[0-9a-f]{64}$/i.test(String(env.EMDASH_ENCRYPTION_KEY).trim()),
-			message: "EMDASH_ENCRYPTION_KEY is a 64-character hex key",
+			isOk: !isPlaceholder(env.EMDASH_ENCRYPTION_KEY) && isEncryptionKey(env.EMDASH_ENCRYPTION_KEY),
+			message: "EMDASH_ENCRYPTION_KEY is an EmDash key (emdash_enc_v1_ + 43 characters; `npx emdash secrets generate` makes one)",
 		},
 		{
 			id: "stripe-key",

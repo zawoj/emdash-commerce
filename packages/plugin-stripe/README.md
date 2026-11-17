@@ -1,6 +1,6 @@
 # @emdash-commerce/plugin-stripe
 
-Backend-only commerce for [EmDash](https://github.com/emdash-cms/emdash) on Stripe. A native EmDash plugin that
+Backend-only commerce for [EmDash](https://github.com/emdash-cms/emdash) on Stripe (a community plugin, not part of EmDash). A native EmDash plugin that
 owns the catalog sync, carts, Stripe Checkout Sessions, orders, payments, refunds, disputes, subscriptions, guest
 customers and a durable webhook pipeline. It has **no storefront**: a site renders its own pages and talks to the
 plugin over a small public HTTP API (`docs/api.md`) and reacts to domain events (`docs/extending.md`).
@@ -48,13 +48,20 @@ data model again (see `CHANGELOG.md`). Design rationale (repo root):
   incomplete product with a readable reason.
 - **Storefront read API.** Listing cards and a full product page (axes, variants with prices and availability, specs,
   related products), media-library images resolved to public URLs.
-- **Operations.** A Block Kit admin page ("Commerce"), 17 MCP tools, one maintenance cron task.
+- **Operations.** A Block Kit admin page ("Commerce"), 19 MCP tools, one maintenance cron task.
 - **Transactional email** (order confirmation, payment failed, refund, access link) through EmDash's email
   provider, with replaceable renderers.
 
 ## Install and wire
 
-The package is a workspace dependency of `apps/storefront`. Register it in `astro.config.mjs`:
+```bash
+pnpm add @emdash-commerce/plugin-stripe
+```
+
+Peer dependencies: `emdash` (`^1.5.0`) and `astro` (`>=6.0.0-beta.0`). The package ships TypeScript source (like EmDash's
+own plugins) and an `.astro` block component; the site's Vite build compiles them, so no build step runs on install. It
+is a **native** plugin (route handlers, cron, an admin page, a content-policy hook), so it cannot be a sandboxed
+registry plugin. Register it in `astro.config.mjs`:
 
 ```js
 emdash({
@@ -120,8 +127,8 @@ variables as fallback. A value saved in the admin wins over the environment, so 
 | `stripeWebhookSecret` | `STRIPE_WEBHOOK_SECRET` | `whsec_…`. Filled automatically by "Register webhook" on creation. |
 | `accessTokenSecret` | `COMMERCE_ACCESS_TOKEN_SECRET` | Signs guest order links. Generated on first activation; changing it invalidates links already sent. |
 
-Saving a secret in the admin (and the generated access-token secret) needs **`EMDASH_ENCRYPTION_KEY`** (32-byte hex,
-`openssl rand -hex 32`). Without it the settings cannot be written: guest order links stay disabled until
+Saving a secret in the admin (and the generated access-token secret) needs **`EMDASH_ENCRYPTION_KEY`** (`emdash_enc_v1_`
+plus 43 base64url characters, made by `npx emdash secrets generate`; a bare hex key is rejected). Without it the settings cannot be written: guest order links stay disabled until
 `COMMERCE_ACCESS_TOKEN_SECRET` is set, and "Register webhook" returns `NOT_CONFIGURED` after creating the endpoint
 (register again within 24 h to get the secret again, or copy it from the Stripe dashboard). `apps/storefront` loads `.env` with `node --env-file-if-exists`;
 plain `astro dev` does not put it into `process.env`.
@@ -304,7 +311,7 @@ outputs, errors and events: **`docs/api.md`**.
 | `commerce_inventory_adjust` (not idempotent) | `plugins:manage` | yes |
 | `commerce_webhooks_replay` | `plugins:manage` | yes |
 | `commerce_reconcile` | `plugins:manage` | yes |
-| `commerce_orders_fulfillment`, `commerce_orders_action`, `commerce_orders_note`, `commerce_catalog_resync`, `commerce_webhooks_register`, `commerce_outbox_retry` | `plugins:manage` | no |
+| `commerce_orders_fulfillment`, `commerce_orders_action`, `commerce_orders_note`, `commerce_catalog_resync`, `commerce_catalog_sync`, `commerce_checkouts_sweep`, `commerce_webhooks_register`, `commerce_outbox_retry` | `plugins:manage` | no |
 
 - **Cron.** One task, `commerce-maintenance`, every 5 minutes, running isolated steps within a 30 s budget (hook
   timeout 45 s): webhook inbox retries, outbox deliveries, catalog sync retries, reservation expiry, cart sweep

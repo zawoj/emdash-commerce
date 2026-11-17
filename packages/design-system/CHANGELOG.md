@@ -2,6 +2,16 @@
 
 Newest on top. Each entry says what changed in the package and why.
 
+## 2026-11-17
+
+### feat: optional e2e hooks on cart lines, order summary rows and order confirmation
+- `CartLine` sets `data-testid="cart-line"` on each row; `SummaryRow.testId` renders on the value cell; `OrderConfirmation`
+  accepts optional `textTestId` and `numberTestId` so the storefront success page can poll without `innerHTML`.
+
+### fix: OrderSummary drops the empty thumbnail column when no line has a photo
+- Every line used to reserve a 56 px thumbnail box, so an order shown without photos (the guest order page knows titles and
+  amounts only) had a column of blank squares. When no line carries an `image` the box and its grid column are gone.
+
 ## 2026-11-16
 
 ### chore: remove two unused sections, export the icon names

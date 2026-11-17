@@ -1,9 +1,30 @@
 {
   "name": "@emdash-commerce/design-system",
   "version": "0.0.1",
-  "description": "Shop storefront design system: a warm ink and orange wireframe with no decoration (the Cloudflare palette) \u2014 design tokens and every visual component as props-driven Astro components, no app logic, no imports from any app.",
-  "private": true,
+  "description": "Shop storefront design system: a warm ink and orange wireframe with no decoration (the Cloudflare palette) — design tokens and every visual component as props-driven Astro components, no app logic, no imports from any app.",
+  "keywords": [
+    "astro-component",
+    "astro",
+    "design-system",
+    "design-tokens",
+    "ui-components",
+    "storefront",
+    "ecommerce",
+    "emdash"
+  ],
+  "homepage": "https://github.com/zawoj/emdash-commerce/tree/main/packages/design-system#readme",
+  "bugs": {
+    "url": "https://github.com/zawoj/emdash-commerce/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zawoj/emdash-commerce.git",
+    "directory": "packages/design-system"
+  },
+  "license": "MIT",
+  "author": "Kacper Zawojski",
   "type": "module",
+  "main": "src/index.ts",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -50,15 +71,30 @@
     "token-lint": "./scripts/token-lint.mjs",
     "wireframe-lint": "./scripts/wireframe-lint.mjs"
   },
+  "files": [
+    "src",
+    "scripts",
+    "!scripts/fixtures",
+    "!scripts/*.test.mjs",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=22.16.0"
+  },
   "scripts": {
     "typecheck": "astro check",
     "test": "node scripts/token-lint.mjs src && node scripts/wireframe-lint.mjs src ../../apps/storefront/src && node --test scripts/wireframe-lint.test.mjs scripts/token-contrast.test.mjs"
   },
-  "dependencies": {
-    "astro": "7.3.2"
+  "peerDependencies": {
+    "astro": "^7.0.0"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "astro": "7.3.2",
     "typescript": "5.9.3"
   }
 }

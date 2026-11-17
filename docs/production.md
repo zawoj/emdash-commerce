@@ -4,6 +4,11 @@
 production (from its documentation), and the rules for an agent doing it. The decision is in
 `.ai/decisions/2026-11-12-emdash-agent-schema-changes-over-mcp.md`.
 
+**Cloudflare:** the storefront has a Workers + D1 + R2 target (`DEPLOY_TARGET=cloudflare`); the step-by-step guide, the secrets
+(`EMDASH_ENCRYPTION_KEY`, `STRIPE_SECRET_KEY`), the webhook registration and its limits are in `docs/cloudflare.md`. This page
+stays the reference for what a deploy does and does not move, and for an agent changing a deployed site. Any other host
+(Node, Docker) is the Node target and is not covered by this repository.
+
 ## What a deploy does and does not ship
 
 | Moves with a deploy | Does not move |
@@ -12,8 +17,9 @@ production (from its documentation), and the rules for an agent doing it. The de
 | On the **first** deploy only: the schema and structure of `seed/seed.json` | Content and media |
 | EmDash's own core migrations (applied on the first request, or by `emdash migrate`) | Users, sessions, tokens, plugin settings, `EMDASH_ENCRYPTION_KEY` |
 
-There is no one-command or one-click local → production deploy. Build and ship with `pnpm build` and
-`pnpm wrangler deploy` (Cloudflare) or the Node/Docker flow. Editing `seed/seed.json` later does nothing to an existing
+There is no one-command or one-click local → production deploy (the Deploy to Cloudflare button cannot deploy this
+monorepo as it stands: `docs/cloudflare.md`). Build and ship with
+`pnpm --filter @emdash-commerce/storefront deploy:cloudflare` (Cloudflare) or the Node/Docker flow (`pnpm build`). Editing `seed/seed.json` later does nothing to an existing
 database, and production is the source of truth for the schema once it is live.
 
 ## Moving schema, content and media
@@ -68,7 +74,10 @@ site, Cloudflare, or Claude Code's `--header` flag against EmDash.
 - `seed/seed.json` contains the `feedback` collection (the Notes dev tool) — leave it out of the production seed.
 - The `home` collection (intro image of the home page) is needed on production; its entry is content, so it is created
   there (the seed sample content is only applied if an admin picks it in the setup wizard).
-- Set `EMDASH_ENCRYPTION_KEY` in the environment (`wrangler secret put …` or `emdash secrets generate`) and finish the
+- Set `EMDASH_ENCRYPTION_KEY` in the environment (`wrangler secret put …`; generate it with `emdash secrets generate`: the
+  format is `emdash_enc_v1_` + 43 base64url characters, `.ai/memory/emdash-encryption-key-format.md`) and finish the
   setup wizard on the production domain straight away: the first person through it becomes the administrator.
-- Passkeys work only on the hostname that created them; email sign-in needs an email provider (SMTP or the Cloudflare
-  email plugin); sandboxed plugins on Cloudflare need the Workers Paid plan.
+- `pnpm seed` signs in through the dev login, which a deployed site does not have: it cannot seed production. Create the
+  catalog in the admin or over MCP, or import a local site (`docs/cloudflare.md`, step 6).
+- Passkeys work only on the hostname that created them; email sign-in and the shop's order emails need an email
+  provider (Settings → Email: SMTP or a provider plugin; none is active on a fresh deploy); sandboxed plugins on Cloudflare need the Workers Paid plan.

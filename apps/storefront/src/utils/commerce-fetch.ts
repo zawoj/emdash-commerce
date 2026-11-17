@@ -3,8 +3,11 @@ import type {
 	CatalogProductsQuery,
 	CatalogProductsView,
 	CheckoutStatusView,
+	OrderView,
 	ProductDetailView,
 } from "@emdash-commerce/plugin-stripe/contracts";
+
+import { ORDER_LINK_STATES, ORDER_TOKEN_PARAM } from "../features/orders/constants";
 
 /** Matches `PLUGIN_ID` in the plugin; kept literal so client bundles do not import the plugin entrypoint. */
 export const commerceApiBase = "/_emdash/api/plugins/stripe-commerce";
@@ -122,4 +125,23 @@ export const startCheckout = async (uiMode: "hosted" | "embedded" = "hosted"): P
 	const json = await res.json();
 	const { data } = parseApiEnvelope<{ url: string | null }>(json);
 	return { url: data?.url ?? null };
+};
+
+export type OrderViewResult =
+	| { state: typeof ORDER_LINK_STATES.ok; view: OrderView }
+	| { state: typeof ORDER_LINK_STATES.invalid | typeof ORDER_LINK_STATES.unavailable };
+
+/** The guest order behind a signed link. The plugin answers 401 for an invalid or expired token and 400 for one that is not even shaped like a token; anything else is "unavailable". */
+export const fetchOrderView = async (origin: string, token: string): Promise<OrderViewResult> => {
+	const url = new URL(`${commerceApiBase}/orders/view`, origin);
+	url.searchParams.set(ORDER_TOKEN_PARAM, token);
+	try {
+		const res = await fetch(url, { headers: { accept: "application/json" } });
+		if (res.status === 401 || res.status === 400) return { state: ORDER_LINK_STATES.invalid };
+		if (!res.ok) return { state: ORDER_LINK_STATES.unavailable };
+		const { data } = parseApiEnvelope<OrderView>(await res.json());
+		return data ? { state: ORDER_LINK_STATES.ok, view: data } : { state: ORDER_LINK_STATES.unavailable };
+	} catch {
+		return { state: ORDER_LINK_STATES.unavailable };
+	}
 };

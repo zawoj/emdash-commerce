@@ -88,7 +88,7 @@ pnpm bootstrap      # or by hand: cp apps/storefront/.env.example apps/storefron
 
 | Variable | Required | What it is |
 | --- | --- | --- |
-| `EMDASH_ENCRYPTION_KEY` | yes | 32-byte hex key EmDash uses to encrypt secrets stored in the database (plugin settings saved in the admin, the guest order-link secret). Generate it with `openssl rand -hex 32`. Keep it stable: changing it makes already-stored secrets unreadable. |
+| `EMDASH_ENCRYPTION_KEY` | yes | The key EmDash uses to encrypt secrets stored in the database (plugin settings saved in the admin, the guest order-link secret), in EmDash's own format: `emdash_enc_v1_` followed by 43 base64url characters. A bare hex key (`openssl rand -hex 32`) is rejected. `pnpm bootstrap` generates one; by hand use `npx emdash secrets generate`. Keep it stable: changing it makes already-stored secrets unreadable. |
 | `STRIPE_SECRET_KEY` | for payments | Your sandbox key from step 2 (`sk_test_...` or `rk_test_...`). Without it the shop still loads: catalog, cart and admin work, anything that calls Stripe answers `NOT_CONFIGURED` (503). |
 | `STRIPE_WEBHOOK_SECRET` | for orders | The `whsec_...` that **`stripe listen` prints** ([next section](#4-start-the-server-and-the-webhook-forwarder)). It is not a value from the dashboard. |
 | `COMMERCE_ACCESS_TOKEN_SECRET` | no | Signs the links in guest order emails. Generated on first activation when the encryption key is set; set it yourself only to share one value between environments. Not in `.env.example`. |
@@ -220,9 +220,21 @@ The dev login exists only in development. A deployed site uses passkeys and need
 5. In the admin open **Commerce**: the order appears under "Recent orders" with its number (`ORD-<year>-00001`), status
    paid and the total. The full record is under the **Orders** collection (lines, payment, timeline), and **Payments** and
    **Customers** have the matching entries. A confirmation email is sent through EmDash's email provider if one is
-   configured (none is needed to test).
+   configured (none is needed for the admin order list to update).
 
-If the order does not show up, jump to [Troubleshooting](#9-troubleshooting); nearly always it is the webhook secret.
+6. **Guest order link in development.** With the default console email provider, messages are not delivered to a real inbox.
+   After signing in through the [dev login](#6-sign-in-to-the-admin) (same browser session), open
+   <http://localhost:4360/_emdash/api/dev/emails> — JSON list of captured mails. Find the order confirmation and copy the
+   **View your order** link (it points at `/orders/view?token=…`). Open it in the browser: you should see the order number,
+   statuses, lines and totals. That page is never cached and must not be shared (the token is a bearer secret).
+
+7. **If you lose the email link**, open <http://localhost:4360/orders/lookup>, enter the email you used at Stripe Checkout
+   and the order number from the admin (for example `ORD-2026-00001`). The form always shows the same success message
+   whether or not a matching order exists; when it matches, EmDash sends another access-link email (again visible at
+   `/_emdash/api/dev/emails` in dev).
+
+If the order does not show up in the admin, jump to [Troubleshooting](#9-troubleshooting); nearly always it is the webhook secret.
+If `/orders/view` answers 500, check `EMDASH_ENCRYPTION_KEY` format — [troubleshooting](#9-troubleshooting).
 
 Checkouts you start and do not pay are cleaned up by the shop itself: Stripe expires the session, the stock hold is
 released, and the maintenance task removes the leftover records after a retention period (48 hours by default). To clean
@@ -250,12 +262,14 @@ A database created before the move to USD still has a PLN-only `currency` select
 | Symptom | Cause and fix |
 | --- | --- |
 | Checkout fails, or the cart shows an item as "not synced" | The catalog is not in Stripe yet. Run `pnpm seed` again with a key configured (it syncs at the end), or press **Resync catalog** on the Commerce page and wait: the background task does 25 entities per five minutes. Calling the `commerce_catalog_sync` tool (or `admin/catalog/sync`) repeatedly drives it faster. Details: `.ai/memory/emdash-plugin-stripe-resync-is-slow-by-design.md`. |
+| `stripe listen` refuses to start and asks you to specify events | Reported with Stripe CLI 1.55.11 (the version the e2e setup ran against; 1.40.3 starts without it): add `--all-snapshot` to the command, e.g. `stripe listen --all-snapshot --forward-to localhost:4360/_emdash/api/plugins/stripe-commerce/webhook`. |
 | `stripe listen` shows `[400]` for every event | Wrong `STRIPE_WEBHOOK_SECRET` (it differs per CLI login). Copy the secret `stripe listen` printed into `.env`, clear any stale value in the admin plugin settings, restart the server. |
 | `stripe listen` shows `[503]` | No webhook secret configured at all. Same fix. |
 | Paid at Stripe, no order in the admin | The webhook did not arrive or failed. Is `stripe listen` running, forwarding to the right port, with the same account as your key? The Commerce page lists failed or dead webhook events and can replay one. **Reconcile now** fetches events the site missed. |
 | Checkout answers 503 `NOT_CONFIGURED` | No `STRIPE_SECRET_KEY`, or the server was started without `.env` (plain `astro dev`). Start with `pnpm dev` and restart after editing `.env`. |
 | Very first checkout after the first seed answers `NOT_CONFIGURED` "points outside the site's allowed origins" | EmDash read the site URL before setup stored it. Restart the server once (`npx astro dev stop`, `pnpm dev`); see `.ai/memory/emdash-site-url-is-read-at-startup.md`. |
 | Stripe rejects the key | A restricted key without a needed permission (step 2). The message names the call. |
+| `pnpm doctor` says the encryption key is wrong, the log says `EMDASH_ENCRYPTION_KEY entry is malformed`, or `/orders/view` and the access-link email answer 500 | The key is not in EmDash's format (`emdash_enc_v1_` + 43 characters; a hex key from an old `.env` is rejected). Generate one with `npx emdash secrets generate` and restart. Do not replace a key on a database that already stored secrets (they become unreadable): reset the database instead (step 8). `.ai/memory/emdash-encryption-key-format.md`. |
 | Node version warning at `pnpm install` or start | You are on a Node older than 24.22.1. Switch with your version manager (`fnm use`, `nvm use`), reinstall if needed. |
 | `astro dev` returns immediately, "nothing happens" | Astro 7 detaches the dev server in agent and CI-like shells. It is running: `npx astro dev status`, `npx astro dev logs`, `npx astro dev stop` (run in `apps/storefront`). Port busy means an old server is still up; stop it first. |
 | Admin stuck on "Loading EmDash..." | Usually the shared Vite cache: a build (`pnpm build`, or the gate) ran next to the dev server and overwrote its pre-bundled dependencies. Stop the server, delete `apps/storefront/node_modules/.vite*` and `.astro`, start with `astro dev --force`. `.ai/memory/emdash-dev-and-build-share-vite-cache.md` and `emdash-admin-infinite-loading.md` have the details. |

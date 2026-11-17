@@ -3,5 +3,7 @@
 	"compilerOptions": {
 		"types": ["node"]
 	},
-	"include": ["src", ".astro/types.d.ts", "emdash-env.d.ts"]
+	"include": ["src", ".astro/types.d.ts", "emdash-env.d.ts"],
+	// The Worker entry is typed by tsconfig.cloudflare.json: Wrangler's runtime types clash with the DOM types the rest of src needs.
+	"exclude": ["src/worker.ts"]
 }

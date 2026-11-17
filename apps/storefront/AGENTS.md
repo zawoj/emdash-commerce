@@ -7,6 +7,11 @@ pnpm dev              # From the repo root: the storefront dev server on port 43
 npx emdash types      # Regenerate TypeScript types from a running site
 ```
 
+Cloudflare (Workers + D1 + R2) is a second runtime target of this same app, chosen with `DEPLOY_TARGET=cloudflare` in
+`astro.config.mjs` (unset = Node/SQLite, the default). Scripts: `dev:cloudflare --port <n>`, `build:cloudflare`,
+`deploy:cloudflare`, `types:cloudflare`; config in `wrangler.jsonc` and `src/worker.ts`. Guide, secrets and limits:
+`docs/cloudflare.md` at the repo root. Run `types:cloudflare` after changing `wrangler.jsonc`.
+
 The admin UI is at `http://localhost:4360/_emdash/admin`.
 
 ## Key Files
@@ -22,9 +27,12 @@ The admin UI is at `http://localhost:4360/_emdash/admin`.
 
 ## Skills
 
-Agent skills are in `.agents/skills/`. Load them when working on specific tasks:
+Agent skills are in `.agents/skills/` (EmDash skills vendored here; commerce skills symlink to repo root `skills/`).
+Load them when working on specific tasks:
 
 - **building-emdash-site** -- Querying content, rendering Portable Text, schema design, seed files, site features (menus, widgets, search, SEO, comments, bylines). Start here.
+- **building-commerce-site** -- `stripe-commerce` plugin, HTTP API, cart/checkout/orders, seeding, production and Cloudflare (`skills/building-commerce-site/SKILL.md`).
+- **extending-stripe-plugin** -- Plugin layers, extension subscribers, invariants, tests (`skills/extending-stripe-plugin/SKILL.md`).
 - **creating-plugins** -- Building EmDash plugins with hooks, storage, admin UI, API routes, and Portable Text block types.
 - **emdash-cli** -- CLI commands for content management, seeding, type generation, and visual editing flow.
 
@@ -71,7 +79,7 @@ Site settings have `title` and `tagline`. The title renders in the header, the h
 ## Visual character
 
 Public chrome comes from `@emdash-commerce/design-system`: a flat wireframe in the Cloudflare palette (a warm charcoal
-ink ramp plus an orange accent, system fonts, square corners, 1px outlines, no shadow, gradient or motion, photos shown as shot), and the
+ink ramp plus an orange accent, system fonts, soft corners, 1px outlines, no shadow, gradient or motion, photos shown as shot), and the
 header/footer/tab bar composed in `src/layouts/Base.astro`. Site name renders as a text wordmark (no
 logo SVG). Shell copy is in `src/features/shell/copy.ts` (en / pl from `getSiteLocale()`).
 
@@ -90,7 +98,11 @@ Commerce reads use `utils/commerce-fetch.ts` against `/_emdash/api/plugins/strip
 | Home            | `/`             | `features/home/HomeView.astro`, `features/home/config.ts` (seeded catalog slugs; `load-config.ts` returns committed defaults); shop-the-look image and points and the spotlight image and callouts come from the `home` entry (`look_hotspots`, `spotlight_callouts`, read by `features/home/home-points.ts`) |
 | Shop            | `/shop`         | `pages/shop/index.astro`, `features/catalog/domain/listing.ts` |
 | Product         | `/shop/[slug]`  | `pages/shop/[slug].astro`, `features/catalog/components/ProductBuyBox.astro` |
-| Cart            | `/cart`         | `pages/cart.astro` (plugin cart API) |
+| Cart            | `/cart`         | `pages/cart.astro`, `features/cart/` (design-system cart lines, order summary, phone action bar; plugin cart API) |
+| Checkout thanks | `/checkout/success?session_id=` | `pages/checkout/success.astro`, `features/checkout/` (`OrderConfirmation`, polls `checkout/status`) |
+| Your order      | `/orders/view?token=` | `pages/orders/view.astro`, `features/orders/` (the signed link in the order emails; the plugin's `orders/view`; never cached or indexed, no referrer) |
+| Order lookup    | `/orders/lookup` | `pages/orders/lookup.astro` (guest `orders/access-link`; same success copy whether or not the order exists) |
+| Category, brand | `/shop/c/[slug]`, `/shop/brand/[slug]` | the URL patterns the plugin gives those collections: 301 to `/shop?category=` / `?brand=`, a real 404 for an unknown slug |
 
 ## Image with points (`image-hotspots` plugin)
 

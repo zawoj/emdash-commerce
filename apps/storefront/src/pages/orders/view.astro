@@ -1,0 +1,57 @@
+---
+import { EmptyState, OrderConfirmation, OrderProgress, OrderSummary } from "@emdash-commerce/design-system";
+import Base from "../../layouts/Base.astro";
+import { ORDER_LINK_STATES, ORDER_TOKEN_MAX_LENGTH, ORDER_TOKEN_PARAM } from "../../features/orders/constants";
+import { orderPageOf } from "../../features/orders/view-model";
+import { resolveLocale } from "../../lib/i18n";
+import { ordersStrings } from "../../lib/strings";
+import { fetchOrderView, type OrderViewResult } from "../../utils/commerce-fetch";
+import { getSiteLocale } from "../../utils/locale";
+
+// The signed link in the order emails opens here. The token is a bearer secret: the page is never cached, never
+// indexed and sends no referrer, so the link does not leak to a third-party host through a link or an image.
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("Referrer-Policy", "no-referrer");
+
+const locale = resolveLocale(getSiteLocale());
+const copy = ordersStrings(locale);
+const token = Astro.url.searchParams.get(ORDER_TOKEN_PARAM) ?? "";
+const isPlausibleToken = token.length > 0 && token.length <= ORDER_TOKEN_MAX_LENGTH;
+const result: OrderViewResult = isPlausibleToken
+	? await fetchOrderView(Astro.url.origin, token)
+	: { state: ORDER_LINK_STATES.invalid };
+
+if (result.state === ORDER_LINK_STATES.invalid) Astro.response.status = 404;
+if (result.state === ORDER_LINK_STATES.unavailable) Astro.response.status = 503;
+const page = result.state === ORDER_LINK_STATES.ok ? orderPageOf(result.view, locale, copy) : null;
+---
+
+<Base title={copy.pageTitle} pageTitle={copy.pageTitle} robots="noindex, nofollow">
+	{
+		page ? (
+			<div class="order-page">
+				<OrderConfirmation {...page.confirmation} />
+				{page.progress && <OrderProgress {...page.progress} />}
+				<OrderSummary {...page.summary} />
+			</div>
+		) : (
+			<EmptyState
+				title={result.state === ORDER_LINK_STATES.invalid ? copy.invalidTitle : copy.unavailableTitle}
+				text={result.state === ORDER_LINK_STATES.invalid ? copy.invalidText : copy.unavailableText}
+				headingLevel={1}
+				action={{ href: "/shop", label: copy.backToShop }}
+				secondaryAction={
+					result.state === ORDER_LINK_STATES.invalid ? { href: "/orders/lookup", label: copy.lookupNewLink } : undefined
+				}
+			/>
+		)
+	}
+</Base>
+
+<style>
+	.order-page {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-32);
+	}
+</style>

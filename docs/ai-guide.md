@@ -17,7 +17,7 @@ You are in the emdash-commerce monorepo. Do not change anything yet.
 1. Read AGENTS.md, .ai/README.md, .ai/memory/MEMORY.md and docs/ai-guide.md, then the memory files that match what you find.
 2. Explain to me, in under 40 lines: what the project is, the four packages and how a request travels from the browser to
    Stripe and back (storefront -> plugin API -> EmDash content and storage -> Stripe -> webhook -> order).
-3. List the commands I run most (dev, seed, bootstrap, doctor, typecheck, test, build) and what the validation gate is.
+3. List the commands I run most (dev, seed, bootstrap, doctor, lint, changeset, check:ai, typecheck, test, build) and what the validation gate is.
 4. List the invariants I must not break (AGENTS.md "Invariants" and "Security").
 5. Ask me what I want to build, and propose a plan before touching a file.
 ```
@@ -39,12 +39,14 @@ You are in the emdash-commerce monorepo. Do not change anything yet.
 
 | Folder | What it is | Read first |
 | --- | --- | --- |
-| `apps/storefront/` | The shop: routes, features, home composition, copy (en and pl), seed schema | `apps/storefront/AGENTS.md` |
-| `packages/plugin-stripe/` | Backend-only plugin `stripe-commerce`, layered (`core` → `ports` → `services` → `adapters` → `plugin`) | `packages/plugin-stripe/docs/architecture.md`, `.ai/memory/emdash-plugin-stripe-extending.md` |
+| `apps/storefront/` | The shop: routes, features, home composition, copy (en and pl), seed schema; Node or Cloudflare target | `apps/storefront/AGENTS.md`, `docs/cloudflare.md` |
+| `packages/plugin-stripe/` | Backend-only plugin `stripe-commerce`, layered (`core` → `ports` → `services` → `adapters` → `plugin`) | `packages/plugin-stripe/docs/architecture.md`, `.ai/memory/emdash-plugin-stripe-extending.md`, `skills/extending-stripe-plugin/SKILL.md` |
 | `packages/plugin-image-hotspots/` | The `image-hotspots:hotspots` field widget (shop-the-look points, callouts) | its `README.md`, `.ai/memory/emdash-react-field-widgets.md` |
 | `packages/design-system/` | Tokens (Cloudflare orange on warm charcoal) and every visual component | its `README.md` (conventions, `token-lint`, `wireframe-lint`) |
 | `scripts/` | `bootstrap`/`doctor` (setup), `seed-demo.mjs` + `lib/merch-catalog.mjs` (the mock catalog), `art/` (the product art generator) | the file headers |
+| `skills/` | Commerce agent skills (wire plugin + storefront, extend plugin) | `skills/README.md` |
 | `.ai/` and `CHANGELOG.md` | Decisions, memory (traps and lessons), run logs, history | `.ai/README.md` |
+| `ROADMAP.md` | Labelled exception: forward-looking plan only (not actual state) | top of `ROADMAP.md` |
 
 Facts that surprise people (each has a memory file):
 
@@ -61,15 +63,18 @@ Facts that surprise people (each has a memory file):
 | Area | What exists today |
 | --- | --- |
 | Catalog | Products with variants (size x colour grid), per-variant price, image and stock; brands; categories with a parent; product types with specification attributes; bundles as fixed-price products; one-off and recurring prices (membership with a trial) |
-| Storefront | Home (hero, rails, spotlight, shop-the-look, FAQ), shop with filters and sorting, product page, cart and mini-cart, search, blog (posts, tags, RSS), en and pl copy |
+| Storefront | Home (hero, rails, spotlight, shop-the-look, FAQ), shop with filters and sorting, product page, design-system **cart** and **checkout success**, mini-cart, **guest order view** (`/orders/view`) and **lookup** (`/orders/lookup`), category/brand URLs, search, blog (posts, tags, RSS), en and pl copy, Cloudflare target (`docs/cloudflare.md`) |
 | Shop the look | A photo with numbered points; each point opens a product, and one dialog adds the whole kit to the cart |
 | Checkout | Stripe-hosted Checkout from a server-priced cart; success and cancel pages; sold-out and low-stock states; stock reservation while a checkout is open |
-| Orders | Paid orders from the webhook (exactly once), refunds, disputes, fulfilment status, timeline, guest order links |
+| Orders | Paid orders from the webhook (exactly once), refunds, disputes, fulfilment status, timeline, guest order links (emailed signed link, page at `/orders/view`) |
 | Operations | Admin "Commerce" page (key and webhook health, resync, reconcile, abandoned-checkout cleanup), and MCP tools for an agent: `commerce_status`, `commerce_catalog_sync`, `commerce_orders_list`, `commerce_inventory_adjust`, `commerce_orders_refund`, `commerce_checkouts_sweep`, `commerce_reconcile`, `commerce_webhooks_*` and more |
 | Design system | Tokens, atoms to sections, lints that fail on a raw colour, a shadow or a gradient, a contrast test of the token pairs |
+| Releases | Changesets (`pnpm changeset`), publish workflow — `docs/releasing.md` (packages not on npm until scope exists) |
+| Quality | oxlint (`pnpm lint`), Vitest across packages; `data-testid` hooks on cart, checkout success and order lookup (no Playwright suite in CI yet) |
 
 Not built (say so when you ask for it, the agent will plan it as new work): shipping rates and tax rules beyond the plugin
-options, discount codes beyond Stripe promotion codes, customer accounts, digital downloads, a real multi-currency cart.
+options, discount codes beyond Stripe promotion codes, customer accounts, digital downloads, a real multi-currency cart,
+Playwright e2e for Cloudflare, one-click Deploy button for this monorepo without a standalone copy or published packages.
 
 ## 4. Prompts
 
@@ -81,7 +86,7 @@ Every prompt below assumes you also paste the guardrails.
 Rules: Stripe sandbox keys only, never print a secret, never touch a production database or host. Do not commit or push
 unless I ask. Follow AGENTS.md (Conventional Commits, files under 600 lines, strict TypeScript, tests with the change).
 Add a CHANGELOG.md entry; a UI change also updates packages/design-system/CHANGELOG.md; a decision goes to
-.ai/decisions/, a trap to .ai/memory/. Before you call it done run pnpm typecheck, pnpm test and pnpm build, and run the
+.ai/decisions/, a trap to .ai/memory/. Before you call it done run pnpm check:ai, pnpm lint, pnpm typecheck, pnpm test and pnpm build, and run the
 feature for real (dev server, curl, browser). Tell me what you verified and what you did not.
 ```
 
@@ -161,9 +166,28 @@ apps/storefront/seed/seed.json, regenerate types (npx emdash types), and read
 ### Review and ship
 
 ```text
-Review my branch against main: run the gate (pnpm check:ai, typecheck, test, build), read the diff for correctness,
+Review my branch against main: run the gate (pnpm check:ai, lint, typecheck, test, build), read the diff for correctness,
 security (input validation at the boundary, secrets, amounts derived on the server) and missing tests, and tell me blockers
 first. Then write the PR description: what changed and why, how it was verified, what is not covered.
+```
+
+### Deploy on Cloudflare
+
+```text
+I want this storefront on Cloudflare Workers. Read docs/cloudflare.md and .ai/decisions/2026-11-17-cloudflare-target-switch.md.
+Do not promise the Deploy button works for this monorepo (workspace:* siblings). Walk me through local workerd first
+(dev:cloudflare on a non-4360 port), seed with EMDASH_URL, restart after first seed, stripe listen, then build:cloudflare
+and what wrangler secrets I must set myself. Never log in to my account or print secrets. Say what you verified vs what
+needs a real Cloudflare account.
+```
+
+### Prepare a release
+
+```text
+Prepare a release of @emdash-commerce packages. Read docs/releasing.md and .changesets/README.md. List what is pending
+(pnpm changeset status), whether the npm scope and NPM_TOKEN exist (they may not — say so), and what the Version Packages
+PR would bump. Do not run changeset version or publish unless I ask. Update package changelogs only through the Changesets
+workflow, not by hand, except as releasing.md describes for the first merge.
 ```
 
 ## 5. Working with the dev server and the agent
@@ -187,4 +211,4 @@ first. Then write the PR description: what changed and why, how it was verified,
 | Bundle | A fixed-price product whose "Includes" specification lists its parts |
 | Look (shop the look) | A photo with points, each linked to a product; one dialog adds the kit to the cart |
 | Rail | A horizontal row of product cards on the home page, driven by a category slug |
-| Gate | `pnpm typecheck`, `pnpm test`, `pnpm build` (CI also runs `pnpm check:ai`) |
+| Gate | `pnpm check:ai`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` |

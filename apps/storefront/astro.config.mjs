@@ -1,21 +1,51 @@
 import { createRequire } from "node:module";
 
-import node from "@astrojs/node";
 import react from "@astrojs/react";
 import { defineConfig } from "astro/config";
 import emdash, { local } from "emdash/astro";
-import { sqlite } from "emdash/db";
 
 // The image-hotspots admin entry imports `@emdash-cms/admin` (MediaPickerModal). pnpm can link a workspace
 // package to a different copy of it than the one `emdash` renders the admin with, and two copies mean two
 // React contexts (query client, i18n). Alias it to the exact copy `emdash` resolves.
 const adminEntry = createRequire(createRequire(import.meta.url).resolve("emdash")).resolve("@emdash-cms/admin");
 
+// One app, two runtimes. Unset (or anything but "cloudflare") is the Node target: standalone server, SQLite file,
+// uploads on disk. `DEPLOY_TARGET=cloudflare` is the Workers target: D1 (`DB`), R2 (`MEDIA`), see wrangler.jsonc and
+// docs/cloudflare.md. The runtime-specific packages are imported lazily so the Node target never loads the Cloudflare
+// ones and the other way round.
+const isCloudflare = process.env.DEPLOY_TARGET === "cloudflare";
+
+// Where the Node target keeps its state. Both default to the folders next to this file; the end-to-end suite points
+// them at a throwaway directory (`.e2e/`, see docs/testing.md) so a test run never touches `data.db` or `uploads/`.
+const databaseFile = process.env.EMDASH_DATABASE_FILE || "./data.db";
+const uploadsDirectory = process.env.EMDASH_UPLOADS_DIR || "./uploads";
+
+const nodeRuntime = async () => {
+	const [{ default: node }, { sqlite }] = await Promise.all([import("@astrojs/node"), import("emdash/db")]);
+	return {
+		adapter: node({ mode: "standalone" }),
+		database: sqlite({ url: `file:${databaseFile}` }),
+		storage: local({
+			directory: uploadsDirectory,
+			baseUrl: "/_emdash/api/media/file",
+		}),
+	};
+};
+
+const cloudflareRuntime = async () => {
+	const [{ default: cloudflare }, { d1, r2 }] = await Promise.all([import("@astrojs/cloudflare"), import("@emdash-cms/cloudflare")]);
+	return {
+		adapter: cloudflare(),
+		database: d1({ binding: "DB", session: "auto", coalesce: true }),
+		storage: r2({ binding: "MEDIA" }),
+	};
+};
+
+const runtime = await (isCloudflare ? cloudflareRuntime() : nodeRuntime());
+
 export default defineConfig({
 	output: "server",
-	adapter: node({
-		mode: "standalone",
-	}),
+	adapter: runtime.adapter,
 	image: {
 		layout: "constrained",
 		responsiveStyles: true,
@@ -23,11 +53,8 @@ export default defineConfig({
 	integrations: [
 		react(),
 		emdash({
-			database: sqlite({ url: "file:./data.db" }),
-			storage: local({
-				directory: "./uploads",
-				baseUrl: "/_emdash/api/media/file",
-			}),
+			database: runtime.database,
+			storage: runtime.storage,
 			plugins: [
 				{
 					id: "image-hotspots",

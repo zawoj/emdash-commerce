@@ -1,7 +1,10 @@
 /** Plugin identity and the vocabularies shared by the value, the widget and the site. */
 
+import packageJson from "../../package.json" with { type: "json" };
+
 export const PLUGIN_ID = "image-hotspots";
-export const PLUGIN_VERSION = "0.1.0";
+/** The package version, so a `changeset version` bump is the only place the number changes. */
+export const PLUGIN_VERSION: string = packageJson.version;
 
 /** The widget name; a field selects it with `widget: "image-hotspots:hotspots"`. */
 export const WIDGET_NAME = "hotspots";

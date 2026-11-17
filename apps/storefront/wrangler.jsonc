@@ -1,0 +1,44 @@
+{
+	// Cloudflare target of the storefront (DEPLOY_TARGET=cloudflare). Guide: docs/cloudflare.md
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "emdash-commerce",
+	"main": "./src/worker.ts",
+	"compatibility_date": "2026-02-24",
+	// nodejs_compat also fills process.env with the vars and secrets below, which is how the Stripe plugin
+	// reads STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET as its fallback to the admin settings.
+	"compatibility_flags": ["nodejs_compat"],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "emdash-commerce",
+		},
+	],
+	"r2_buckets": [
+		{
+			"binding": "MEDIA",
+			"bucket_name": "emdash-commerce-media",
+		},
+	],
+	// Co-editing rooms, one Durable Object per entry being edited
+	"durable_objects": {
+		"bindings": [{ "name": "EMDASH_ROOMS", "class_name": "EmDashRoom" }],
+	},
+	"exports": {
+		"EmDashRoom": { "type": "durable-object", "storage": "sqlite" },
+	},
+	// Sandboxed plugins require Worker Loader, available on Workers paid plans. The two plugins of this shop are
+	// trusted (they run in the Worker), so it is not needed. Uncomment to enable:
+	// "worker_loaders": [{ "binding": "LOADER" }],
+	// Maintenance cron: the commerce plugin's webhook retries, catalog sync and checkout sweep run on it
+	"triggers": {
+		"crons": ["* * * * *"],
+	},
+	// Secrets are set with `wrangler secret put <NAME>` (or typed into the Deploy to Cloudflare form), never here.
+	// "required" makes wrangler warn about a missing one in local dev, lists them for `wrangler types`, and is what
+	// the deploy button prompts for. STRIPE_WEBHOOK_SECRET is optional: "Register webhook" in the Commerce admin
+	// page stores the signing secret encrypted in the database. COMMERCE_ACCESS_TOKEN_SECRET is optional too
+	// (generated and stored encrypted on first use). Details: docs/cloudflare.md
+	"secrets": {
+		"required": ["EMDASH_ENCRYPTION_KEY", "STRIPE_SECRET_KEY"],
+	},
+}

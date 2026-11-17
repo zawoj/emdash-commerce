@@ -1,6 +1,9 @@
 export const CART_API = {
 	summary: "/api/cart/summary",
+	fragment: "/api/cart/fragment",
 } as const;
+
+export const CART_PAGE_FORM_ID = "cart-page-lines";
 
 export const CART_EVENTS = {
 	changed: "cart:changed",

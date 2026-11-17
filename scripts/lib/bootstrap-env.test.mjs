@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
 	checkEnv,
 	classifyStripeKey,
+	encryptionKeyFrom,
+	isEncryptionKey,
 	isNodeVersionAtLeast,
 	isPlaceholder,
 	isWebhookSecret,
@@ -12,7 +14,7 @@ import {
 
 const EXAMPLE = [
 	"# comment",
-	"EMDASH_ENCRYPTION_KEY=replace-with-openssl-rand-hex-32",
+	"EMDASH_ENCRYPTION_KEY=replace-with-emdash-secrets-generate",
 	"",
 	"STRIPE_SECRET_KEY=sk_test_replace_me",
 	"STRIPE_WEBHOOK_SECRET=whsec_replace_me",
@@ -57,6 +59,7 @@ describe("classifyStripeKey", () => {
 
 describe("placeholders and webhook secrets", () => {
 	it("knows the placeholders of .env.example", () => {
+		expect(isPlaceholder("replace-with-emdash-secrets-generate")).toBe(true);
 		expect(isPlaceholder("replace-with-openssl-rand-hex-32")).toBe(true);
 		expect(isPlaceholder("whsec_replace_me")).toBe(true);
 		expect(isPlaceholder(undefined)).toBe(true);
@@ -82,7 +85,7 @@ describe("isNodeVersionAtLeast", () => {
 
 describe("checkEnv", () => {
 	const byId = (checks) => Object.fromEntries(checks.map((check) => [check.id, check.isOk]));
-	const key = "a".repeat(64);
+	const key = `emdash_enc_v1_${"a".repeat(43)}`;
 
 	it("flags the untouched example as not ready", () => {
 		expect(byId(checkEnv(parseEnv(EXAMPLE)))).toEqual({ "encryption-key": false, "stripe-key": false, "webhook-secret": false });
@@ -100,5 +103,35 @@ describe("checkEnv", () => {
 		expect(checks.find((check) => check.id === "stripe-key").message).toContain("LIVE");
 		expect(JSON.stringify(checks)).not.toContain("51Habcdefghij");
 		expect(JSON.stringify(checks)).not.toContain(key);
+	});
+});
+
+describe("encryption key", () => {
+	const valid = `emdash_enc_v1_${"A1_-".repeat(10)}abc`;
+
+	it("accepts what EmDash 1.5 accepts and rejects the hex key the old bootstrap generated", () => {
+		expect(valid).toHaveLength(57);
+		expect(isEncryptionKey(valid)).toBe(true);
+		expect(isEncryptionKey("a".repeat(64))).toBe(false);
+		expect(isEncryptionKey(`emdash_enc_v1_${"a".repeat(42)}`)).toBe(false);
+		expect(isEncryptionKey(`emdash_enc_v1_${"a".repeat(44)}`)).toBe(false);
+		expect(isEncryptionKey("")).toBe(false);
+	});
+
+	it("accepts a rotation list only when every entry is valid", () => {
+		expect(isEncryptionKey(`${valid}, ${valid.slice(0, -3)}xyz`)).toBe(true);
+		expect(isEncryptionKey(`${valid},not-a-key`)).toBe(false);
+	});
+
+	it("generates a key from 32 bytes that passes its own check", () => {
+		const key = encryptionKeyFrom(Buffer.alloc(32, 255));
+		expect(key).toBe(`emdash_enc_v1_${"_".repeat(42)}8`);
+		expect(isEncryptionKey(key)).toBe(true);
+		expect(isEncryptionKey(encryptionKeyFrom(Buffer.from(Array.from({ length: 32 }, (_, i) => i * 7))))).toBe(true);
+	});
+
+	it("flags a hex key in a .env as not ready", () => {
+		const env = { EMDASH_ENCRYPTION_KEY: "a".repeat(64), STRIPE_SECRET_KEY: "sk_test_51Habcdefghij", STRIPE_WEBHOOK_SECRET: "whsec_1a2b3c4d5e6f" };
+		expect(checkEnv(env).find((check) => check.id === "encryption-key")).toMatchObject({ isOk: false, isRequired: true });
 	});
 });

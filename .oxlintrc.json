@@ -1,0 +1,80 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["typescript", "import", "unicorn", "promise"],
+	"categories": {
+		"correctness": "error",
+		"suspicious": "warn",
+		"perf": "warn"
+	},
+	"rules": {
+		"no-await-in-loop": "off",
+		"no-unused-vars": [
+			"warn",
+			{
+				"argsIgnorePattern": "^_",
+				"varsIgnorePattern": "^_"
+			}
+		],
+		"unicorn/filename-case": "off",
+		"unicorn/no-null": "off",
+		"unicorn/prefer-add-event-listener": "off",
+		"typescript/no-unsafe-type-assertion": "warn",
+		"typescript/unbound-method": "off",
+		"typescript/no-floating-promises": "error",
+		"typescript/no-unnecessary-boolean-literal-compare": "off",
+		"no-underscore-dangle": "off",
+		"typescript/consistent-return": "off",
+		"typescript/no-unnecessary-type-conversion": "off",
+		"typescript/no-unnecessary-type-parameters": "off",
+		"typescript/no-useless-default-assignment": "off",
+		"import/no-named-as-default": "off",
+		"import/no-unassigned-import": [
+			"warn",
+			{
+				"allow": ["**/*.css", "@testing-library/react", "vitest-browser-react"]
+			}
+		],
+		"typescript/no-useless-empty-export": "off",
+		"eslint/no-irregular-whitespace": "off",
+		"unicorn/prefer-string-starts-ends-with": "warn",
+		"unicorn/no-useless-spread": "warn",
+		"unicorn/no-useless-fallback-in-spread": "off",
+		"eslint/require-yield": "off"
+	},
+	"overrides": [
+		{
+			"files": [
+				"**/*.test.ts",
+				"**/*.test.tsx",
+				"**/*.test.mjs",
+				"**/tests/**/*.ts",
+				"**/tests/**/*.tsx"
+			],
+			"rules": {
+				"typescript/no-unsafe-type-assertion": "off",
+				"typescript/no-unnecessary-type-assertion": "off",
+				"unicorn/consistent-function-scoping": "off"
+			}
+		},
+		{
+			"files": [
+				"packages/plugin-stripe/**/*.ts",
+				"packages/plugin-image-hotspots/**/*.ts",
+				"packages/plugin-image-hotspots/**/*.tsx",
+				"apps/storefront/**/*.ts",
+				"apps/storefront/**/*.tsx",
+				"scripts/**/*.mjs"
+			],
+			"rules": {
+				"typescript/no-unsafe-type-assertion": "off"
+			}
+		}
+	],
+	"ignorePatterns": [
+		"**/dist/**",
+		"**/node_modules/**",
+		"**/*.d.ts",
+		"apps/storefront/emdash-env.d.ts",
+		"apps/storefront/public/**"
+	]
+}
