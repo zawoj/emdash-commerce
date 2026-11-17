@@ -42,6 +42,13 @@ the four colour-contrast `test.fixme` cases.
   a `--temporary` account (blocked: R2 forbidden, 5 MiB asset cap; nothing left behind, no Stripe webhook was created).
   Separate logs: `2026-11-17-mailpit-delivery.md`, `2026-11-17-cloudflare-temporary-account-deploy.md`.
 
+## After merge (#9)
+- `cloudflare-template.yml` on `main` (run 44174274182): generate, install, build, dry-run, publish all passed; the orphan
+  branch `cloudflare-template` exists (commit `Generated from zawoj/emdash-commerce@7d2c15d`).
+- `release.yml` failed: Actions were not allowed to create pull requests. Turned on "Allow GitHub Actions to create and approve
+  pull requests" through the API (`can_approve_pull_request_reviews: true`, `default_workflow_permissions` stays `read`; a PUT
+  with `-F` form fields returned 204 and changed nothing, a JSON body worked) and re-ran it: "Version Packages" is #10, not merged.
+
 ## Verification
 On the merged branch:
 - `pnpm check:ai`, `pnpm lint` (0 errors), `pnpm typecheck`, `pnpm test` and `pnpm build` all pass.

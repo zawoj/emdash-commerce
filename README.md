@@ -57,8 +57,8 @@ Admin (dev only): `http://localhost:4360/_emdash/api/setup/dev-bypass?redirect=/
 
 **Deploy to Cloudflare button:** [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/zawoj/emdash-commerce/tree/cloudflare-template)
 — it deploys a **generated, standalone copy** of `apps/storefront` (the three workspace packages vendored), published to the
-`cloudflare-template` branch by `.github/workflows/cloudflare-template.yml`. The branch exists only after that workflow has run on
-`main` once, and the button itself has not been pressed against a real account yet. Generate the same copy locally with
+`cloudflare-template` branch by `.github/workflows/cloudflare-template.yml`. The branch is regenerated on every push to `main` that touches the
+storefront or the packages; the button itself has not been pressed against a real account yet. Generate the same copy locally with
 `pnpm template:cloudflare`. The other route is **Workers Builds** on this repo with root directory `apps/storefront` — see
 [`docs/cloudflare.md`](docs/cloudflare.md).
 

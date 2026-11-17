@@ -188,8 +188,9 @@ manual run) force-pushes the result, with the lockfile that install wrote, as a 
 https://deploy.workers.cloudflare.com/?url=https://github.com/zawoj/emdash-commerce/tree/cloudflare-template
 ```
 
-The first run of the workflow creates the branch; until then the URL 404s. Run it from the Actions tab (**Run workflow**) after
-merging. The decision and its alternatives: `.ai/decisions/2026-11-17-cloudflare-deploy-template.md`.
+The branch was first published on 2026-11-17 by the push that merged #9 (run 44174274182: generate, install, build and
+dry-run passed, then the branch was pushed). Its single commit names the source commit (`Generated from zawoj/emdash-commerce@<sha>`).
+**Run workflow** in the Actions tab regenerates it by hand. The decision and its alternatives: `.ai/decisions/2026-11-17-cloudflare-deploy-template.md`.
 
 Verified locally on 2026-11-17 (macOS, Node 24.22.1, no Cloudflare account): the copy generated into a directory outside the
 repository (`/tmp`), `pnpm install --ignore-workspace` (a new lockfile), `pnpm run typecheck` (0 errors), `pnpm run build`,
