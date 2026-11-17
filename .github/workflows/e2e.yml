@@ -2,12 +2,18 @@
 #
 # smoke     Needs no secrets: a storefront dev server without any Stripe key, a throwaway SQLite database, Chromium.
 #           Runs on every pull request and on push to main.
+# smoke-cloudflare
+#           The same smoke specs against the Cloudflare target: `astro dev` on workerd with throwaway local D1/R2 state
+#           (E2E_TARGET=cloudflare, docs/testing.md). Needs no secrets. Runs on every pull request and push to main, like
+#           smoke, in parallel with it: about 2.2 minutes against 53 seconds for Node on a laptop, and it is the only automated check of
+#           the Worker target.
 # purchase  A real test purchase against a Stripe *sandbox* (hosted Checkout, webhooks through `stripe listen`).
 #           Runs only on a manual run (workflow_dispatch) and weekly, only in zawoj/emdash-commerce.
 #           Repository secret (Settings, Secrets and variables, Actions): STRIPE_SANDBOX_SECRET_KEY, an sk_test_ or
 #           rk_test_ key of a Stripe sandbox (restricted-key permissions: docs/getting-started.md). The suite refuses
 #           any other key. The Stripe CLI reads the same key from STRIPE_API_KEY (the non-interactive form of
-#           `stripe listen --api-key`, kept out of the process list), so no `stripe login` is needed.
+#           `stripe listen --api-key`, kept out of the process list), so no `stripe login` is needed. The job runs the
+#           purchase specs on the Node target and then on the Cloudflare target.
 
 name: E2E
 
@@ -68,6 +74,46 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  smoke-cloudflare:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      # Version comes from package.json `packageManager`.
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ".node-version"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm test:e2e:install --with-deps
+
+      - name: Smoke tests on the Cloudflare target (workerd)
+        run: pnpm test:e2e:smoke:cloudflare
+
+      - name: Upload the report and traces
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: e2e-smoke-cloudflare-report
+          path: |
+            playwright-report/
+            test-results/
+            .e2e-cloudflare/server.log
+            .e2e-cloudflare/server-first.log
+            .e2e-cloudflare/seed.log
+          if-no-files-found: ignore
+          retention-days: 7
+
   purchase:
     if: github.repository == 'zawoj/emdash-commerce' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
     runs-on: ubuntu-latest
@@ -123,7 +169,14 @@ jobs:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SANDBOX_SECRET_KEY }}
         run: pnpm exec playwright test --project=purchase
 
-      # stripe-listen.log is left out on purpose: it prints the webhook signing secret.
+      - name: Purchase tests on the Cloudflare target (Stripe sandbox, workerd)
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SANDBOX_SECRET_KEY }}
+          E2E_TARGET: cloudflare
+        run: pnpm exec playwright test --project=purchase
+
+      # stripe-listen.log is left out on purpose: it prints the webhook signing secret. The report and traces are those of
+      # the run that failed (the Cloudflare run starts only when the Node run passed).
       - name: Upload the report and traces
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -135,5 +188,8 @@ jobs:
             .e2e/server.log
             .e2e/server-first.log
             .e2e/seed.log
+            .e2e-cloudflare/server.log
+            .e2e-cloudflare/server-first.log
+            .e2e-cloudflare/seed.log
           if-no-files-found: ignore
           retention-days: 7

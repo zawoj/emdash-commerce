@@ -2,11 +2,17 @@ import { expect, type Page } from "@playwright/test";
 
 import { PLUGIN_API } from "./config";
 
-/** Adds the product on the page to the cart and waits until the plugin has accepted the line. */
+/**
+ * Adds the product on the page to the cart and waits until the plugin has accepted the line **and** the page has finished
+ * with it. The client script stores a new cart's id in a cookie (`/api/cart-cookie`) after the plugin answers and only then
+ * updates the header bubble; a navigation right after the plugin's answer can beat that cookie, and the next page then
+ * shows an empty cart. Workerd is slower than Node there, which is how the race showed up.
+ */
 export const addToCartFromProductPage = async (page: Page): Promise<void> => {
 	const accepted = page.waitForResponse((response) => response.url().includes(`${PLUGIN_API}/cart/lines`) && response.request().method() === "POST");
 	await page.getByTestId("add-to-cart").click();
 	expect((await accepted).ok()).toBe(true);
+	await expect(page.getByRole("banner").locator("[data-count-bubble]")).toHaveText(/^[1-9]/);
 };
 
 export const openProduct = async (page: Page, slug: string): Promise<void> => {

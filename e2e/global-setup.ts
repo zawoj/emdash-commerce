@@ -1,9 +1,9 @@
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
-import { BASE_URL, PORT, RUN_DIR, STOREFRONT_DIR, STRIPE_MODE_ENV, STRIPE_READY_ENV, STRIPE_SKIP_REASON_ENV, UPLOADS_DIR } from "./support/config";
+import { BASE_URL, IS_CLOUDFLARE, PORT, RUN_DIR, RUNTIME_PROOF_ENV, STOREFRONT_DIR, STRIPE_MODE_ENV, STRIPE_READY_ENV, STRIPE_SKIP_REASON_ENV, TARGET, UPLOADS_DIR } from "./support/config";
 import { isPortServed, type ManagedProcess } from "./support/processes";
-import { makeEncryptionKey, seedCatalog, serverEnv, startServer, warmUp, type StripeServerEnv } from "./support/server";
+import { makeEncryptionKey, measureRuntime, removeWorkerSecrets, seedCatalog, serverEnv, startServer, storeWebhookSecret, warmUp, writeWorkerSecrets, type StripeServerEnv } from "./support/server";
 import { isStripeCliInstalled, readWebhookSecret, startListener } from "./support/stripe-cli";
 import { readDotenvFile, resolveStripeKey, STRIPE_KEY_STATES } from "./support/stripe-mode";
 
@@ -48,16 +48,27 @@ const globalSetup = async (): Promise<() => Promise<void>> => {
 	const started: ManagedProcess[] = [];
 	const teardown = async (): Promise<void> => {
 		for (const proc of started.splice(0).toReversed()) await proc.stop();
+		if (IS_CLOUDFLARE) removeWorkerSecrets();
 	};
+	// Safety net like the process groups': the secrets file must not outlive a run that dies without its teardown.
+	if (IS_CLOUDFLARE) process.once("exit", removeWorkerSecrets);
 
 	try {
 		if (plan.secretKey) started.push(await startListener(plan.secretKey));
-		const env = serverEnv({ encryptionKey: makeEncryptionKey(), stripe: plan.stripe });
+		const serverInput = { encryptionKey: makeEncryptionKey(), stripe: plan.stripe };
+		const env = serverEnv(serverInput);
+		if (IS_CLOUDFLARE) {
+			// workerd reads its secrets from a file, not from the environment of the process (see writeWorkerSecrets).
+			writeWorkerSecrets(serverInput);
+		}
+		log(`target: ${TARGET}`);
 
 		// The seed needs the dev login (`astro dev` only). EmDash reads the site URL when the server starts and the first
 		// seed on an empty database is what stores it, so the server is restarted once before any test runs.
 		let server = await startServer(env, "server-first.log");
 		started.push(server);
+		// Before the seed, so the webhooks the catalog sync causes are verified (a 503 would only be Stripe's retry noise).
+		if (IS_CLOUDFLARE && plan.stripe) await storeWebhookSecret(plan.stripe.webhookSecret);
 		log("seeding the demo catalog (with a Stripe key this also syncs it to Stripe: a few minutes)");
 		await seedCatalog(env);
 		await server.stop();
@@ -65,6 +76,9 @@ const globalSetup = async (): Promise<() => Promise<void>> => {
 		server = await startServer(env, "server.log");
 		started.push(server);
 		await warmUp();
+		const runtime = measureRuntime(server);
+		process.env[RUNTIME_PROOF_ENV] = runtime;
+		log(`runtime of the server: ${runtime}`);
 		log(`ready on ${BASE_URL}; logs and the database are in ${RUN_DIR}`);
 	} catch (error) {
 		await teardown();

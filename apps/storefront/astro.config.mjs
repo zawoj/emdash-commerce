@@ -32,10 +32,14 @@ const nodeRuntime = async () => {
 	};
 };
 
+// Where the Cloudflare target keeps its local D1/R2/Durable Object state under `astro dev`. Unset, the adapter uses
+// `.wrangler/state` next to this file; the end-to-end suite points it at a throwaway directory (docs/testing.md).
+const cloudflareStateDirectory = process.env.EMDASH_CLOUDFLARE_STATE_DIR;
+
 const cloudflareRuntime = async () => {
 	const [{ default: cloudflare }, { d1, r2 }] = await Promise.all([import("@astrojs/cloudflare"), import("@emdash-cms/cloudflare")]);
 	return {
-		adapter: cloudflare(),
+		adapter: cloudflare(cloudflareStateDirectory ? { persistState: { path: cloudflareStateDirectory } } : undefined),
 		database: d1({ binding: "DB", session: "auto", coalesce: true }),
 		storage: r2({ binding: "MEDIA" }),
 	};
