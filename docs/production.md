@@ -132,17 +132,34 @@ pnpm catalog:resync                              # mandatory afterwards
 - **The resync is mandatory.** An export carries content and media, not the Stripe ids: they live in the plugin's storage
   (`catalog_links`). After an import `catalog/sync` answers `due: 0` while nothing is in Stripe, so the shop looks fine and
   checkout fails with NOT_SYNCED until `pnpm catalog:resync` has run.
-- **A fresh shop is not "empty" for the importer.** The commerce plugin creates 19 relation definitions (`_emdash_relations`)
-  on a new site, and EmDash 1.5 counts any row there as content: `--analyze` answers `TRANSFER_TARGET_NOT_EMPTY`. The import
-  brings the relations back (the package counts 19). Locally the way through was `DELETE FROM _emdash_relations;` on the
-  target SQLite database before the analyze. On D1 that would be
-  `wrangler d1 execute <db> --remote --command "DELETE FROM _emdash_relations"` (**not tried**; back up first). It is an
-  interaction of the plugin and EmDash, reported as a follow-up, not changed here.
+- **Start the target shop with `COMMERCE_DEFER_RELATIONS=1`.** EmDash 1.5's importer counts any row in `_emdash_relations` as
+  content, and the commerce plugin normally creates its 19 relation definitions (and the fields bound to them) on the first
+  start, so an ordinary fresh shop answers `TRANSFER_TARGET_NOT_EMPTY` on `--analyze`. With the variable set (a plain env var
+  on a Node host, a `vars` entry in `wrangler.jsonc`; it is not a secret) the plugin creates its collections but no relation
+  and no relation-bound field while the site has no relation at all; the collections are scaffold the importer replaces. Order:
+  deploy the fresh shop with the variable, finish the setup wizard (without the demo content), run the three commands above, then
+  **remove the variable and restart**: the plugin sees the schema is complete and records it (no relation is created twice,
+  and the data migrations run then). Do not create products by hand while the variable is set: the product form has no
+  variants, prices or categories pickers until the relations exist. A site that already has relations is never changed by the
+  variable, so leaving it set after the import is harmless apart from skipping later schema updates.
+  - A shop started **without** the variable (or deployed before the setting existed) already holds the relations:
+    delete the target and set it up again with the variable, or clear them once with `DELETE FROM _emdash_relations;` on the
+    target SQLite database before the analyze (D1: `wrangler d1 execute <db> --remote --command "DELETE FROM _emdash_relations"`,
+    **not tried**; back up first). The import brings the relations back (the package counts 19).
 - The export includes every collection of the source (`feedback` too when it ran `pnpm seed`) and the author principal.
 - Run on 2026-11-17, locally: source = a dev server seeded with `pnpm seed` (3.2 MiB package, 86 files), target = the built
   Node server on another port with its own throwaway SQLite database (the admin token was `admin`). Analyze passed after the
   relation delete, confirm imported 180 entries and 65 media with receipt `verification: verified`, `/shop` rendered with
   images, `pnpm catalog:resync` synced the catalog. Not run: D1/R2, a remote host, `--map-principal`, the `transfer:*` scopes alone.
+- Run on 2026-11-17 with `COMMERCE_DEFER_RELATIONS` (no SQL anywhere): source = `astro dev` on a throwaway database seeded with
+  `pnpm seed` (package: 86 files, 3.2 MiB); target = a second `astro dev` with its own database, started with the variable, setup
+  through `/setup/dev-bypass?content=0` (without `content=0` the starter posts and media make the site non-empty; that is the
+  setup, not the plugin). Before the import the target had collections and **0** relations; `--analyze` returned `blockers: []`;
+  `--confirm` finished `verified` (19 relations, 180 entries, 65 media). After a restart without the variable the schema marker
+  became complete and the relation count stayed 19, `pnpm catalog:resync` synced the catalog, `/shop`, the bundle page (all four
+  members under "Includes") and a product page (size and colour options, prices) rendered, and `catalog/sync` answered `due: 0`.
+  The same target started **without** the variable still answered `TRANSFER_TARGET_NOT_EMPTY` with `_emdash_relations` = 19 as
+  the only non-empty table. Not run: a built server, D1/R2, a remote host.
 
 ### What was verified for the token seed
 

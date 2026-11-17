@@ -65,6 +65,21 @@ export interface SchemaPort {
 	setFieldValidation(collectionSlug: string, fieldSlug: string, validation: NonNullable<FieldDefinition["validation"]>): Promise<boolean>;
 }
 
+/**
+ * The definitions without any relation and without the fields bound to one: what a shop waiting for a site import
+ * holds. EmDash's importer counts every row of `_emdash_relations` as content, so a shop that already carries the
+ * commerce relations is "not empty" to it; the collections alone are scaffold it replaces.
+ */
+export const withoutRelations = (definitions: SchemaDefinitions): SchemaDefinitions => ({
+	collections: definitions.collections.map((definition) => {
+		const fields = definition.fields.filter((field) => !field.validation?.relation);
+		const slugs = new Set(fields.map((field) => field.slug));
+		// The seed validator rejects a list column that names a field the seed does not carry.
+		return { ...definition, fields, listColumns: definition.listColumns.filter((column) => slugs.has(column)) };
+	}),
+	relations: [],
+});
+
 export interface ReconcileResult {
 	createdCollections: string[];
 	createdRelations: string[];
@@ -140,7 +155,17 @@ interface LockValue {
 	expiresAt: number;
 }
 
+/** What `ensureSchema` settled on: `isDeferred` means the relations (and the fields bound to them) were left out on purpose. */
+export interface EnsureSchemaResult {
+	isDeferred: boolean;
+}
+
 export interface EnsureSchemaDeps {
+	/**
+	 * Leave the relations out while the site has none (a shop that is going to receive `emdash site import`). Once any
+	 * relation exists, or this is off, the full schema is reconciled as usual.
+	 */
+	isDeferringRelations?: boolean;
 	/** Builds the schema port lazily (opens the database); injectable for tests. */
 	createPort: () => Promise<SchemaPort>;
 	now?: () => number;
@@ -154,7 +179,7 @@ const WAIT_POLL_MS = 250;
 const WAIT_MAX_MS = 20_000;
 
 /** Per-process memo: fingerprint → settled promise. A failed attempt is forgotten so the next call retries. */
-const memo = new Map<string, Promise<void>>();
+const memo = new Map<string, Promise<EnsureSchemaResult>>();
 
 export const resetEnsureSchemaMemo = (): void => memo.clear();
 
@@ -178,20 +203,33 @@ const runReconcile = async (
 	definitions: SchemaDefinitions,
 	fingerprint: string,
 	deps: Required<Pick<EnsureSchemaDeps, "now" | "sleep" | "randomId">> & EnsureSchemaDeps,
-): Promise<void> => {
+): Promise<EnsureSchemaResult> => {
 	const holder = deps.randomId();
 	const startedAt = deps.now();
+	const deferredFingerprint = `${fingerprint}:deferred`;
+	const readCurrent = async (): Promise<EnsureSchemaResult | null> => {
+		const marker = await kv.get<string>(KV_KEY.schemaMarker);
+		if (marker === fingerprint) return { isDeferred: false };
+		// A deferred marker only satisfies a caller that still defers; one that does not re-runs and completes the schema.
+		if (deps.isDeferringRelations && marker === deferredFingerprint) return { isDeferred: true };
+		return null;
+	};
 	for (;;) {
-		if ((await kv.get<string>(KV_KEY.schemaMarker)) === fingerprint) return;
+		const current = await readCurrent();
+		if (current) return current;
 		if (await acquireLock(kv, holder, deps.now)) break;
 		if (deps.now() - startedAt > WAIT_MAX_MS) throw new Error("Timed out waiting for another process to finish the commerce schema update");
 		await deps.sleep(WAIT_POLL_MS);
 	}
 	try {
 		// Another process may have finished between our marker check and taking the lock.
-		if ((await kv.get<string>(KV_KEY.schemaMarker)) === fingerprint) return;
-		const result = await reconcileSchema(await deps.createPort(), definitions);
-		await kv.set(KV_KEY.schemaMarker, fingerprint);
+		const current = await readCurrent();
+		if (current) return current;
+		const port = await deps.createPort();
+		const isDeferred = Boolean(deps.isDeferringRelations) && (await port.getRelationSlugs()).size === 0;
+		const result = await reconcileSchema(port, isDeferred ? withoutRelations(definitions) : definitions);
+		await kv.set(KV_KEY.schemaMarker, isDeferred ? deferredFingerprint : fingerprint);
+		if (isDeferred) deps.log?.info("Commerce relations deferred: the site is waiting for an import; remove COMMERCE_DEFER_RELATIONS and restart to create them");
 		if (result.createdCollections.length > 0 || result.createdRelations.length > 0 || result.addedFields.length > 0 || result.placedCollections.length > 0) {
 			deps.log?.info("Commerce schema reconciled", {
 				createdCollections: result.createdCollections,
@@ -200,6 +238,7 @@ const runReconcile = async (
 				placedCollections: result.placedCollections,
 			});
 		}
+		return { isDeferred };
 	} finally {
 		await releaseLock(kv, holder);
 	}
@@ -213,10 +252,10 @@ export const ensureSchema = async (
 	ctx: Pick<PluginContext, "kv" | "log">,
 	options: SchemaOptions,
 	deps: EnsureSchemaDeps,
-): Promise<void> => {
+): Promise<EnsureSchemaResult> => {
 	const definitions = buildSchemaDefinitions(options);
 	const fingerprint = await fingerprintDefinitions(definitions);
-	const memoKey = `${fingerprint}:${JSON.stringify(options.collections)}`;
+	const memoKey = `${fingerprint}:${JSON.stringify(options.collections)}:${deps.isDeferringRelations ? "deferred" : "full"}`;
 	const cached = memo.get(memoKey);
 	if (cached) return cached;
 	const attempt = runReconcile(ctx.kv, definitions, fingerprint, {
