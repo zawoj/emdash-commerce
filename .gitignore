@@ -16,5 +16,7 @@ dist
 /.e2e-cloudflare/
 # generated Cloudflare template (pnpm template:cloudflare)
 /.template/
+# throwaway CA and certificate of `pnpm mail:dev`
+/.mailpit/
 /playwright-report/
 /test-results/
