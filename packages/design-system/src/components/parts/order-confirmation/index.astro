@@ -8,7 +8,7 @@ import { orderConfirmationTones, type OrderConfirmationProps } from './types'
 
 type Props = OrderConfirmationProps
 
-const { tone = orderConfirmationTones.success, heading, text, numberLabel, number, facts = [], nextHeading, nextSteps = [] } = Astro.props
+const { tone = orderConfirmationTones.success, heading, text, textTestId, numberLabel, number, numberTestId, facts = [], nextHeading, nextSteps = [] } = Astro.props
 const glyph = { success: iconNames.check, pending: iconNames.clock, failed: iconNames.octagonAlert }[tone]
 ---
 
@@ -16,12 +16,12 @@ const glyph = { success: iconNames.check, pending: iconNames.clock, failed: icon
   <span class="order-confirmation__mark" aria-hidden="true"><Icon name={glyph} size={32} /></span>
   <div class="order-confirmation__intro">
     <h1 class="order-confirmation__heading">{heading}</h1>
-    {text && <p class="order-confirmation__text">{text}</p>}
+    {text && <p class="order-confirmation__text" data-testid={textTestId}>{text}</p>}
   </div>
   <dl class="order-confirmation__facts">
     <div class="order-confirmation__fact order-confirmation__fact--number">
       <dt>{numberLabel}</dt>
-      <dd>{number}</dd>
+      <dd data-testid={numberTestId}>{number}</dd>
     </div>
     {
       facts.map((fact) => (

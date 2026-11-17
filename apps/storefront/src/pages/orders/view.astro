@@ -40,6 +40,9 @@ const page = result.state === ORDER_LINK_STATES.ok ? orderPageOf(result.view, lo
 				text={result.state === ORDER_LINK_STATES.invalid ? copy.invalidText : copy.unavailableText}
 				headingLevel={1}
 				action={{ href: "/shop", label: copy.backToShop }}
+				secondaryAction={
+					result.state === ORDER_LINK_STATES.invalid ? { href: "/orders/lookup", label: copy.lookupNewLink } : undefined
+				}
 			/>
 		)
 	}

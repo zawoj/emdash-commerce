@@ -1,245 +1,49 @@
 ---
+import CartPageFragment from "../features/cart/components/CartPageFragment.astro";
+import { CHECKOUT_NOTICE_PARAM, checkoutNoticeMessage } from "../features/cart/checkout-notice";
+import { loadCartPage } from "../features/cart/summary";
 import Base from "../layouts/Base.astro";
-import { PLUGIN_ID } from "@emdash-commerce/plugin-stripe";
+import { resolveLocale } from "../lib/i18n";
+import { cartStrings } from "../lib/strings";
+import { getSiteLocale } from "../utils/locale";
 
-const apiBase = `/_emdash/api/plugins/${PLUGIN_ID}`;
+const locale = resolveLocale(getSiteLocale());
+const copy = cartStrings(locale);
+const initialAlert = checkoutNoticeMessage(Astro.url.searchParams.get(CHECKOUT_NOTICE_PARAM), copy);
+const model = await loadCartPage(Astro.request, locale, copy);
 ---
 
-<Base title="Cart" pageTitle="Your cart">
-	<section class="band">
-		<div class="frame section">
-			<h1>Cart</h1>
-			<div id="cart-root" data-api={apiBase}>
-				<p>Loading cart…</p>
-			</div>
-			<div id="cart-alerts" class="cart-alerts" hidden></div>
-			<button type="button" class="btn" id="checkout-btn" hidden>Checkout</button>
-		</div>
+<Base title={copy.cartTitle} pageTitle={copy.cartTitle}>
+	<section class="cart-page" data-cart-page>
+		<h1 class="cart-page__title">{copy.cartTitle}</h1>
+		{
+			model ? (
+				<CartPageFragment copy={copy} model={model} initialAlert={initialAlert} />
+			) : (
+				<p>{copy.loadFailed}</p>
+			)
+		}
 	</section>
 	<script>
-		import { variantDisplayNameOf, type CartView } from "@emdash-commerce/plugin-stripe/contracts";
-		import { buildCartLineBody } from "../utils/add-to-cart";
-		import { CHECKOUT_NOTICE_PARAM, checkoutNoticeMessage } from "../features/cart/checkout-notice";
-		import { dispatchCartUpdated } from "../utils/cart-events";
-		import { parseApiEnvelope, syncCartCookie } from "../utils/commerce-fetch";
-
-		const root = document.getElementById("cart-root");
-		const checkoutBtn = document.getElementById("checkout-btn") as HTMLButtonElement | null;
-		const alerts = document.getElementById("cart-alerts");
-		const api = root?.getAttribute("data-api");
-		if (!root || !api || !checkoutBtn || !alerts) throw new Error("Cart UI missing");
-
-		const mutationHeaders = {
-			"Content-Type": "application/json",
-			"X-EmDash-Request": "1",
-		};
-
-		const formatMoney = (amount: number, currency: string) =>
-			new Intl.NumberFormat(undefined, {
-				style: "currency",
-				currency: currency.toUpperCase(),
-			}).format(amount / 100);
-
-		const showAlert = (message: string) => {
-			alerts.hidden = false;
-			alerts.textContent = message;
-		};
-
-		const clearAlert = () => {
-			alerts.hidden = true;
-			alerts.textContent = "";
-		};
-
-		const persistCart = async (cart: CartView) => {
-			if (cart.isNew) await syncCartCookie(cart.cartId);
-		};
-
-		const updateLine = async (priceId: string, quantity: number) => {
-			const res = await fetch(`${api}/cart/lines`, {
-				method: "POST",
-				credentials: "include",
-				headers: mutationHeaders,
-				body: JSON.stringify(buildCartLineBody(priceId, quantity, "set")),
-			});
-			return { res, ...(parseApiEnvelope<CartView>(await res.json()) as { data: CartView | null }) };
-		};
-
-		const removeLine = async (priceId: string) => {
-			const url = new URL(`${api}/cart/lines`, window.location.origin);
-			url.searchParams.set("priceId", priceId);
-			const res = await fetch(url, {
-				method: "DELETE",
-				credentials: "include",
-				headers: { "X-EmDash-Request": "1" },
-			});
-			return { res, ...(parseApiEnvelope<CartView>(await res.json()) as { data: CartView | null }) };
-		};
-
-		const issueText = (cart: CartView): string =>
-			cart.issues.map((issue) => issue.message).join(" ");
-
-		const render = (cart: CartView) => {
-			void persistCart(cart);
-			dispatchCartUpdated(cart.itemCount);
-			clearAlert();
-
-			if (cart.issues.length > 0) showAlert(issueText(cart));
-
-			if (cart.lines.length === 0) {
-				root.innerHTML = "<p>Your cart is empty. <a href='/shop'>Browse the shop</a>.</p>";
-				checkoutBtn.hidden = true;
-				return;
-			}
-
-			const subtotal =
-				cart.subtotal !== null
-					? formatMoney(cart.subtotal.amount, cart.subtotal.currency)
-					: "—";
-
-			root.innerHTML = `
-				<ul class="cart-lines">${cart.lines
-					.map((line) => {
-						const lineIssue = cart.issues.find((issue) => issue.priceId === line.priceId);
-						const lineTotal = formatMoney(line.lineTotal.amount, line.lineTotal.currency);
-						const name = variantDisplayNameOf(line.title, line.variantTitle);
-						return `<li class="cart-line" data-price-id="${line.priceId}">
-							<div>
-								<strong>${name}</strong>
-								${lineIssue ? `<p class="chip">${lineIssue.message}</p>` : `<p>${lineTotal}</p>`}
-							</div>
-							<div class="cart-line__controls">
-								<button type="button" data-action="dec" aria-label="Decrease quantity" ${lineIssue ? "disabled" : ""}>−</button>
-								<span>${line.quantity}</span>
-								<button type="button" data-action="inc" aria-label="Increase quantity" ${lineIssue ? "disabled" : ""}>+</button>
-								<button type="button" data-action="remove">Remove</button>
-							</div>
-						</li>`;
-					})
-					.join("")}</ul>
-				<p><strong>Subtotal: ${subtotal}</strong></p>`;
-
-			checkoutBtn.hidden = !cart.isCheckoutReady;
-		};
-
-		const bindLineControls = (cart: CartView) => {
-			for (const line of root.querySelectorAll<HTMLElement>(".cart-line")) {
-				const priceId = line.getAttribute("data-price-id");
-				if (!priceId) continue;
-				const current = cart.lines.find((item) => item.priceId === priceId);
-				if (!current) continue;
-				line.querySelector<HTMLButtonElement>('[data-action="inc"]')?.addEventListener("click", async () => {
-					const nextQty = Math.min(999, current.quantity + 1);
-					const { res, data } = await updateLine(priceId, nextQty);
-					if (res.status === 429) {
-						showAlert("Too many requests — wait a moment and try again.");
-						return;
-					}
-					if (data) {
-						render(data);
-						bindLineControls(data);
-					}
-				});
-				line.querySelector<HTMLButtonElement>('[data-action="dec"]')?.addEventListener("click", async () => {
-					const nextQty = Math.max(0, current.quantity - 1);
-					const { res, data } =
-						nextQty === 0 ? await removeLine(priceId) : await updateLine(priceId, nextQty);
-					if (res.status === 429) {
-						showAlert("Too many requests — wait a moment and try again.");
-						return;
-					}
-					if (data) {
-						render(data);
-						bindLineControls(data);
-					}
-				});
-				line.querySelector<HTMLButtonElement>('[data-action="remove"]')?.addEventListener("click", async () => {
-					const { res, data } = await removeLine(priceId);
-					if (data) {
-						render(data);
-						bindLineControls(data);
-					} else if (res.status === 429) showAlert("Too many requests — wait a moment and try again.");
-				});
-			}
-		};
-
-		const load = async () => {
-			const res = await fetch(`${api}/cart`, { credentials: "include" });
-			const json = await res.json();
-			const { data } = parseApiEnvelope<CartView>(json);
-			if (data) {
-				render(data);
-				bindLineControls(data);
-			} else {
-				root.innerHTML = "<p>Could not load your cart.</p>";
-			}
-		};
-
-		checkoutBtn.addEventListener("click", async () => {
-			checkoutBtn.disabled = true;
-			const res = await fetch(`${api}/checkout`, {
-				method: "POST",
-				credentials: "include",
-				headers: mutationHeaders,
-				body: JSON.stringify({ uiMode: "hosted" }),
-			});
-			const json = await res.json();
-			if (res.status === 409) {
-				const message =
-					typeof json === "object" && json && "error" in json
-						? String((json as { error: { message?: string } }).error.message ?? "Cart is not ready for checkout")
-						: "Cart is not ready for checkout";
-				showAlert(message);
-				checkoutBtn.disabled = false;
-				return;
-			}
-			if (res.status === 429) {
-				showAlert("Too many checkout attempts — wait a moment and try again.");
-				checkoutBtn.disabled = false;
-				return;
-			}
-			const { data } = parseApiEnvelope<{ url: string | null }>(json);
-			if (data?.url) window.location.href = data.url;
-			else {
-				showAlert("Checkout could not be started.");
-				checkoutBtn.disabled = false;
-			}
-		});
-
-		/** A failed `/api/cart/checkout` redirect lands here with `?checkout=<notice>`; show it once and clean the URL. */
-		const showCheckoutNotice = () => {
-			const url = new URL(window.location.href);
-			const message = checkoutNoticeMessage(url.searchParams.get(CHECKOUT_NOTICE_PARAM));
-			if (!message) return;
-			showAlert(message);
-			url.searchParams.delete(CHECKOUT_NOTICE_PARAM);
-			window.history.replaceState(null, "", url);
-		};
-
-		load().then(showCheckoutNotice);
+		import "../features/cart/client/cart-page.client";
 	</script>
-	<style>
-		.cart-lines {
-			list-style: none;
-			padding: 0;
-			display: grid;
-			gap: 1rem;
-		}
-		.cart-line {
-			display: flex;
-			justify-content: space-between;
-			gap: 1rem;
-			align-items: center;
-			border-bottom: 1px solid var(--color-border);
-			padding-bottom: 0.75rem;
-		}
-		.cart-line__controls {
-			display: flex;
-			gap: 0.5rem;
-			align-items: center;
-		}
-		.cart-alerts {
-			margin-block: var(--spacing-4);
-			color: var(--color-text-secondary);
-		}
-	</style>
 </Base>
+
+<style>
+	.cart-page {
+		padding: var(--space-24) var(--page-gutter) var(--space-64);
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-24);
+		max-width: var(--page-max);
+		margin-inline: auto;
+	}
+
+	.cart-page__title {
+		margin: 0;
+		font: var(--type-display-md);
+		font-stretch: var(--display-stretch);
+		letter-spacing: var(--tracking-display);
+		text-transform: var(--text-case);
+	}
+</style>

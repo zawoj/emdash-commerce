@@ -8,6 +8,8 @@ import { cartStrings } from "../../lib/strings";
 import { commerceApiBase, fetchCatalogProductDetail, fetchCatalogProducts, parseApiEnvelope } from "../../utils/commerce-fetch";
 import { LINE_FIELDS } from "./constants";
 import { MINI_CART_ID } from "../shell/tab-bar";
+import { cartPageOf, type CartPageModel } from "./view-model";
+import type { CartCopy } from "./copy";
 
 export interface CartSummary {
 	count: number;
@@ -151,3 +153,19 @@ export const loadSummary = async (request: Request, locale: Locale): Promise<Car
 };
 
 export const miniCartId = (): string => MINI_CART_ID;
+
+export const loadCartPage = async (request: Request, locale: Locale, copy: CartCopy): Promise<CartPageModel | null> => {
+	const origin = new URL(request.url).origin;
+	const cart = await fetchCartServer(request);
+	if (!cart) return null;
+	if (cart.lines.length === 0) {
+		return cartPageOf(cart, locale, copy, new Map(), new Map());
+	}
+	const items = await catalogForProducts(
+		origin,
+		cart.lines.map((line) => line.productId),
+	);
+	const slugByProductId = new Map(items.map((item) => [item.id, item.slug]));
+	const imageByPriceId = await lineImages(origin, cart, items);
+	return cartPageOf(cart, locale, copy, slugByProductId, imageByPriceId);
+};

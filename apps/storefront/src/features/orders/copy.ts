@@ -45,6 +45,16 @@ const en = {
 	unavailableTitle: "We cannot show this order right now",
 	unavailableText: "Please try again in a few minutes.",
 	backToShop: "Back to the shop",
+	lookupTitle: "Find your order",
+	lookupIntro: "Enter the email and order number from your confirmation. If they match, we email a new private link.",
+	lookupEmailLabel: "Email",
+	lookupNumberLabel: "Order number",
+	lookupSubmit: "Send link",
+	lookupSuccess: "If the email and order number belong together, we sent a link.",
+	lookupRateLimited: "Too many attempts — wait a moment and try again.",
+	lookupInvalid: "Check the email and order number and try again.",
+	lookupSubmitting: "Sending…",
+	lookupNewLink: "Request a new order link",
 } as const;
 
 export interface OrdersCopy {
@@ -79,6 +89,16 @@ export interface OrdersCopy {
 	unavailableTitle: string;
 	unavailableText: string;
 	backToShop: string;
+	lookupTitle: string;
+	lookupIntro: string;
+	lookupEmailLabel: string;
+	lookupNumberLabel: string;
+	lookupSubmit: string;
+	lookupSuccess: string;
+	lookupRateLimited: string;
+	lookupInvalid: string;
+	lookupSubmitting: string;
+	lookupNewLink: string;
 }
 
 const pl: OrdersCopy = {
@@ -128,6 +148,16 @@ const pl: OrdersCopy = {
 	unavailableTitle: "Nie możemy teraz pokazać tego zamówienia",
 	unavailableText: "Spróbuj ponownie za kilka minut.",
 	backToShop: "Wróć do sklepu",
+	lookupTitle: "Znajdź zamówienie",
+	lookupIntro: "Podaj e-mail i numer zamówienia z potwierdzenia. Gdy się zgadzają, wyślemy nowy prywatny link.",
+	lookupEmailLabel: "E-mail",
+	lookupNumberLabel: "Numer zamówienia",
+	lookupSubmit: "Wyślij link",
+	lookupSuccess: "Jeśli e-mail i numer zamówienia do siebie pasują, wysłaliśmy link.",
+	lookupRateLimited: "Zbyt wiele prób — odczekaj chwilę i spróbuj ponownie.",
+	lookupInvalid: "Sprawdź e-mail i numer zamówienia i spróbuj ponownie.",
+	lookupSubmitting: "Wysyłanie…",
+	lookupNewLink: "Poproś o nowy link do zamówienia",
 };
 
-export const ordersCopy = { en: en as OrdersCopy, pl };
+export const ordersCopy: Record<"en" | "pl", OrdersCopy> = { en, pl };

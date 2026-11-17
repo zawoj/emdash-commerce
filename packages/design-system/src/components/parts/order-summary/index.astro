@@ -40,7 +40,7 @@ const hasThumbs = lines.some((line) => line.image)
             {row.label}
             {row.note && <span class="order-summary__note">{row.note}</span>}
           </dt>
-          <dd>{row.value}</dd>
+          <dd data-testid={row.testId}>{row.value}</dd>
         </div>
       ))
     }

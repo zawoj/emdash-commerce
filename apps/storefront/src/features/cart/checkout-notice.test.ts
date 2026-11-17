@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { cartCopy } from "./copy";
 import { cartNoticeHref, checkoutNoticeFor, checkoutNoticeMessage } from "./checkout-notice";
 
 describe("checkoutNoticeFor", () => {
@@ -9,7 +10,8 @@ describe("checkoutNoticeFor", () => {
 	});
 
 	it("sends a cart that cannot be checked out back to the cart", () => {
-		for (const code of ["CART_NOT_CHECKOUT_READY", "INSUFFICIENT_STOCK", "CART_LOCKED", "CONFLICT"]) expect(checkoutNoticeFor(409, code)).toBe("not_ready");
+		for (const code of ["CART_NOT_CHECKOUT_READY", "INSUFFICIENT_STOCK", "CART_LOCKED", "CONFLICT"])
+			expect(checkoutNoticeFor(409, code)).toBe("not_ready");
 	});
 
 	it("keeps provider and server failures as errors", () => {
@@ -22,9 +24,10 @@ describe("checkoutNoticeFor", () => {
 
 describe("checkoutNoticeMessage", () => {
 	it("explains every notice and shows nothing for an unknown query value", () => {
-		expect(checkoutNoticeMessage("empty")).toMatch(/empty/);
-		expect(checkoutNoticeMessage("rate_limited")).toBeTruthy();
-		expect(checkoutNoticeMessage("<script>")).toBeNull();
-		expect(checkoutNoticeMessage(null)).toBeNull();
+		const copy = cartCopy.en;
+		expect(checkoutNoticeMessage("empty", copy)).toMatch(/empty/i);
+		expect(checkoutNoticeMessage("rate_limited", copy)).toBeTruthy();
+		expect(checkoutNoticeMessage("<script>", copy)).toBeNull();
+		expect(checkoutNoticeMessage(null, copy)).toBeNull();
 	});
 });

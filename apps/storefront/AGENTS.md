@@ -90,8 +90,10 @@ Commerce reads use `utils/commerce-fetch.ts` against `/_emdash/api/plugins/strip
 | Home            | `/`             | `features/home/HomeView.astro`, `features/home/config.ts` (seeded catalog slugs; `load-config.ts` returns committed defaults); shop-the-look image and points and the spotlight image and callouts come from the `home` entry (`look_hotspots`, `spotlight_callouts`, read by `features/home/home-points.ts`) |
 | Shop            | `/shop`         | `pages/shop/index.astro`, `features/catalog/domain/listing.ts` |
 | Product         | `/shop/[slug]`  | `pages/shop/[slug].astro`, `features/catalog/components/ProductBuyBox.astro` |
-| Cart            | `/cart`         | `pages/cart.astro` (plugin cart API) |
+| Cart            | `/cart`         | `pages/cart.astro`, `features/cart/` (design-system cart lines, order summary, phone action bar; plugin cart API) |
+| Checkout thanks | `/checkout/success?session_id=` | `pages/checkout/success.astro`, `features/checkout/` (`OrderConfirmation`, polls `checkout/status`) |
 | Your order      | `/orders/view?token=` | `pages/orders/view.astro`, `features/orders/` (the signed link in the order emails; the plugin's `orders/view`; never cached or indexed, no referrer) |
+| Order lookup    | `/orders/lookup` | `pages/orders/lookup.astro` (guest `orders/access-link`; same success copy whether or not the order exists) |
 | Category, brand | `/shop/c/[slug]`, `/shop/brand/[slug]` | the URL patterns the plugin gives those collections: 301 to `/shop?category=` / `?brand=`, a real 404 for an unknown slug |
 
 ## Image with points (`image-hotspots` plugin)

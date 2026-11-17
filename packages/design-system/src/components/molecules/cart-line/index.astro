@@ -20,7 +20,7 @@ const hasMany = quantity.value > 1
 const totalCompareAt = line.previousLinePrice ?? (hasMany ? undefined : line.previousUnitPrice)
 ---
 
-<div class:list={['cart-line', isCompact && 'cart-line--compact', line.isUnavailable && 'cart-line--unavailable']}>
+<div class:list={['cart-line', isCompact && 'cart-line--compact', line.isUnavailable && 'cart-line--unavailable']} data-testid="cart-line">
   <div class="cart-line__media">
     {line.image ? <Image class="cart-line__img" {...line.image} /> : <span class="cart-line__placeholder" aria-hidden="true"></span>}
   </div>

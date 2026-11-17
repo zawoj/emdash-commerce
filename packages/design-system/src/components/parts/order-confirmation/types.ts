@@ -23,10 +23,14 @@ export interface OrderConfirmationProps {
   heading: string
   /** One sentence under it ("We sent the confirmation to anna@example.com."). */
   text?: string
+  /** `data-testid` on the status line (`checkout-status`). */
+  textTestId?: string
   /** "Order number". */
   numberLabel: string
   /** The number itself, set large. */
   number: string
+  /** `data-testid` on the order number (`checkout-order-number`). */
+  numberTestId?: string
   /** A few facts beside the number (expected delivery, how it is paid). */
   facts?: readonly OrderConfirmationFact[]
   /** What happens next, numbered. */

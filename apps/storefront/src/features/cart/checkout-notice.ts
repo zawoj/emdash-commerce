@@ -3,6 +3,8 @@
  * genuine provider failure stays an error response.
  */
 
+import type { CartCopy } from "./copy";
+
 export const CHECKOUT_NOTICE_PARAM = "checkout";
 
 export const CHECKOUT_NOTICE = {
@@ -12,14 +14,19 @@ export const CHECKOUT_NOTICE = {
 } as const;
 export type CheckoutNotice = (typeof CHECKOUT_NOTICE)[keyof typeof CHECKOUT_NOTICE];
 
-const MESSAGES: Record<CheckoutNotice, string> = {
-	[CHECKOUT_NOTICE.empty]: "Your cart is empty. Add something from the shop to check out.",
-	[CHECKOUT_NOTICE.notReady]: "Your cart changed or an item is no longer available. Review your cart and try again.",
-	[CHECKOUT_NOTICE.rateLimited]: "Too many checkout attempts. Wait a moment and try again.",
-};
+type NoticeCopy = Pick<CartCopy, "checkoutNoticeEmpty" | "checkoutNoticeNotReady" | "checkoutNoticeRateLimited">;
+
+const noticeMessages = (copy: NoticeCopy): Record<CheckoutNotice, string> => ({
+	[CHECKOUT_NOTICE.empty]: copy.checkoutNoticeEmpty,
+	[CHECKOUT_NOTICE.notReady]: copy.checkoutNoticeNotReady,
+	[CHECKOUT_NOTICE.rateLimited]: copy.checkoutNoticeRateLimited,
+});
+
+const NOTICE_VALUES = new Set<string>(Object.values(CHECKOUT_NOTICE));
 
 /** The message of a notice from the URL; an unknown value shows nothing, so the query string cannot inject text. */
-export const checkoutNoticeMessage = (value: string | null): string | null => (value && value in MESSAGES ? MESSAGES[value as CheckoutNotice] : null);
+export const checkoutNoticeMessage = (value: string | null, copy: NoticeCopy): string | null =>
+	value && NOTICE_VALUES.has(value) ? noticeMessages(copy)[value as CheckoutNotice] : null;
 
 const NOT_READY_CODES = new Set(["CART_NOT_CHECKOUT_READY", "CART_LOCKED", "INSUFFICIENT_STOCK", "CONFLICT"]);
 

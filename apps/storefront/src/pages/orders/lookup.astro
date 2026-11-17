@@ -1,0 +1,107 @@
+---
+import Button from "@emdash-commerce/design-system/components/atoms/button/index.astro";
+import FieldInput from "@emdash-commerce/design-system/components/atoms/field-input/index.astro";
+import InlineNotice from "@emdash-commerce/design-system/components/atoms/inline-notice/index.astro";
+import { buttonSizes, buttonVariants } from "@emdash-commerce/design-system";
+import { noticeTones } from "@emdash-commerce/design-system/components/atoms/inline-notice/variants.ts";
+import FormFields from "@emdash-commerce/design-system/components/parts/form/fields.astro";
+import FormField from "@emdash-commerce/design-system/components/parts/form/field.astro";
+import Base from "../../layouts/Base.astro";
+import { resolveLocale } from "../../lib/i18n";
+import { ordersStrings } from "../../lib/strings";
+import { getSiteLocale } from "../../utils/locale";
+
+const locale = resolveLocale(getSiteLocale());
+const copy = ordersStrings(locale);
+const sent = Astro.url.searchParams.get("sent") === "1";
+---
+
+<Base title={copy.lookupTitle} pageTitle={copy.lookupTitle} robots="noindex, nofollow">
+	<section class="order-lookup">
+		<h1 class="order-lookup__title">{copy.lookupTitle}</h1>
+		<p class="order-lookup__intro">{copy.lookupIntro}</p>
+		<form
+			class="order-lookup__form"
+			method="post"
+			action="/api/orders/access-link"
+			data-order-lookup-form
+			data-success={copy.lookupSuccess}
+			data-rate-limited={copy.lookupRateLimited}
+			data-invalid={copy.lookupInvalid}
+		>
+			<FormFields>
+				<FormField>
+					<FieldInput
+						id="order-lookup-email"
+						name="email"
+						type="email"
+						label={copy.lookupEmailLabel}
+						isRequired
+						autocomplete="email"
+						data-testid="order-lookup-email"
+					/>
+				</FormField>
+				<FormField>
+					<FieldInput
+						id="order-lookup-number"
+						name="orderNumber"
+						type="text"
+						label={copy.lookupNumberLabel}
+						isRequired
+						autocomplete="off"
+						data-testid="order-lookup-number"
+					/>
+				</FormField>
+			</FormFields>
+			<Button
+				type="submit"
+				variant={buttonVariants.primary}
+				size={buttonSizes.lg}
+				data-testid="order-lookup-submit"
+				data-order-lookup-submit
+			>
+				{copy.lookupSubmit}
+			</Button>
+			<div class:list={["order-lookup__notice", !sent && "order-lookup__notice--hidden"]}>
+				<InlineNotice tone={noticeTones.success} data-testid="order-lookup-notice" data-order-lookup-notice>
+					{copy.lookupSuccess}
+				</InlineNotice>
+			</div>
+		</form>
+	</section>
+	<script>
+		import "../../features/orders/client/lookup.client";
+	</script>
+</Base>
+
+<style>
+	.order-lookup {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-24);
+		padding: var(--space-24) var(--page-gutter) var(--space-64);
+		max-width: 560px; /* token-lint-ignore: narrow form */
+		margin-inline: auto;
+	}
+
+	.order-lookup__title {
+		margin: 0;
+		font: var(--type-display-md);
+	}
+
+	.order-lookup__intro {
+		margin: 0;
+		color: var(--text-body);
+		font: var(--type-text-regular-md);
+	}
+
+	.order-lookup__form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-24);
+	}
+
+	.order-lookup__notice--hidden {
+		display: none;
+	}
+</style>

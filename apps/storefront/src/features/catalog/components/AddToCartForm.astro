@@ -27,7 +27,7 @@ const { copy, priceFieldName, isDisabled = false, submitLabel } = Astro.props;
 >
 	{priceFieldName ? <input type="hidden" name={priceFieldName} value="" data-price-id /> : null}
 	<slot />
-	<Button type="submit" variant={buttonVariants.primary} size={buttonSizes.lg} isDisabled={isDisabled} data-add-to-cart-button>
+	<Button type="submit" variant={buttonVariants.primary} size={buttonSizes.lg} isDisabled={isDisabled} data-add-to-cart-button data-testid="add-to-cart">
 		{submitLabel}
 	</Button>
 	<div class="add-to-cart__status" role="status" aria-live="polite" data-add-to-cart-status></div>
