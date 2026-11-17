@@ -27,9 +27,12 @@ The admin UI is at `http://localhost:4360/_emdash/admin`.
 
 ## Skills
 
-Agent skills are in `.agents/skills/`. Load them when working on specific tasks:
+Agent skills are in `.agents/skills/` (EmDash skills vendored here; commerce skills symlink to repo root `skills/`).
+Load them when working on specific tasks:
 
 - **building-emdash-site** -- Querying content, rendering Portable Text, schema design, seed files, site features (menus, widgets, search, SEO, comments, bylines). Start here.
+- **building-commerce-site** -- `stripe-commerce` plugin, HTTP API, cart/checkout/orders, seeding, production and Cloudflare (`skills/building-commerce-site/SKILL.md`).
+- **extending-stripe-plugin** -- Plugin layers, extension subscribers, invariants, tests (`skills/extending-stripe-plugin/SKILL.md`).
 - **creating-plugins** -- Building EmDash plugins with hooks, storage, admin UI, API routes, and Portable Text block types.
 - **emdash-cli** -- CLI commands for content management, seeding, type generation, and visual editing flow.
 
