@@ -138,7 +138,8 @@ const reportEnv = () => {
 		return;
 	}
 	for (const check of checkEnv(parseEnv(readEnv()))) {
-		report(check.isOk, check.isRequired, check.message, "Edit apps/storefront/.env, or run pnpm bootstrap in a terminal to be asked for it.");
+		const hint = check.id === "email-provider" ? "Optional locally; setup for a deployed site: docs/email.md. Only .env is read here, not admin settings or Worker secrets." : "Edit apps/storefront/.env, or run pnpm bootstrap in a terminal to be asked for it.";
+		report(check.isOk, check.isRequired, check.message, hint);
 	}
 };
 

@@ -93,8 +93,10 @@ end-to-end suite uses neither: `pnpm test:e2e:smoke:cloudflare` keeps its state 
 
 4. **Email.** The commerce plugin's order emails go through EmDash's email pipeline, as do magic links and invites. In
    development a console provider prints them; **a deployed site has no provider until you set one**: Settings → Email in the
-   admin (SMTP with TLS: `EMAIL_SMTP_*`, or a provider plugin; EmDash's *Email Setup* guide). Without one, order confirmation
-   and the guest order-link emails are not delivered. Not set up or tested here.
+   admin (SMTP on port 587 or 465: `EMAIL_SMTP_*` or saved in the admin; or a provider plugin). Without one, order
+   confirmation and the guest order-link emails are not delivered, and the shop does not say so. Setup, a worked example, how
+   to test and what was run (including a workerd trap with `.dev.vars`) are in [email.md](email.md). No relay was tried from a
+   deployed Worker.
 
 5. **Register the Stripe webhook.** Stripe cannot call `localhost`, and a deployed site has no `stripe listen`. In the admin
    open Commerce (the plugin's status page) and press **Register webhook**, or call the MCP tool
@@ -194,5 +196,9 @@ project (3 passed: cart quantity, a sandbox purchase through hosted Checkout wit
 the lookup-page link), plus a measurement in the suite that the server really is `workerd`. It runs in CI on every pull request
 (smoke) and weekly (purchase). It is the dev server, not the built Worker; details and limits in `docs/testing.md`.
 
-Not checked: a real Cloudflare deploy, a real domain and passkey login, an email provider, the Deploy button, Workers Builds,
+
+Email (`docs/email.md`): under the local workerd dev server SMTP settings saved through the admin API, and a send reached a real
+SMTP server through STARTTLS to its login step; no message was delivered from Workers.
+
+Not checked: a real Cloudflare deploy, a real domain and passkey login, an email delivered from a Worker, the Deploy button, Workers Builds,
 `emdash site import` into D1, behaviour under Workers CPU or subrequest limits, `wrangler dev --remote`.
