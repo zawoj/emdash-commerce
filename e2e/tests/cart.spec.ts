@@ -15,14 +15,20 @@ test.describe("cart without a Stripe key", () => {
 	test("adds a line that is shown but not ready for checkout", async ({ page }) => {
 		await openProduct(page, simpleProduct.slug);
 		await addToCartFromProductPage(page);
-		// The visible bubble; the spoken text beside it says "1 items" (a known plural slip, see docs/testing.md).
 		await expect(page.getByRole("banner").locator("[data-count-bubble]")).toHaveText("1");
+		// What a screen reader announces in the cart control's live region: singular for one item, not "1 items".
+		await expect(page.getByRole("banner").getByRole("link", { name: "Cart" }).locator("[data-count-spoken]")).toHaveText("1 item in the cart");
 
 		await page.goto("/cart");
 		const line = page.getByRole("main").getByTestId("cart-line");
 		await expect(line).toHaveCount(1);
 		await expect(line).toContainText(simpleProduct.title);
-		await expect(line.getByText("This item is not ready for checkout yet.").first()).toBeVisible();
+		// The reason is said once: one warning on the line, announced once (not an unavailable text plus a second notice).
+		const warning = line.getByText("This item is not ready for checkout yet.");
+		await expect(warning).toHaveCount(1);
+		await expect(warning).toBeVisible();
+		await expect(line.getByRole("status")).toHaveCount(1);
+		await expect(line.getByRole("status")).toHaveText("Warning: This item is not ready for checkout yet.");
 		await expect(page.getByRole("main").getByTestId("cart-subtotal")).toHaveText(simpleProduct.price);
 
 		// What degrades: Checkout and the quantity stepper are disabled; the line can still be removed.

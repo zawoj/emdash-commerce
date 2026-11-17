@@ -39,7 +39,7 @@ pnpm bootstrap     # creates apps/storefront/.env, generates EMDASH_ENCRYPTION_K
 pnpm dev           # http://localhost:4360
 stripe listen --forward-to localhost:4360/_emdash/api/plugins/stripe-commerce/webhook   # second terminal
 pnpm seed          # mock catalog, Homepage fields, Stripe catalog sync when a key is set
-pnpm doctor        # read-only health check
+pnpm run doctor    # read-only health check
 ```
 
 After the **first seed on an empty database**, restart the server once (`npx astro dev stop` in `apps/storefront`, then
@@ -52,13 +52,19 @@ Admin (dev only): `http://localhost:4360/_emdash/api/setup/dev-bypass?redirect=/
 | Target | Guide |
 | --- | --- |
 | **Cloudflare** (Workers + D1 + R2) | [`docs/cloudflare.md`](docs/cloudflare.md) — `DEPLOY_TARGET=cloudflare`, `dev:cloudflare`, `deploy:cloudflare` |
-| **Production habits** (export/import, webhooks, email) | [`docs/production.md`](docs/production.md) |
+| **Production habits** (seeding, export/import, webhooks) | [`docs/production.md`](docs/production.md) |
+| **Email** (SMTP for order and order-link emails) | [`docs/email.md`](docs/email.md) |
 
-**Deploy to Cloudflare button:** it **does not work** for this monorepo as-is. Cloudflare treats a URL subdirectory as
-the repo root; `apps/storefront` depends on sibling workspace packages (`workspace:*`), so a one-click clone cannot
-resolve them. Use **Workers Builds** with the repository root and build directory `apps/storefront`, or publish
-`@emdash-commerce/*` to npm first — see [`docs/cloudflare.md`](docs/cloudflare.md) and
-`.ai/memory/cloudflare-deploy-button-needs-an-isolated-subdirectory.md`.
+**Deploy to Cloudflare button:** [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/zawoj/emdash-commerce/tree/cloudflare-template)
+— it deploys a **generated, standalone copy** of `apps/storefront` (the three workspace packages vendored), published to the
+`cloudflare-template` branch by `.github/workflows/cloudflare-template.yml`. The branch exists only after that workflow has run on
+`main` once, and the button itself has not been pressed against a real account yet. Generate the same copy locally with
+`pnpm template:cloudflare`. The other route is **Workers Builds** on this repo with root directory `apps/storefront` — see
+[`docs/cloudflare.md`](docs/cloudflare.md).
+
+**Seeding and email on a deployed site:** `EMDASH_URL=https://<host> EMDASH_TOKEN=ec_pat_… pnpm seed` fills a deployed site
+through an API token ([`docs/production.md`](docs/production.md), "Seeding a deployed site"); order emails need an SMTP
+provider ([`docs/email.md`](docs/email.md)).
 
 ## How it works
 
@@ -113,7 +119,7 @@ flowchart LR
 
 **Design system** — tokens (Cloudflare-orange wireframe), props-driven Astro components, `token-lint` / `wireframe-lint`.
 
-**Tooling** — `pnpm bootstrap`, `pnpm doctor`, `pnpm seed`, `pnpm art`, **oxlint** (`pnpm lint`), **Changesets**
+**Tooling** — `pnpm bootstrap`, `pnpm run doctor`, `pnpm seed`, `pnpm art`, **oxlint** (`pnpm lint`), **Changesets**
 (`pnpm changeset`, `docs/releasing.md`), CI on every PR, `AGENTS.md`, `docs/ai-guide.md`, `.ai/`, root **`skills/`**.
 
 ## Packages
@@ -151,8 +157,9 @@ Mock Cloudflare-merch shop with seeded data (art from `scripts/art/`).
 | --- | --- |
 | [`docs/getting-started.md`](docs/getting-started.md) | Prerequisites, `.env`, webhooks, seed, purchase, reset |
 | [`docs/ai-guide.md`](docs/ai-guide.md) | Architecture map, prompts for agents |
-| [`docs/production.md`](docs/production.md) | Export/import, production webhooks and email |
-| [`docs/cloudflare.md`](docs/cloudflare.md) | Workers, D1, R2, deploy limits, what was verified |
+| [`docs/production.md`](docs/production.md) | Seeding a deployed site, export/import, production webhooks |
+| [`docs/email.md`](docs/email.md) | Email on a deployed site: SMTP setup, testing, Workers findings |
+| [`docs/cloudflare.md`](docs/cloudflare.md) | Workers, D1, R2, the Deploy button template, deploy limits, what was verified |
 | [`docs/releasing.md`](docs/releasing.md) | Changesets and npm publish |
 
 ### Package docs
@@ -188,13 +195,15 @@ Mock Cloudflare-merch shop with seeded data (art from `scripts/art/`).
 | Command | Does |
 | --- | --- |
 | `pnpm dev` | Storefront on port **4360** |
-| `pnpm bootstrap` · `pnpm doctor` | First-run `.env` · health check |
-| `pnpm seed` · `pnpm art` | Demo catalog · regenerate product PNGs |
+| `pnpm bootstrap` · `pnpm run doctor` | First-run `.env` · health check |
+| `pnpm seed` · `pnpm catalog:resync` · `pnpm art` | Demo catalog (dev login, or `EMDASH_TOKEN` for a deployed site) · drive the Stripe catalog resync · regenerate product PNGs |
+| `pnpm template:cloudflare` | Standalone Cloudflare copy of the storefront (Deploy button template) |
 | `pnpm lint` | oxlint (zero errors in CI) |
 | `pnpm changeset` | Add a changeset when a publishable package changes |
 | `pnpm check:ai` | `.ai/` layout and memory index |
 | `pnpm typecheck` · `pnpm test` · `pnpm build` | Validation gate |
 | `pnpm test:e2e:install` · `pnpm test:e2e:smoke` · `pnpm test:e2e` | Chromium for Playwright (once) · browser tests, no secrets · plus a real sandbox purchase (Stripe key and Stripe CLI) |
+| `pnpm test:e2e:smoke:cloudflare` · `pnpm test:e2e:cloudflare` | The same suites on the Cloudflare target (workerd, local D1/R2) |
 
 Cloudflare (from repo root): `pnpm --filter @emdash-commerce/storefront dev:cloudflare --port 4361` (use a port other
 than 4360 if the Node dev server runs). Stop detached Astro with `npx astro dev stop` in `apps/storefront`.
@@ -216,8 +225,8 @@ than 4360 if the Node dev server runs). Stop detached Astro with `npx astro dev 
 ## Roadmap
 
 What we intend to do next, and what this demo deliberately leaves out, is in [`ROADMAP.md`](ROADMAP.md) — the only place in
-the repo for plans (no dates, no promises). Next up: one-click Deploy to Cloudflare, production seeding, the first npm
-release under `@emdash-commerce`, email on deployed sites, and Playwright e2e on the Cloudflare target. Want to help? See
+the repo for plans (no dates, no promises). Next up: the first npm release under `@emdash-commerce`, then proving the new
+deploy paths (Deploy button, token seed, SMTP) against a real Cloudflare account. Want to help? See
 [`CONTRIBUTING.md`](CONTRIBUTING.md) and open a [Discussion](https://github.com/zawoj/emdash-commerce/discussions).
 
 ### Limits today
@@ -229,9 +238,9 @@ From the plugin and demo scope — not a bug list for drive-by fixes:
 - **One currency per cart**; no multi-currency cart or FX in the demo.
 - **No digital downloads**; fulfilment is a status field (no labels or tracking).
 - **Shipping, tax, promo codes, embedded Checkout** — plugin options the demo leaves off.
-- **`pnpm seed` needs the dev login** — not for production deploys; use admin, MCP, or site import + catalog resync.
-- **Deploy button** cannot build this monorepo subdirectory without a standalone copy or published packages.
-- **E2E covers the Node target only** — the Cloudflare target is verified by hand (see [docs/cloudflare.md](docs/cloudflare.md)), not by Playwright.
+- **Seeding a deployed site** needs an API token with the `admin` scope; `emdash site import` into a fresh shop needs a manual workaround (`docs/production.md`).
+- **Deploy button** points at a generated template branch; not yet pressed against a real account.
+- **E2E on Cloudflare** runs `astro dev` on workerd with local D1/R2, not the built Worker or a real deploy ([docs/testing.md](docs/testing.md)).
 - See also **`packages/plugin-stripe/README.md` § Limitations** and **`docs/ai-guide.md` § Not built**.
 
 ## Trademarks

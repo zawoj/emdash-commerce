@@ -14,3 +14,8 @@ STRIPE_WEBHOOK_SECRET=whsec_replace_me
 
 # Optional: signs the links in guest order emails. Generated on first use when EMDASH_ENCRYPTION_KEY is set.
 # COMMERCE_ACCESS_TOKEN_SECRET=
+
+# Optional: real email delivery (docs/email.md). NOTE: wrangler.jsonc declares "secrets.required", and a .dev.vars name that is
+# not listed there never reaches the Worker locally, so EMAIL_SMTP_* here are ignored. Save SMTP in the admin (Settings, Email)
+# for a local run, or add the names to secrets.required temporarily.
+# EMAIL_SMTP_HOST / EMAIL_SMTP_PORT / EMAIL_SMTP_USER / EMAIL_SMTP_PASS / EMAIL_SMTP_FROM_EMAIL

@@ -6,7 +6,7 @@ unofficial **mock Cloudflare-merch store**: fictional products in USD, generated
 
 **Shortcut:** after `pnpm install`, `pnpm bootstrap` does steps 3 and part of 4 for you (it creates `.env`, generates the
 encryption key, takes your Stripe sandbox key and reads the webhook secret from the Stripe CLI, and refuses a live key);
-`pnpm doctor` re-checks everything without changing anything. The sections below are the same steps by hand.
+`pnpm run doctor` re-checks everything without changing anything. The sections below are the same steps by hand.
 
 1. [Prerequisites](#1-prerequisites)
 2. [A Stripe sandbox and its keys](#2-a-stripe-sandbox-and-its-keys)
@@ -91,6 +91,7 @@ pnpm bootstrap      # or by hand: cp apps/storefront/.env.example apps/storefron
 | `EMDASH_ENCRYPTION_KEY` | yes | The key EmDash uses to encrypt secrets stored in the database (plugin settings saved in the admin, the guest order-link secret), in EmDash's own format: `emdash_enc_v1_` followed by 43 base64url characters. A bare hex key (`openssl rand -hex 32`) is rejected. `pnpm bootstrap` generates one; by hand use `npx emdash secrets generate`. Keep it stable: changing it makes already-stored secrets unreadable. |
 | `STRIPE_SECRET_KEY` | for payments | Your sandbox key from step 2 (`sk_test_...` or `rk_test_...`). Without it the shop still loads: catalog, cart and admin work, anything that calls Stripe answers `NOT_CONFIGURED` (503). |
 | `STRIPE_WEBHOOK_SECRET` | for orders | The `whsec_...` that **`stripe listen` prints** ([next section](#4-start-the-server-and-the-webhook-forwarder)). It is not a value from the dashboard. |
+| `EMAIL_SMTP_HOST`, `_PORT`, `_SECURE`, `_USER`, `_PASS`, `_FROM_EMAIL`, `_FROM_NAME`, `_REPLY_TO` | no | Real email delivery through EmDash's built-in SMTP provider. Leave them unset locally: a console provider captures mail (step 6 below). Required on a deployed site; `pnpm run doctor` reports whether the set is valid. [docs/email.md](email.md). In `.env.example`, commented out. |
 | `COMMERCE_ACCESS_TOKEN_SECRET` | no | Signs the links in guest order emails. Generated on first activation when the encryption key is set; set it yourself only to share one value between environments. Not in `.env.example`. |
 
 Two things worth knowing:
@@ -99,7 +100,8 @@ Two things worth knowing:
   key there once and later change `.env`, the old admin value is still used. Clear the setting in the admin to fall back
   to `.env`.
 - Variables for the seed script are read from your shell, not from `.env`: `EMDASH_URL` (default
-  `http://localhost:4360`; set it when you run on another port) and `SEED_SYNC_TIMEOUT_SECONDS` (default 300).
+  `http://localhost:4360`; set it when you run on another port), `SEED_SYNC_TIMEOUT_SECONDS` (default 300) and, only for a
+  deployed site, `EMDASH_TOKEN` (an `ec_pat_…` access token; locally the dev login is used and no token is needed).
 
 ## 4. Start the server and the webhook forwarder
 
@@ -162,7 +164,9 @@ With the server running:
 pnpm seed
 ```
 
-On a fresh database the seed first applies the schema through the dev login, then creates, in this order:
+On a fresh database the seed first applies the schema through the dev login. It also creates the dev-only `feedback` collection
+(the Notes tool of the editing pill, `apps/storefront/seed/dev-tools.json`), which the production seed leaves out. Then it
+creates, in this order:
 
 - the site identity (title and tagline);
 - the attribute vocabulary, brands and categories;
@@ -191,7 +195,11 @@ Each photo is uploaded once to the media library (matched by file name). No netw
   restart, then run `pnpm seed` again (or press "Resync catalog" on the Commerce page).
 
 Why this matters: a product can only be bought once its prices exist in Stripe. A resync only *queues* the work and the
-background task syncs 25 entities every five minutes, so the seed drives it itself.
+background task syncs 25 entities every five minutes, so the seed drives it itself. `pnpm catalog:resync` runs only that last
+step (e.g. after a content import). The seed exits with code 1 when the sync times out or has failures.
+
+**A deployed site** cannot be seeded through the dev login: `EMDASH_URL=https://… EMDASH_TOKEN=ec_pat_… pnpm seed` uses an
+access token instead (scopes, setup wizard, import alternative: `docs/production.md`, "Seeding a deployed site").
 
 ## 6. Sign in to the admin
 
@@ -220,9 +228,11 @@ The dev login exists only in development. A deployed site uses passkeys and need
 5. In the admin open **Commerce**: the order appears under "Recent orders" with its number (`ORD-<year>-00001`), status
    paid and the total. The full record is under the **Orders** collection (lines, payment, timeline), and **Payments** and
    **Customers** have the matching entries. A confirmation email is sent through EmDash's email provider if one is
-   configured (none is needed for the admin order list to update).
+   configured (none is needed for the admin order list to update). A deployed site has no provider until you set one:
+   [docs/email.md](email.md).
 
-6. **Guest order link in development.** With the default console email provider, messages are not delivered to a real inbox.
+6. **Guest order link in development.** With the default console email provider (no `EMAIL_SMTP_*` set), messages are not
+   delivered to a real inbox; to deliver them, see [docs/email.md](email.md).
    After signing in through the [dev login](#6-sign-in-to-the-admin) (same browser session), open
    <http://localhost:4360/_emdash/api/dev/emails> — JSON list of captured mails. Find the order confirmation and copy the
    **View your order** link (it points at `/orders/view?token=…`). Open it in the browser: you should see the order number,
@@ -269,7 +279,7 @@ A database created before the move to USD still has a PLN-only `currency` select
 | Checkout answers 503 `NOT_CONFIGURED` | No `STRIPE_SECRET_KEY`, or the server was started without `.env` (plain `astro dev`). Start with `pnpm dev` and restart after editing `.env`. |
 | Very first checkout after the first seed answers `NOT_CONFIGURED` "points outside the site's allowed origins" | EmDash read the site URL before setup stored it. Restart the server once (`npx astro dev stop`, `pnpm dev`); see `.ai/memory/emdash-site-url-is-read-at-startup.md`. |
 | Stripe rejects the key | A restricted key without a needed permission (step 2). The message names the call. |
-| `pnpm doctor` says the encryption key is wrong, the log says `EMDASH_ENCRYPTION_KEY entry is malformed`, or `/orders/view` and the access-link email answer 500 | The key is not in EmDash's format (`emdash_enc_v1_` + 43 characters; a hex key from an old `.env` is rejected). Generate one with `npx emdash secrets generate` and restart. Do not replace a key on a database that already stored secrets (they become unreadable): reset the database instead (step 8). `.ai/memory/emdash-encryption-key-format.md`. |
+| `pnpm run doctor` says the encryption key is wrong, the log says `EMDASH_ENCRYPTION_KEY entry is malformed`, or `/orders/view` and the access-link email answer 500 | The key is not in EmDash's format (`emdash_enc_v1_` + 43 characters; a hex key from an old `.env` is rejected). Generate one with `npx emdash secrets generate` and restart. Do not replace a key on a database that already stored secrets (they become unreadable): reset the database instead (step 8). `.ai/memory/emdash-encryption-key-format.md`. |
 | Node version warning at `pnpm install` or start | You are on a Node older than 24.22.1. Switch with your version manager (`fnm use`, `nvm use`), reinstall if needed. |
 | `astro dev` returns immediately, "nothing happens" | Astro 7 detaches the dev server in agent and CI-like shells. It is running: `npx astro dev status`, `npx astro dev logs`, `npx astro dev stop` (run in `apps/storefront`). Port busy means an old server is still up; stop it first. |
 | Admin stuck on "Loading EmDash..." | Usually the shared Vite cache: a build (`pnpm build`, or the gate) ran next to the dev server and overwrote its pre-bundled dependencies. Stop the server, delete `apps/storefront/node_modules/.vite*` and `.astro`, start with `astro dev --force`. `.ai/memory/emdash-dev-and-build-share-vite-cache.md` and `emdash-admin-infinite-loading.md` have the details. |

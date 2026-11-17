@@ -3,16 +3,17 @@
 // change is announced; the visible bubble is hidden at 0. The client script
 // (`@emdash-commerce/design-system/count-badge`) updates every badge when `cart:changed` fires with
 // `detail: { count }`.
+import { pluralLabel } from '../../../utils/plural-label'
 import type { CountBadgeProps } from './types'
 
 type Props = CountBadgeProps
 
-const { count, labelTemplate, max = 99 } = Astro.props
+const { count, labelTemplate, labelForms, locale, max = 99 } = Astro.props
 const shown = count > max ? `${max}+` : String(count)
-const spoken = labelTemplate.replace('{count}', String(count))
+const spoken = pluralLabel(labelTemplate, labelForms, locale, count)
 ---
 
-<span class="count-badge" role="status" data-count-badge data-label-template={labelTemplate} data-max={max}>
+<span class="count-badge" role="status" data-count-badge data-label-template={labelTemplate} data-label-forms={labelForms && JSON.stringify(labelForms)} data-locale={locale} data-max={max}>
   <span class="count-badge__bubble" aria-hidden="true" hidden={count <= 0} data-count-bubble>{shown}</span>
   <span class="visually-hidden" data-count-spoken>{spoken}</span>
 </span>

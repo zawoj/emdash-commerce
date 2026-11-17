@@ -1,5 +1,65 @@
 # Changelog
 
+## 2026-11-17 (roadmap items)
+
+### feat: Deploy-button template, seeding and email for deployed sites, Cloudflare e2e, contrast fixes (branch `t3/implement-roadmap-items`) — Claude Code
+Five parallel agent streams, each in its own worktree, merged into one branch. Run log: `.ai/runs/2026-11-17-roadmap-items.md`.
+- **Standalone Cloudflare template.** `pnpm template:cloudflare [outDir] [--npm]` generates a self-contained copy of
+  `apps/storefront`: the three workspace packages are vendored from `pnpm pack` into `vendor/` (or `--npm` once published),
+  Cloudflare is the default build, and the generator fails if any path leaves the copy. `.github/workflows/cloudflare-template.yml`
+  builds the copy outside the workspace, runs `wrangler deploy --dry-run` and force-pushes the orphan branch `cloudflare-template`,
+  which the README's Deploy button points at. Why: the button needs an isolated repository root, and the app depends on
+  `workspace:*` siblings that are not on npm. ADR `cloudflare-deploy-template`. Outside the code: run the workflow on `main` once
+  to create the branch (the button gives 404 until then), and exempt that branch from any branch protection that blocks force-pushes.
+- **Seeding a deployed site.** With `EMDASH_URL` and `EMDASH_TOKEN` (a personal access token, `admin` scope), `pnpm seed` uses bearer
+  auth instead of the dev login. It checks scopes before writing, stops while the setup wizard is unfinished, creates the `home`
+  entry if missing and exits 1 when the Stripe sync fails. `pnpm catalog:resync` drives only the resync, which is required after
+  `emdash site import` because Stripe ids live in plugin storage. Documented in `docs/production.md`, including that the importer
+  refuses a fresh shop (the plugin's relation rows) and the local workaround. ADR `production-seeding`.
+- **Production seed hygiene.** The Notes dev tool's `feedback` collection moved from `seed/seed.json` (the seed the build inlines)
+  to `seed/dev-tools.json`, which only `pnpm seed` applies, and only against a dev server.
+- **Email on a deployed site.** `docs/email.md` covers EmDash's built-in SMTP provider (`EMAIL_SMTP_*` or Settings → Email), how
+  the active provider is chosen, testing, and the limits (no port 25, TLS required, no OAuth2). `pnpm run doctor` reports whether
+  the SMTP variables form a configuration EmDash accepts, without printing values. Verified with a sandbox purchase whose
+  confirmation and order-link emails reached a local SMTP sink. ADR `email-through-emdash-smtp`. Outside the code: configure SMTP
+  on every deployed site.
+- **Playwright on the Cloudflare target.** `E2E_TARGET=cloudflare` (`pnpm test:e2e:smoke:cloudflare`, `pnpm test:e2e:cloudflare`)
+  runs the same specs on workerd (`astro dev` with the Cloudflare adapter), with throwaway D1/R2 state in `.e2e-cloudflare/` on
+  port 4381, and checks that the server really is workerd. A `smoke-cloudflare` CI job runs on every PR, and the weekly purchase job
+  covers this target too. Fixed along the way: a race in the add-to-cart helper. ADR `e2e-cloudflare-target`.
+- **Colour contrast.** A sold-out product card and an unavailable cart line now fade only the photo and use `--text-secondary`
+  for the text (was 4.34:1 / 3.73:1, now 5.97:1). The four `test.fixme` cases are real tests and the axe page checks exclude
+  nothing. Changeset `dimmed-states-text-contrast`.
+- **Fixes to docs and tooling.** Every mention of `pnpm doctor` is now `pnpm run doctor`, because bare `pnpm doctor` runs pnpm's
+  own silent built-in command. README and ROADMAP now match what shipped.
+- **Site import into a fresh shop.** EmDash 1.5's importer counts every `_emdash_relations` row as content, and the Stripe
+  plugin created 19 of them on first start, so `emdash site import --analyze` refused every new shop
+  (`TRANSFER_TARGET_NOT_EMPTY`). A target started with `COMMERCE_DEFER_RELATIONS=1` now gets its collections without relations
+  until the import brings them in; remove the variable and restart, and the plugin completes the schema. It is opt-in because the
+  admin needs the relation fields from the first "New product". ADR `site-import-into-a-fresh-shop`, changeset
+  `site-import-fresh-shop`.
+- **Cart copy.** An unavailable cart line shows its warning once (the storefront passed the same message as both
+  `unavailableText` and `notice`). The cart count and the low-stock text use plural forms (`Intl.PluralRules`: "1 item in the
+  cart", "Last item"; Polish one/few/many). `CountBadge`, the site header and the tab bar take optional `labelForms` and `locale`.
+  Changeset `cart-warning-once-and-plural-count`.
+- **Mailpit for email tests.** `pnpm mail:dev` starts a pinned Mailpit (v1.33.0, Docker) with a throwaway CA and `localhost`
+  certificate, so EmDash's SMTP provider (STARTTLS, verified certificate, login) can be tested locally (`docs/email.md`). A real
+  sandbox purchase on the **built** Node server delivered the order confirmation and the guest order link to Mailpit, and the link
+  opened the order. The Cloudflare dev server delivers too when `NODE_EXTRA_CA_CERTS` is set for the astro process (Miniflare
+  passes it to workerd), which corrects an earlier note.
+- **Real-deploy attempt.** The generated template was deployed with `wrangler deploy --temporary` (no account login). A
+  temporary preview account cannot host the shop: R2 is forbidden and assets over 5 MiB are refused (an EmDash admin chunk is
+  5.7 MB; normal accounts allow 25 MiB). It also showed that a first `wrangler deploy` refuses to create a Worker without the
+  `secrets.required` secrets, so `docs/cloudflare.md` now uses `--secrets-file` for the first deploy.
+- **Two post-save races in the Stripe plugin (found by the Cloudflare e2e run).** Without a Stripe key, every price or variant
+  save got `stripe_sync_status=failed` written into its row just after the response, which collided on D1 with the seed's next
+  publish (409 `CONFLICT`); the sync now leaves rows alone for a missing key. One managed-price lock per product made 20 variant
+  hooks queue past EmDash's 5 s hook timeout, leaving variants without a price (disabled options on the product page); each
+  sellable now converges under its own lock. Both bugs predate this branch; machine load made them visible. Changeset
+  `no-failed-mirror-without-a-stripe-key`.
+- **Not covered:** a real Cloudflare account (the button, the token seed, D1 import and SMTP delivery from a deployed Worker); the npm organisation and first release, which are owner-only steps (the three packages pass
+  `pnpm publish --dry-run`).
+
 ## 2026-11-17 (README roadmap)
 
 ### docs: README section "Limitations (honest)" becomes "Roadmap" — Claude Code

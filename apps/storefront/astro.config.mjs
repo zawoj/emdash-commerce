@@ -32,10 +32,14 @@ const nodeRuntime = async () => {
 	};
 };
 
+// Where the Cloudflare target keeps its local D1/R2/Durable Object state under `astro dev`. Unset, the adapter uses
+// `.wrangler/state` next to this file; the end-to-end suite points it at a throwaway directory (docs/testing.md).
+const cloudflareStateDirectory = process.env.EMDASH_CLOUDFLARE_STATE_DIR;
+
 const cloudflareRuntime = async () => {
 	const [{ default: cloudflare }, { d1, r2 }] = await Promise.all([import("@astrojs/cloudflare"), import("@emdash-cms/cloudflare")]);
 	return {
-		adapter: cloudflare(),
+		adapter: cloudflare(cloudflareStateDirectory ? { persistState: { path: cloudflareStateDirectory } } : undefined),
 		database: d1({ binding: "DB", session: "auto", coalesce: true }),
 		storage: r2({ binding: "MEDIA" }),
 	};
@@ -75,6 +79,13 @@ export default defineConfig({
 	fonts: [],
 	devToolbar: { enabled: false },
 	vite: {
+		// Cloudflare target: the SSR environment runs on workerd, and its dependency scan is not complete at start. The
+		// React renderer is found only on the first request; the re-optimization then deletes chunks workerd is loading
+		// ("The file does not exist ... deps_ssr/sequence-*.js") and the dev server exits, always on a cold Vite cache.
+		// Pre-bundling it up front removes the late discovery (docs/testing.md, .ai/memory/cloudflare-dev-cold-cache-reoptimize.md).
+		...(isCloudflare && {
+			environments: { ssr: { optimizeDeps: { include: ["@astrojs/react/server.js", "@emdash-commerce/plugin-stripe > stripe", "astro/container"] } } },
+		}),
 		resolve: {
 			alias: [{ find: /^@emdash-cms\/admin$/, replacement: adminEntry }],
 		},

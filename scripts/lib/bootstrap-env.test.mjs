@@ -9,6 +9,8 @@ import {
 	isPlaceholder,
 	isWebhookSecret,
 	parseEnv,
+	SMTP_STATES,
+	smtpEnvStatus,
 	upsertEnv,
 } from "./bootstrap-env.mjs";
 
@@ -88,12 +90,12 @@ describe("checkEnv", () => {
 	const key = `emdash_enc_v1_${"a".repeat(43)}`;
 
 	it("flags the untouched example as not ready", () => {
-		expect(byId(checkEnv(parseEnv(EXAMPLE)))).toEqual({ "encryption-key": false, "stripe-key": false, "webhook-secret": false });
+		expect(byId(checkEnv(parseEnv(EXAMPLE)))).toEqual({ "encryption-key": false, "stripe-key": false, "webhook-secret": false, "email-provider": false });
 	});
 
 	it("passes with a generated key, a sandbox key and a webhook secret", () => {
 		const env = { EMDASH_ENCRYPTION_KEY: key, STRIPE_SECRET_KEY: "sk_test_51Habcdefghij", STRIPE_WEBHOOK_SECRET: "whsec_1a2b3c4d5e6f" };
-		expect(byId(checkEnv(env))).toEqual({ "encryption-key": true, "stripe-key": true, "webhook-secret": true });
+		expect(byId(checkEnv(env))).toEqual({ "encryption-key": true, "stripe-key": true, "webhook-secret": true, "email-provider": false });
 	});
 
 	it("calls a live key out and never echoes any value", () => {
@@ -103,6 +105,53 @@ describe("checkEnv", () => {
 		expect(checks.find((check) => check.id === "stripe-key").message).toContain("LIVE");
 		expect(JSON.stringify(checks)).not.toContain("51Habcdefghij");
 		expect(JSON.stringify(checks)).not.toContain(key);
+	});
+});
+
+describe("smtpEnvStatus (mirrors emdash's loadSmtpConfigFromEnv)", () => {
+	const smtp = { EMAIL_SMTP_HOST: "smtp.example.test", EMAIL_SMTP_USER: "apikey", EMAIL_SMTP_PASS: "s3cret-value", EMAIL_SMTP_FROM_EMAIL: "orders@example.test" };
+
+	it("is none without a host (the dev console takes over)", () => {
+		expect(smtpEnvStatus({})).toEqual({ state: SMTP_STATES.none });
+		expect(smtpEnvStatus(parseEnv(EXAMPLE))).toEqual({ state: SMTP_STATES.none });
+		expect(smtpEnvStatus({ EMAIL_SMTP_PORT: "587" }).state).toBe(SMTP_STATES.none);
+		// .env.example's commented block, uncommented but not filled in
+		expect(smtpEnvStatus({ EMAIL_SMTP_HOST: "smtp.example.com", EMAIL_SMTP_USER: "replace-with-smtp-username", EMAIL_SMTP_PASS: "replace-with-smtp-password" }).state).toBe(SMTP_STATES.none);
+		expect(smtpEnvStatus({ ...smtp, EMAIL_SMTP_PASS: "replace-with-smtp-password" }).state).toBe(SMTP_STATES.invalid);
+	});
+
+	it("is ready for a complete config, with the default port and an explicit sender", () => {
+		expect(smtpEnvStatus(smtp)).toEqual({ state: SMTP_STATES.ready });
+		expect(smtpEnvStatus({ ...smtp, EMAIL_SMTP_PORT: "465", EMAIL_SMTP_SECURE: "tls" }).state).toBe(SMTP_STATES.ready);
+	});
+
+	it("accepts EMAIL_SMTP_FROM or a user that is an address as the sender, and nothing else", () => {
+		const { EMAIL_SMTP_FROM_EMAIL: _sender, ...withoutSender } = smtp;
+		expect(smtpEnvStatus(withoutSender).state).toBe(SMTP_STATES.invalid);
+		expect(smtpEnvStatus({ ...withoutSender, EMAIL_SMTP_FROM: "Shop <orders@example.test>" }).state).toBe(SMTP_STATES.ready);
+		expect(smtpEnvStatus({ ...withoutSender, EMAIL_SMTP_USER: "shop@example.test" }).state).toBe(SMTP_STATES.ready);
+	});
+
+	it("rejects what EmDash rejects: port 25, a bad port, a bad mode, a missing user or password", () => {
+		expect(smtpEnvStatus({ ...smtp, EMAIL_SMTP_PORT: "25" })).toMatchObject({ state: SMTP_STATES.invalid, problem: expect.stringContaining("25") });
+		expect(smtpEnvStatus({ ...smtp, EMAIL_SMTP_PORT: "70000" }).state).toBe(SMTP_STATES.invalid);
+		expect(smtpEnvStatus({ ...smtp, EMAIL_SMTP_PORT: "abc" }).state).toBe(SMTP_STATES.invalid);
+		expect(smtpEnvStatus({ ...smtp, EMAIL_SMTP_SECURE: "ssl" }).state).toBe(SMTP_STATES.invalid);
+		expect(smtpEnvStatus({ ...smtp, EMAIL_SMTP_PASS: "" }).state).toBe(SMTP_STATES.invalid);
+		const { EMAIL_SMTP_USER: _user, ...withoutUser } = smtp;
+		expect(smtpEnvStatus(withoutUser).state).toBe(SMTP_STATES.invalid);
+	});
+
+	it("shows up in checkEnv as one optional check and never echoes a value", () => {
+		const ready = checkEnv(smtp).find((check) => check.id === "email-provider");
+		expect(ready).toMatchObject({ isOk: true, isRequired: false });
+		const none = checkEnv({}).find((check) => check.id === "email-provider");
+		expect(none).toMatchObject({ isOk: false, isRequired: false });
+		expect(none.message).toContain("docs/email.md");
+		const bad = checkEnv({ ...smtp, EMAIL_SMTP_PORT: "25" }).find((check) => check.id === "email-provider");
+		expect(bad).toMatchObject({ isOk: false, isRequired: false });
+		const dump = JSON.stringify([ready, none, bad]);
+		for (const value of Object.values(smtp)) expect(dump).not.toContain(value);
 	});
 });
 

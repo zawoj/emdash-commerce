@@ -50,7 +50,8 @@ pnpm --filter @emdash-commerce/storefront build:cloudflare
 cd apps/storefront && pnpm exec wrangler dev --port 4361     # reads .dev.vars; cron: curl localhost:4361/cdn-cgi/local/scheduled
 ```
 
-Stop the Node dev server first or use another port; the two targets keep separate data (`data.db` vs `.wrangler/state`).
+Stop the Node dev server first or use another port; the two targets keep separate data (`data.db` vs `.wrangler/state`). The
+end-to-end suite uses neither: `pnpm test:e2e:smoke:cloudflare` keeps its state in a throwaway `.e2e-cloudflare/` (`docs/testing.md`).
 
 ## Deploy
 
@@ -65,11 +66,11 @@ Stop the Node dev server first or use another port; the two targets keep separat
    pnpm exec wrangler secret put STRIPE_SECRET_KEY        # sk_test_… or rk_test_… (sandbox)
    ```
 
-   On a brand-new account the Worker does not exist yet: Wrangler offers to create it when you put the first secret, or run
-   the deploy (step 2) first and set the secrets right after; until they exist the shop answers `NOT_CONFIGURED`.
-   `wrangler.jsonc` lists both under `secrets.required` (used for `wrangler types` and a warning in local dev when one is
-   missing; whether `wrangler deploy` refuses a missing one was not tried). Both prompts and the first deploy were not run:
-   they need an account.
+   On a brand-new account the Worker does not exist yet, so `wrangler secret put` cannot run first, and **`wrangler deploy`
+   refuses to create the Worker while a `secrets.required` secret is missing** (verified 2026-11-17, wrangler 4.164.0: "The
+   following required secrets have not been set"). Give the first deploy a secrets file instead:
+   `wrangler deploy --secrets-file <file>` (dotenv or JSON lines `NAME=value`; keep the file outside the repo, mode 600, and
+   delete it afterwards). Later secrets: `wrangler secret put`. The Deploy button prompts for the required ones.
 
 2. **Build and deploy.**
 
@@ -82,8 +83,11 @@ Stop the Node dev server first or use another port; the two targets keep separat
    `docs/production.md`).
 
    The build inlines `apps/storefront/seed/seed.json` (`package.json#emdash.seed`) and the first request applies its schema to
-   the empty D1 database. That file contains the `feedback` collection of the Notes dev tool: leave it out of the seed for a
-   real production site (`docs/production.md`, "Before the first deploy").
+   the empty D1 database. That file no longer contains the `feedback` collection of the Notes dev tool (it lives in
+   `seed/dev-tools.json`, applied by `pnpm seed` against a dev server only), so nothing needs removing for a real production site.
+   To fill the shop with `emdash site import`, deploy it with `COMMERCE_DEFER_RELATIONS=1` in `vars` (otherwise EmDash refuses
+   the import because the commerce plugin's relation definitions count as content): `docs/production.md`, "Export / import
+   instead". Not tried on Workers.
 
 3. **First administrator.** Open `https://<your host>/_emdash/admin` straight after the deploy and finish the setup wizard
    with a **passkey**: the first person through it becomes the administrator, so do it before anyone else can. The dev login
@@ -92,8 +96,10 @@ Stop the Node dev server first or use another port; the two targets keep separat
 
 4. **Email.** The commerce plugin's order emails go through EmDash's email pipeline, as do magic links and invites. In
    development a console provider prints them; **a deployed site has no provider until you set one**: Settings → Email in the
-   admin (SMTP with TLS: `EMAIL_SMTP_*`, or a provider plugin; EmDash's *Email Setup* guide). Without one, order confirmation
-   and the guest order-link emails are not delivered. Not set up or tested here.
+   admin (SMTP on port 587 or 465: `EMAIL_SMTP_*` or saved in the admin; or a provider plugin). Without one, order
+   confirmation and the guest order-link emails are not delivered, and the shop does not say so. Setup, a worked example, how
+   to test and what was run (including a workerd trap with `.dev.vars`) are in [email.md](email.md). No relay was tried from a
+   deployed Worker.
 
 5. **Register the Stripe webhook.** Stripe cannot call `localhost`, and a deployed site has no `stripe listen`. In the admin
    open Commerce (the plugin's status page) and press **Register webhook**, or call the MCP tool
@@ -104,11 +110,19 @@ Stop the Node dev server first or use another port; the two targets keep separat
    final: the endpoint URL is built from it. Use the Stripe **sandbox** account; never a live key outside a deployed
    production environment you intend to be live.
 
-6. **Catalog and content.** `pnpm seed` cannot run against a deployed site: it signs in through the dev login. Create products
-   in the admin, through the MCP (`docs/production.md`), or move a seeded local site with `emdash site export` /
-   `emdash site import` (an empty target only; `docs/production.md`). Stripe product and price ids live in plugin storage
-   (`catalog_links`), which an export does not carry, so after an import queue and drive a catalog resync
-   (`admin/catalog/sync`) so each variant gets its Stripe Product and Price. The import path was not run for this target.
+6. **Catalog and content.** Finish the setup wizard first (step 3), create an API token in the admin (Settings, API Tokens, scope
+   `admin`, a short expiry) and run, from your machine:
+
+   ```bash
+   EMDASH_URL=https://<your host> EMDASH_TOKEN=ec_pat_… pnpm seed
+   ```
+
+   It creates the vocabulary, products, variants, prices, media and the Homepage fields over the REST API with
+   `Authorization: Bearer` (no dev login), then drives the Stripe catalog resync (`admin/catalog/sync`) until nothing is due; re-run
+   it any time. `pnpm catalog:resync` runs only the resync. Alternatives: create products in the admin or over MCP
+   (`docs/production.md`), or move a seeded local site with `emdash site export` / `import` and then run
+   `pnpm catalog:resync` (Stripe ids live in plugin storage, not in the export; `docs/production.md`). Both paths were run on a
+   **local built Node server** only; against D1/R2 on a Cloudflare account they were not run.
 
 ## Secrets: where each one comes from
 
@@ -142,18 +156,58 @@ Do not put secret values in `wrangler.jsonc` `vars`, `astro.config.mjs` or `impo
 | Background work | the plugin's cron runs in the Node process | the `* * * * *` Worker cron calls the same scheduled task (`commerce-maintenance`) |
 | Dev login | yes | `astro dev` yes, deployed no (passkey) |
 
+## The Deploy button and the template branch
+
+`pnpm template:cloudflare [outDir] [--npm]` (`scripts/template/`) writes a self-contained copy of the storefront, by default
+into `.template/cloudflare` (git-ignored; an existing folder is replaced only if the script generated it, marker
+`.template-generated`). The copy:
+
+- has the app files (`src`, `public`, `seed`, `wrangler.jsonc`, `astro.config.mjs`, the tsconfigs, the generated EmDash types)
+  and leaves out tests, the Vitest config, the Nx `project.json`, `AGENTS.md`, agent skills, MCP configs, `.env*`, `data.db`;
+- **vendors** the three packages in `vendor/<name>/`: `pnpm pack` per package, extracted, so the `files` allow-list of each
+  package decides what is in it exactly as for npm (no tests, no real-host harness). The manifest depends on them with
+  `file:./vendor/<name>`. With `--npm` it depends on `^<version>` from the registry instead (for the day the packages are
+  published; they are not yet, so use vendor mode);
+- has its own `package.json`: no `workspace:`/`catalog:` spec (the generator throws if one is left), `packageManager` and
+  `engines` from the root, the root's `pnpm.overrides`, `pnpm.onlyBuiltDependencies` (`esbuild`, `sharp`, `workerd`, otherwise
+  pnpm 10 skips their install scripts), and the **Cloudflare build as the default**: `build` = `DEPLOY_TARGET=cloudflare astro build`,
+  `deploy` = `wrangler deploy` (the two scripts Cloudflare's button pre-fills), `dev` on port 4361. The `cloudflare` metadata
+  block (label, bindings, descriptions) is carried over;
+- has its own `README.md` (unofficial community demo notice, the Deploy button, the secrets, link back), `.dev.vars.example`
+  and `LICENSE`;
+- is checked for anything reaching outside its folder: every relative specifier in code and config files is resolved and the
+  generator fails if one leaves the root (the check found `vitest.config.ts` pointing at `../../scripts`, which is excluded).
+  `astro.config.mjs` is copied unchanged: the Node branch stays in it but is only used when `DEPLOY_TARGET` is not `cloudflare`.
+
+`.github/workflows/cloudflare-template.yml` runs the generator in CI, installs the copy outside the checkout with
+`pnpm install --ignore-workspace`, runs `typecheck`, `build` and `wrangler deploy --dry-run`, and (on a push to `main` or a
+manual run) force-pushes the result, with the lockfile that install wrote, as a single commit to the orphan branch
+`cloudflare-template`. On a pull request it only builds. The button URL is:
+
+```
+https://deploy.workers.cloudflare.com/?url=https://github.com/zawoj/emdash-commerce/tree/cloudflare-template
+```
+
+The first run of the workflow creates the branch; until then the URL 404s. Run it from the Actions tab (**Run workflow**) after
+merging. The decision and its alternatives: `.ai/decisions/2026-11-17-cloudflare-deploy-template.md`.
+
+Verified locally on 2026-11-17 (macOS, Node 24.22.1, no Cloudflare account): the copy generated into a directory outside the
+repository (`/tmp`), `pnpm install --ignore-workspace` (a new lockfile), `pnpm run typecheck` (0 errors), `pnpm run build`,
+`wrangler deploy --dry-run` (same bindings as above: `EMDASH_ROOMS`, `SESSION`, `DB`, `MEDIA`, `IMAGES`, `ASSETS`) and the built
+Worker under `wrangler dev --port 4364` with dummy secrets: `/` and `/shop` answered 200 (an empty catalog), `/_emdash/admin`
+redirected to `/_emdash/admin/setup`, the plugin's `catalog/products` returned `{"items":[]}`, `/merch/*.png` assets were
+served. Not verified: the Deploy button itself and the Cloudflare-side clone/provision/build flow (needs an account), the
+GitHub Actions workflow on GitHub (zizmor passes locally; it was not run there), `--npm` mode against a registry (nothing
+is published), a deployed site.
+
 ## Known limits and things to know
 
-- **Deploy to Cloudflare button: it cannot deploy this repo as it stands.** Cloudflare's docs state that a button URL with a
-  subdirectory treats that subdirectory as the root of the new repository, and the application must be fully isolated in it
-  with all its dependencies, otherwise the build fails. `apps/storefront` depends on the sibling workspace packages
-  `@emdash-commerce/design-system`, `plugin-stripe` and `plugin-image-hotspots` (`workspace:*`), which are not on npm and
-  would not be copied. The URL
-  `https://deploy.workers.cloudflare.com/?url=https://github.com/zawoj/emdash-commerce/tree/main/apps/storefront` would
-  therefore fail to build; the `cloudflare` block in `apps/storefront/package.json` (label, products, bindings with
-  descriptions) is in place so it works the day a standalone copy exists (a generated repo that vendors the three packages, or
-  publishing them to npm). Not tried — the button clones into a Cloudflare account.
-- **What does work for one-click-ish deploys: Workers Builds on this repo.** In the dashboard, Workers & Pages → Create →
+- **The Deploy to Cloudflare button works from a generated branch, not from this repo.** A button URL with a subdirectory
+  makes Cloudflare treat that subdirectory as the root of a new repository and needs it fully isolated, and
+  `apps/storefront` depends on sibling `workspace:*` packages, so `.../tree/main/apps/storefront` cannot build. The standalone
+  copy is generated: see [The Deploy button and the template branch](#the-deploy-button-and-the-template-branch).
+  The button itself was **not clicked**: it clones into a Cloudflare account, and no account was used.
+- **The other option: Workers Builds on this repo with a root directory.** In the dashboard, Workers & Pages → Create →
   import the Git repository, set the **root directory** to `apps/storefront` (Cloudflare supports monorepos this way), build
   command `pnpm --filter @emdash-commerce/storefront build:cloudflare` (run from the repository root, so the workspace
   installs), deploy command `pnpm exec wrangler deploy`, and add the two secrets as build/runtime variables. Not tried here.
@@ -187,5 +241,41 @@ workerd 1.20261116.1, Stripe sandbox, no Cloudflare account (nothing was logged 
 - A guest order-link request signed a token on workerd (the access-token secret was generated and stored encrypted); the
   link was in the dev email log. Opening the link was not checked on this target.
 
-Not checked: a real Cloudflare deploy, a real domain and passkey login, an email provider, the Deploy button, Workers Builds,
-`emdash site import` into D1, behaviour under Workers CPU or subrequest limits, `wrangler dev --remote`.
+On 2026-11-17 (same machine and versions) the Playwright suite also ran against this target: `pnpm test:e2e:smoke:cloudflare`
+(`astro dev` on workerd, throwaway local D1/R2 state in `.e2e-cloudflare/`, 45 passed, 0 skipped, also from a cold Vite cache) and the purchase
+project (3 passed: cart quantity, a sandbox purchase through hosted Checkout with the signed webhook and the emailed order link,
+the lookup-page link), plus a measurement in the suite that the server really is `workerd`. It runs in CI on every pull request
+(smoke) and weekly (purchase). It is the dev server, not the built Worker; details and limits in `docs/testing.md`.
+
+Email (`docs/email.md`): under the local workerd dev server SMTP settings saved through the admin API, and a send reached a real
+SMTP server through STARTTLS to its login step; no message was delivered from Workers.
+
+### Verified on a real deploy (temporary preview account)
+
+On 2026-11-17 the generated template (`pnpm template:cloudflare`, `pnpm install --ignore-workspace`, `pnpm run build`; Node
+24.22.1, wrangler 4.164.0) was deployed with `wrangler deploy --temporary`, a disposable Cloudflare account that needs no
+login. **The deploy did not complete, so nothing past it (setup wizard, seed, webhook, purchase, cron) ran on real
+infrastructure.** What the attempt established:
+
+- `--temporary` is a hidden flag; Wrangler solves a proof-of-work challenge, creates the account ("claim within 60 minutes")
+  and reuses it for later commands (`wrangler d1 list|delete`, `kv namespace delete --temporary` work against it).
+- **Asset limit: 5 MiB per file.** The first upload failed with `Invalid manifest: file size of 5724665 exceeds 5242880 limit
+  [code: 10304]`. The offender is an EmDash admin chunk (`dist/client/_astro/lib.*.js`, 5.7 MB: ProseMirror and lowlight,
+  built from `@emdash-cms/admin`). A normal account allows 25 MiB, so this is the temporary account's limit, not a bug in the
+  shop. In a scratch copy only, splitting that chunk with `vite.build.rolldownOptions.output.advancedChunks` (3.7 MB and
+  5.05 MB pieces) let all 206 assets upload, so the repo's build is unchanged.
+- **Required secrets block a first deploy**: see Deploy step 1 (`--secrets-file`). With it, Wrangler listed the bindings
+  `EMDASH_ROOMS` (Durable Object), `SESSION` (KV, auto-created), `DB` (D1, auto-created as `emdash-commerce`), `MEDIA` (R2
+  bucket), `IMAGES`, `ASSETS`, and the two secrets.
+- **R2 is not available on a temporary account.** Wrangler does not create the bucket named in `wrangler.jsonc`: its
+  existence check `GET /r2/buckets/emdash-commerce-media` answers 403, and the script upload then fails with `R2 bucket
+  'emdash-commerce-media' not found [code: 10085]`. `wrangler r2 bucket create ... --temporary` answers `Authentication
+  error [code: 10000]`. The shop stores uploads in R2, so a temporary account cannot host it; the verification stopped
+  there. Everything created (D1 database, KV namespace) was deleted; no Worker or webhook was ever created.
+
+Still not checked: a deploy that completes (needs a real account with R2), the Deploy button, a real domain and passkey
+login, the seed over REST against D1/R2, Stripe webhook delivery to a Worker, a purchase on a deployed Worker, the cron on a
+deployed Worker, whether an optional secret set with `wrangler secret put` reaches the Worker (see
+`.ai/memory/wrangler-passes-only-required-secrets-to-the-worker.md`), an email delivered from a Worker, Workers Builds,
+`emdash site import` into D1, behaviour under Workers CPU or subrequest limits, `wrangler dev --remote`, and which Workers
+plan a temporary account has.

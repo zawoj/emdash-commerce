@@ -19,8 +19,9 @@ buttons before the close button. A `MutationObserver` re-attaches them if the pi
 - **Notes are rows of the `feedback` collection** (`feedback-api.ts`, `feedback-store.ts`), not localStorage: the prompt
   carries each row's id as the **Comment ID** and tells the agent to set `state` to `done` (or `wontfix`) with a
   `resolution`; the page polls every 4 s while visible, drops the pin, shows a toast and lists it under Done. The field
-  is `state` because `status` is EmDash's own draft/published column. Create the collection in an old database with
-  `pnpm exec emdash seed seed/seed.json --no-content`. The CLI line in the prompt carries `--draft` and `--url` (the
+  is `state` because `status` is EmDash's own draft/published column. The collection is **not** in the production `seed/seed.json`: it is described in `seed/dev-tools.json` and `pnpm seed`
+  (dev login only) creates it through the schema API. Without it Notes reports `MISSING` and shows the command. Create
+  it by hand with `pnpm exec emdash seed seed/dev-tools.json --no-content`. The CLI line in the prompt carries `--draft` and `--url` (the
   CLI needs `--rev` from `content get`); without `--url` it targets another port.
 - **The Notes prompt is schema-aware.** On Copy it reads the live schema (`/_emdash/api/schema/collections` and
   `…/<slug>?includeFields=true`, session cookie + `X-EmDash-Request: 1`) and, per comment, says whether the element is

@@ -8,7 +8,7 @@ import { format } from "../../../lib/strings";
 import type { CatalogCopy } from "../copy";
 import { CARD_IMAGE_SIZES, EAGER_CARDS, STOCK_STATUSES } from "./constants";
 import { isNewProduct, priceOfCard } from "./pricing";
-import { stockOfAvailability } from "./stock";
+import { stockLowLabel, stockOfAvailability } from "./stock";
 
 export interface CardContext {
 	locale: Locale;
@@ -27,12 +27,13 @@ export const cardPriority = (index: number): { isEager: boolean; isLead: boolean
 const stockLabel = (
 	stock: ReturnType<typeof stockOfAvailability>,
 	copy: CatalogCopy,
+	locale: Locale,
 ): string => {
 	switch (stock.status) {
 		case STOCK_STATUSES.inStock:
 			return copy.stockIn;
 		case STOCK_STATUSES.low:
-			return format(copy.stockLow, { count: stock.lowCount ?? 1 });
+			return stockLowLabel(locale, copy, stock.lowCount);
 		case STOCK_STATUSES.backorder:
 			return copy.stockBackorder;
 		case STOCK_STATUSES.soldOut:
@@ -67,7 +68,7 @@ export const toCard = (item: ProductCardView, context: CardContext): ProductCard
 		},
 		badges: badges.length > 0 ? badges : undefined,
 		availability: {
-			label: stockLabel(stock, copy),
+			label: stockLabel(stock, copy, locale),
 			isAvailable: stock.status !== STOCK_STATUSES.soldOut,
 			isLow: stock.status === STOCK_STATUSES.low,
 		},

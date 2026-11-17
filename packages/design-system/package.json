@@ -42,6 +42,7 @@
     "./ad-rotation": "./src/utils/ad-rotation.ts",
     "./quantity-stepper": "./src/utils/quantity-stepper.ts",
     "./count-badge": "./src/utils/count-badge.ts",
+    "./plural-label": "./src/utils/plural-label.ts",
     "./site-header-ids": "./src/components/chrome/site-header/ids.ts",
     "./sold-out-note": "./src/utils/sold-out-note.ts",
     "./action-bar": "./src/utils/action-bar.ts",

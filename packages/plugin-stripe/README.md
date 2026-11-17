@@ -127,6 +127,11 @@ variables as fallback. A value saved in the admin wins over the environment, so 
 | `stripeWebhookSecret` | `STRIPE_WEBHOOK_SECRET` | `whsec_…`. Filled automatically by "Register webhook" on creation. |
 | `accessTokenSecret` | `COMMERCE_ACCESS_TOKEN_SECRET` | Signs guest order links. Generated on first activation; changing it invalidates links already sent. |
 
+`COMMERCE_DEFER_RELATIONS=1` (not a secret) is for a fresh shop that is about to receive `emdash site import`: EmDash's importer
+counts every relation definition as content, so while the site has no relation the plugin creates its collections without
+relations and without the fields bound to them. Remove it and restart after the import; it never changes a site that already
+has relations. Details: `docs/production.md` in the repository, "Export / import instead".
+
 Saving a secret in the admin (and the generated access-token secret) needs **`EMDASH_ENCRYPTION_KEY`** (`emdash_enc_v1_`
 plus 43 base64url characters, made by `npx emdash secrets generate`; a bare hex key is rejected). Without it the settings cannot be written: guest order links stay disabled until
 `COMMERCE_ACCESS_TOKEN_SECRET` is set, and "Register webhook" returns `NOT_CONFIGURED` after creating the endpoint

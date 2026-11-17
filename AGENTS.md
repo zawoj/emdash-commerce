@@ -51,12 +51,13 @@ keys, `stripe listen`, seed, reset, troubleshooting). Governance: [`CONTRIBUTING
 | --- | --- |
 | `pnpm install` | Dependencies |
 | `pnpm dev` | Storefront dev server on `4360` (`npx astro dev stop` in `apps/storefront` stops it) |
-| `pnpm bootstrap` · `pnpm doctor` | First-run `.env` setup (idempotent, never prints a secret, refuses a live Stripe key) · read-only health check |
+| `pnpm bootstrap` · `pnpm run doctor` | First-run `.env` setup (idempotent, never prints a secret, refuses a live Stripe key) · read-only health check |
 | `pnpm seed` | Mock catalog (`scripts/lib/merch-catalog.mjs`) and Homepage fields (`scripts/seed-demo.mjs`; dev server must run) |
 | `pnpm art` | Regenerates the mock product art (`scripts/art/` → `apps/storefront/public/merch/`, PNG, committed) |
 | `pnpm lint` | oxlint (zero errors in CI) |
 | `pnpm changeset` | Add a changeset when a publishable package changes (`docs/releasing.md`) |
 | `pnpm test:e2e:smoke` · `pnpm test:e2e` | Playwright: no secrets · plus a real Stripe-sandbox purchase (`pnpm test:e2e:install` once) |
+| `pnpm test:e2e:smoke:cloudflare` · `pnpm test:e2e:cloudflare` | The same Playwright suite on the Cloudflare target (`astro dev` on workerd, local D1/R2 in `.e2e-cloudflare/`, port 4381; `docs/testing.md`) |
 | `pnpm check:ai` | `.ai/` layout, `YYYY-MM-DD-slug.md` names, memory index |
 | `pnpm typecheck` · `pnpm test` · `pnpm build` | Validation gate (`nx run-many`) — run all three before calling work done |
 
@@ -67,6 +68,7 @@ keys, `stripe listen`, seed, reset, troubleshooting). Governance: [`CONTRIBUTING
 | AI onboarding: architecture map, what you can build, ready prompts, how to re-theme the catalog | `docs/ai-guide.md` |
 | Running the shop from zero (prerequisites, Stripe sandbox, env, webhook secret, seed, first purchase, reset, troubleshooting) | `docs/getting-started.md` |
 | Cloudflare target (Workers + D1 + R2), deploy limits, Deploy button | `docs/cloudflare.md` |
+| Email on a deployed site: SMTP env vars or admin settings, which provider is active, how to test delivery, Workers limits | `docs/email.md` |
 | Changesets and npm publish (`@emdash-commerce`) | `docs/releasing.md` |
 | The test pyramid: unit, design-system lints, Playwright e2e | `docs/testing.md` |
 | Commerce agent skills (install, API, storefront, extend plugin) | `skills/` (`skills/README.md`); EmDash core skills in `apps/storefront/.agents/skills/` |

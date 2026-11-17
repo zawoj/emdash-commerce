@@ -309,6 +309,12 @@ collection, labels, `maxChildrenPerParent`, `maxParentsPerChild`) in `schema/col
 the picker that lists children, the child side the one that selects parents). The admin renders both ends as an ordered
 list with a search picker. Relation slugs are in `CATALOG_RELATION` / `SALES_RELATION` (`schema/field-names/`).
 
+`COMMERCE_DEFER_RELATIONS=1` makes the reconciler (`withoutRelations`, `ensureSchema`) create the collections without any
+relation or relation-bound field (and without the list columns that name them) while `_emdash_relations` is empty, and skip the
+data migrations; the schema marker then carries a `:deferred` suffix, so the first start without the variable completes the
+schema through the normal additive path. It exists only because EmDash's importer treats a relation row as content
+(`.ai/decisions/2026-11-17-site-import-into-a-fresh-shop.md`).
+
 What EmDash 1.5 does with them, and what that means for the code:
 
 - **Relation-bound fields have no column.** `ctx.content.create/update` refuses them, `ctx.content.get/list` never
@@ -353,7 +359,7 @@ Pure rules live in `core/catalog-rules.ts` and `core/product-type.ts`; the servi
 - **Managed prices.** `syncManagedPrices` converges the `prices` entries flagged `is_managed`: a simple product has one
   (amount = product `price`), a product with variants one per active variant (amount = override, else the product
   price) and none on the product. The entry is created once (`createWithReferences`) and then updated, found by relation
-  + flag, under one lock per product tree; a stray duplicate is archived. `is_managed` is protected, and while it is
+  + flag, under one lock per sellable (a product or a variant); a stray duplicate is archived. `is_managed` is protected, and while it is
   set the money and activation fields are read-only too (`managedLock` in `schema/protected-fields.ts`). The write fires
   no hooks, so the caller runs the Stripe sync afterwards (an amount change creates a new Stripe Price and archives the
   old one, see Catalog sync).

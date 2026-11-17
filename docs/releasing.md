@@ -146,3 +146,12 @@ package's README has the rest of its setup; the Stripe plugin also needs the Str
 
 EmDash's registry (`emdash plugin` CLI, `emdash-plugin.jsonc`) is for **sandboxed** plugins. Both plugins here are
 native, so they ship on npm only. Why, and what would change that: the ADR.
+
+## The Cloudflare template and the first release
+
+The generated Cloudflare template (`pnpm template:cloudflare`, `docs/cloudflare.md`) vendors the three packages from
+`pnpm pack`, so it needs no npm release and does not depend on this flow. Once the packages are published, switch the
+workflow's generate step to `pnpm template:cloudflare --npm`: the copy then depends on `^<version>` of each package from the
+registry and `vendor/` disappears. Until then keep vendor mode: `--npm` would fail to install (the versions are not on npm).
+A package release does not republish the template by itself; the next push to `main` that touches a path the template is
+made of does.

@@ -13,6 +13,8 @@ export const ENV_KEY = {
 	stripeSecretKey: "STRIPE_SECRET_KEY",
 	stripeWebhookSecret: "STRIPE_WEBHOOK_SECRET",
 	accessTokenSecret: "COMMERCE_ACCESS_TOKEN_SECRET",
+	/** `1` or `true`: a shop waiting for `emdash site import` does not create the commerce relations (docs/production.md). */
+	deferRelations: "COMMERCE_DEFER_RELATIONS",
 } as const;
 
 export const settingsSchema: Record<string, SettingField> = {
@@ -37,6 +39,10 @@ export type Environment = Readonly<Record<string, string | undefined>>;
 
 /** `process.env` where it exists (Node, Workers with nodejs_compat); empty otherwise. */
 export const readEnvironment = (): Environment => (typeof process !== "undefined" && process.env ? process.env : {});
+
+/** True when `COMMERCE_DEFER_RELATIONS` is `1` or `true`. */
+export const isDeferringRelations = (env: Environment = readEnvironment()): boolean =>
+	["1", "true"].includes((env[ENV_KEY.deferRelations] ?? "").trim().toLowerCase());
 
 const nonEmpty = (value: unknown): string | null => (typeof value === "string" && value.trim().length > 0 ? value.trim() : null);
 

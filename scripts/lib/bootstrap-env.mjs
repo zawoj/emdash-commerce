@@ -9,6 +9,9 @@ const PLACEHOLDERS = new Set([
 	"replace-with-openssl-rand-hex-32",
 	"sk_test_replace_me",
 	"whsec_replace_me",
+	"smtp.example.com",
+	"replace-with-smtp-username",
+	"replace-with-smtp-password",
 	"",
 ]);
 
@@ -86,6 +89,50 @@ export const isNodeVersionAtLeast = (actual, required) => {
 	return true;
 };
 
+/** How EmDash's built-in SMTP provider sees the `EMAIL_SMTP_*` variables of an env. */
+export const SMTP_STATES = { none: "none", ready: "ready", invalid: "invalid" };
+
+const looksLikeEmail = (value) => /^[^\s<>,;"\\@]+@[^\s<>,;"\\]+$/.test(String(value ?? "").trim());
+
+/**
+ * Whether `EMAIL_SMTP_*` configure EmDash's built-in SMTP provider, with the same rules EmDash applies at startup
+ * (`loadSmtpConfigFromEnv` in emdash 1.5): host set, port 1 to 65535 and not 25, secure `starttls` or `tls`, user and
+ * password set, and a sender (`EMAIL_SMTP_FROM_EMAIL`, `EMAIL_SMTP_FROM`, or a user that is itself an address). The
+ * `problem` is a fixed sentence, never a value. Settings saved in the admin (Settings → Email) are not in an env file.
+ * @returns {{ state: "none" | "ready" | "invalid", problem?: string }}
+ */
+export const smtpEnvStatus = (env) => {
+	const has = (name) => !isPlaceholder(env[name]);
+	if (!has("EMAIL_SMTP_HOST")) return { state: SMTP_STATES.none };
+	const invalid = (problem) => ({ state: SMTP_STATES.invalid, problem });
+	const portRaw = has("EMAIL_SMTP_PORT") ? String(env.EMAIL_SMTP_PORT).trim() : "587";
+	const port = Number(portRaw);
+	if (!Number.isInteger(port) || port < 1 || port > 65535) return invalid("EMAIL_SMTP_PORT must be a port number from 1 to 65535");
+	if (port === 25) return invalid("EMAIL_SMTP_PORT=25 is not supported by EmDash: use 587 (STARTTLS) or 465 (implicit TLS)");
+	const secure = has("EMAIL_SMTP_SECURE") ? String(env.EMAIL_SMTP_SECURE).trim() : port === 465 ? "tls" : "starttls";
+	if (secure !== "starttls" && secure !== "tls") return invalid('EMAIL_SMTP_SECURE must be "starttls" or "tls"');
+	if (!has("EMAIL_SMTP_USER") || !has("EMAIL_SMTP_PASS")) return invalid("EMAIL_SMTP_USER and EMAIL_SMTP_PASS are both required when EMAIL_SMTP_HOST is set");
+	const hasSender = has("EMAIL_SMTP_FROM_EMAIL") || has("EMAIL_SMTP_FROM") || looksLikeEmail(env.EMAIL_SMTP_USER);
+	if (!hasSender) return invalid("EMAIL_SMTP_USER is not an email address, so set EMAIL_SMTP_FROM_EMAIL (the sender)");
+	return { state: SMTP_STATES.ready };
+};
+
+const emailCheck = (env) => {
+	const { state, problem } = smtpEnvStatus(env);
+	const base = { id: "email-provider", isRequired: false };
+	if (state === SMTP_STATES.ready) {
+		return { ...base, isOk: true, message: "Email: SMTP is configured (EMAIL_SMTP_*), so order and sign-in emails are delivered" };
+	}
+	if (state === SMTP_STATES.invalid) {
+		return { ...base, isOk: false, message: `Email: EmDash ignores the EMAIL_SMTP_* settings: ${problem}` };
+	}
+	return {
+		...base,
+		isOk: false,
+		message: "Email: no EMAIL_SMTP_* settings, so mails only reach the dev console (fine locally; a deployed site needs a provider, docs/email.md)",
+	};
+};
+
 /**
  * The state of an env file as a list of checks, without ever returning a value (the report may be pasted into a chat).
  * @returns {{ id: string, isOk: boolean, isRequired: boolean, message: string }[]}
@@ -114,5 +161,6 @@ export const checkEnv = (env) => {
 			isOk: isWebhookSecret(env.STRIPE_WEBHOOK_SECRET),
 			message: "STRIPE_WEBHOOK_SECRET is the whsec_ value `stripe listen` prints; without it paid orders never appear",
 		},
+		emailCheck(env),
 	];
 };

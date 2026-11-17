@@ -176,6 +176,17 @@ describe("container", () => {
 		expect(port.created).toHaveLength(definitions.length);
 	});
 
+	it("ensureReady with COMMERCE_DEFER_RELATIONS creates no relation and runs no data migration, then completes without it", async () => {
+		const ctx = createFakePluginContext(definitions);
+		const port = memoryPort();
+		await createContainer(ctx, options, {}, { env: { COMMERCE_DEFER_RELATIONS: "1" }, createSchemaPort: async () => port }).ensureReady();
+		expect(port.relations.size).toBe(0);
+		expect(await ctx.kv.get("state:migration:0001-baseline")).toBeNull();
+		await createContainer(ctx, options, {}, { env: {}, createSchemaPort: async () => port }).ensureReady();
+		expect(port.relations.size).toBeGreaterThan(0);
+		expect(await ctx.kv.get("state:migration:0001-baseline")).not.toBeNull();
+	});
+
 	it("wires mailer: sends through ctx.email and reports false without one", async () => {
 		const ctx = createFakePluginContext(definitions);
 		const container = createContainer(ctx, options, {});

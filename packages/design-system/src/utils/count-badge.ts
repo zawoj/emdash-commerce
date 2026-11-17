@@ -1,8 +1,18 @@
 // Cart count badges: every `[data-count-badge]` follows `cart:changed` (`detail: { count }`). The
 // bubble is hidden at 0 and the spoken text inside the live region is rewritten, so assistive
 // technology announces the new count.
+import { pluralLabel, type PluralLabelForms } from './plural-label'
+
 export interface CartChangedDetail {
   readonly count: number
+}
+
+const readForms = (badge: HTMLElement): PluralLabelForms | undefined => {
+  try {
+    return badge.dataset.labelForms ? (JSON.parse(badge.dataset.labelForms) as PluralLabelForms) : undefined
+  } catch {
+    return undefined
+  }
 }
 
 const render = (badge: HTMLElement, count: number) => {
@@ -13,7 +23,7 @@ const render = (badge: HTMLElement, count: number) => {
     bubble.hidden = count <= 0
     bubble.textContent = count > max ? `${max}+` : String(count)
   }
-  if (spoken) spoken.textContent = (badge.dataset.labelTemplate ?? '{count}').replace('{count}', String(count))
+  if (spoken) spoken.textContent = pluralLabel(badge.dataset.labelTemplate ?? '{count}', readForms(badge), badge.dataset.locale, count)
 }
 
 export const mountCountBadges = () => {
