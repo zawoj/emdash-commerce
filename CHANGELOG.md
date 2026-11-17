@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-17 (release screenshots)
+
+### docs: release screenshots in `docs/screenshots/release/` — Claude Code
+- Added 14 PNG screenshots of the running demo for the README and release announcements: storefront (home, shop, category,
+  product with variants, bundle, cart, full home page), a real Stripe-sandbox checkout and the guest order page opened from
+  the emailed link, two mobile views, and the admin (shop-the-look hotspots widget, product editor, Commerce dashboard).
+- Taken against the local dev server with Playwright; the Stripe key tail on the Commerce dashboard is masked and all
+  e-mail addresses are `@example.com`. The earlier set in `docs/screenshots/` is unchanged and still used by the README.
+- Not covered: the README is not yet linked to the new images.
+
 ## 2026-11-17 (community release)
 
 ### feat: community repo conventions, release mechanics, Cloudflare target, rebuilt storefront pages, e2e tests — Claude Code, Cursor
