@@ -114,7 +114,7 @@ for (const file of files) {
     const fs = get('font-size'), lh = get('line-height')
     if (!fs || !lh) continue
     const size = parseFloat(fs.replace(/var\(--font-size-(\d+)\)/, '$1'))
-    const lineHeight = /px$/.test(lh) ? parseFloat(lh) : Math.round(parseFloat(lh) * size)
+    const lineHeight = lh.endsWith('px') ? parseFloat(lh) : Math.round(parseFloat(lh) * size)
     const fam = /font-display/.test(get('font-family') ?? '') ? 'display' : 'body'
     const weight = Number(get('font-weight') ?? 400)
     const hit = T.types.find((t) => t.size === size && t.lineHeight === lineHeight && t.family === fam && t.weight === weight)
