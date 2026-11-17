@@ -50,6 +50,7 @@ Admin UI: `http://localhost:4360/_emdash/admin`.
 | `packages/plugin-stripe/` | `stripe-commerce` plugin — catalog, carts, Checkout, orders, webhooks. |
 | `packages/plugin-image-hotspots/` | `image-hotspots:hotspots` React field widget. |
 | `packages/design-system/` | Design tokens and storefront UI components. |
+| `e2e/` | Playwright end-to-end suite (`playwright.config.ts` at the root). |
 | `scripts/` | Seed, bootstrap, art generation, repo checks. |
 | `.ai/` | ADRs, agent memory, run logs — see [.ai/README.md](.ai/README.md). |
 
@@ -63,9 +64,40 @@ pnpm lint        # oxlint (zero errors required)
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm test:e2e:smoke   # when you touch a page, a route, the cart or the order pages
 ```
 
-CI runs the same gates on every pull request and on push to `main`.
+CI runs the gates on every pull request and on push to `main`, and the smoke e2e suite in its own workflow.
+
+## End-to-end tests
+
+Playwright drives a real browser against a real storefront server. Full reference: [docs/testing.md](docs/testing.md).
+
+```bash
+pnpm test:e2e:install   # once: downloads Chromium for Playwright
+pnpm test:e2e:smoke     # no secrets, no Stripe: what CI runs on every PR
+pnpm test:e2e           # everything; adds the Stripe purchase suite when a sandbox key and the Stripe CLI are present
+```
+
+- **Ports and state.** The suite starts its own storefront dev server on **4380** (your `pnpm dev` stays on 4360; set
+  `E2E_PORT` to move it) and stops it afterwards. Its database and uploads are a **throwaway** directory, `.e2e/` (git-ignored),
+  deleted and re-seeded at the start of every run: `apps/storefront/data.db` is never touched. It refuses to start if 4380 is taken.
+- **Smoke** (`pnpm test:e2e:smoke`) runs with no Stripe key at all, whatever your `.env` holds: shop, filters, product
+  variants, cart, redirects, the order-link pages, search, RSS and an axe accessibility pass at desktop and phone width.
+  Without Stripe the cart marks lines "not ready for checkout" and disables Checkout; the specs assert that.
+- **Purchase** (`e2e/tests/purchase*.spec.ts`) pays through Stripe's hosted Checkout with the test card and opens the
+  emailed order link. It needs a **sandbox** key (`sk_test_...` or `rk_test_...`) in `STRIPE_SECRET_KEY` or in
+  `apps/storefront/.env`, and the [Stripe CLI](https://docs.stripe.com/stripe-cli) on your `PATH`; the suite starts
+  `stripe listen` itself and reads its signing secret from the CLI. Any other key shape stops the run, and without a key
+  or the CLI the purchase specs skip themselves with a message. With a key the setup also syncs the catalog to Stripe (about 40 seconds).
+- **CI.** `.github/workflows/e2e.yml` runs smoke on every PR and push to `main`. The purchase job runs only on a manual run
+  and weekly, only in `zawoj/emdash-commerce`, and needs the repository secret **`STRIPE_SANDBOX_SECRET_KEY`** (a sandbox
+  key; the workflow maps it to `STRIPE_SECRET_KEY` and gives the CLI the same key as `STRIPE_API_KEY`).
+- **Reading a failure.** A failed test keeps a trace and a screenshot in `test-results/`. Open it with
+  `pnpm exec playwright show-trace test-results/<test>/trace.zip` (actions, DOM snapshots, network, console), or open the HTML
+  report with `pnpm exec playwright show-report`. In CI both are attached to the failed run as an artifact. The server's log is `.e2e/server.log`.
+- **Writing a spec.** Put it in `e2e/tests/`, locate by role, label or a `data-testid`, use web-first assertions, no fixed
+  sleeps and no retries. Prove it by breaking the page on purpose and watching it fail. `pnpm typecheck` covers `e2e/`.
 
 ## Pull requests
 
