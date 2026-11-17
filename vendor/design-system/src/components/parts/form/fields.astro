@@ -1,0 +1,17 @@
+---
+// The fields of a form: a wrapping row, 16px apart, whose items take their share of the row
+// (`FormField`'s `width`).
+---
+
+<div class="form-fields">
+  <slot />
+</div>
+
+<style>
+  .form-fields {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: flex-start;
+    gap: var(--space-16);
+  }
+</style>

@@ -1,0 +1,339 @@
+---
+// The "reviewWall" section: "Customer favourites". A header with the average rating as the headline stat,
+// then one large featured review (with the customer's photo when there is one) beside a column of
+// smaller ones separated by hairlines — not equal boxes. Phones: the smaller reviews become a rail
+// whose next card peeks in. One CTA below.
+import Button from '../../../atoms/button/index.astro'
+import Image from '../../../atoms/image/index.astro'
+import RatingStars from '../../../atoms/rating-stars/index.astro'
+import { buttonVariants } from '../../../atoms/button/variants'
+import { ratingStarsSizes } from '../../../atoms/rating-stars/variants'
+import type { ReviewWallProps } from './types'
+
+type Props = ReviewWallProps
+
+const { heading, headingId, eyebrow, summary, reviews, cta } = Astro.props
+const [featured, ...others] = reviews.slice(0, 4)
+---
+
+<section class="wall" aria-labelledby={headingId}>
+  <header class="wall__header">
+    <div class="wall__title">
+      {eyebrow && <p class="wall__eyebrow">{eyebrow}</p>}
+      <h2 class="wall__heading" id={headingId}>{heading}</h2>
+    </div>
+    <p class="wall__stat">
+      <span class="wall__score">{summary.scoreLabel}</span>
+      <span class="wall__stat-detail">
+        <RatingStars value={summary.value} label={summary.label} size={ratingStarsSizes.lg} />
+        <span class="wall__count">{summary.countLabel}</span>
+      </span>
+    </p>
+  </header>
+
+  {
+    featured && (
+      <div class="wall__body">
+        <figure class:list={['wall__featured', featured.photo && 'wall__featured--photo']}>
+          {featured.photo && (
+            <div class="wall__photo">
+              <Image {...featured.photo} />
+            </div>
+          )}
+          <div class="wall__featured-copy">
+            <RatingStars value={featured.rating.value} label={featured.rating.label} />
+            <blockquote class="wall__big-quote">{featured.quote}</blockquote>
+            <figcaption class="wall__cite">
+              <span class="wall__author">{featured.author}</span>
+              {featured.meta && <span class="wall__meta">{featured.meta}</span>}
+              {featured.product && <a class="wall__product" href={featured.product.href}>{featured.product.label}</a>}
+            </figcaption>
+          </div>
+        </figure>
+
+        <ul class="wall__list">
+          {others.map((review) => (
+            <li class="wall__item">
+              <figure class="wall__review">
+                {review.photo && (
+                  <div class="wall__avatar">
+                    <Image {...review.photo} />
+                  </div>
+                )}
+                <div class="wall__review-copy">
+                  <RatingStars value={review.rating.value} label={review.rating.label} size={ratingStarsSizes.sm} />
+                  <blockquote class="wall__quote">{review.quote}</blockquote>
+                  <figcaption class="wall__cite">
+                    <span class="wall__author">{review.author}</span>
+                    {review.meta && <span class="wall__meta">{review.meta}</span>}
+                    {review.product && <a class="wall__product" href={review.product.href}>{review.product.label}</a>}
+                  </figcaption>
+                </div>
+              </figure>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  <div class="wall__cta">
+    <Button href={cta.href} variant={buttonVariants.primary} size="lg">{cta.label}</Button>
+  </div>
+</section>
+
+<style>
+  .wall {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+    padding-block: var(--space-24);
+    color: var(--text-primary);
+  }
+
+  .wall__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-24);
+  }
+
+  .wall__eyebrow {
+    margin: 0 0 var(--space-8);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-secondary);
+  }
+
+  .wall__heading {
+    margin: 0;
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  /* The headline stat: the score in huge display type, stars and count beside it. */
+  .wall__stat {
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+    margin: 0;
+  }
+
+  .wall__score {
+    font: var(--type-display-5xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .wall__stat-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .wall__count {
+    font: var(--type-text-medium-sm);
+    color: var(--text-secondary);
+  }
+
+  .wall__body {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--space-48);
+    align-items: stretch;
+  }
+
+  .wall__featured {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0;
+    background: var(--surface-muted);
+  }
+
+  .wall__featured--photo {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+
+  .wall__photo {
+    overflow: hidden;
+    min-height: 100%;
+  }
+
+  .wall__photo :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 12%;
+  }
+
+  .wall__featured-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-24);
+    padding: var(--space-32);
+  }
+
+  .wall__big-quote {
+    margin: 0;
+    font: var(--type-display-xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .wall__list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .wall__item {
+    flex: 1;
+    padding-block: var(--space-24);
+    border-top: var(--stroke-thin) solid var(--border);
+  }
+
+  .wall__item:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .wall__item:last-child {
+    padding-bottom: 0;
+  }
+
+  .wall__review {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-16);
+    margin: 0;
+  }
+
+  .wall__avatar {
+    width: var(--space-64);
+    height: var(--space-64);
+    overflow: hidden;
+    border-radius: var(--radius-full);
+    background: var(--surface-muted);
+  }
+
+  .wall__avatar :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .wall__review:not(:has(.wall__avatar)) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wall__review-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-8);
+  }
+
+  .wall__quote {
+    margin: 0;
+    font: var(--type-text-medium-lg);
+    text-wrap: pretty;
+  }
+
+  .wall__cite {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-4) var(--space-12);
+    font: var(--type-text-regular-sm);
+  }
+
+  .wall__author {
+    font: var(--type-text-medium-sm);
+  }
+
+  .wall__meta {
+    color: var(--text-secondary);
+  }
+
+  .wall__product {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .wall__cta {
+    display: flex;
+  }
+
+  @media (max-width: 900px) {
+    .wall__body {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-16);
+    }
+
+    .wall__featured--photo {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .wall__photo {
+      aspect-ratio: 4 / 3;
+      min-height: 0;
+    }
+
+    .wall__featured-copy {
+      padding: var(--space-24) var(--space-16);
+    }
+
+    .wall__big-quote {
+      font: var(--type-display-lg);
+      font-stretch: var(--display-stretch);
+    }
+
+    /* A rail: the next review's edge shows. */
+    .wall__list {
+      flex-direction: row;
+      gap: var(--space-8);
+      margin-inline: calc(-1 * var(--page-gutter));
+      padding-inline: var(--page-gutter);
+      overflow-x: auto;
+      scroll-padding-inline: var(--page-gutter);
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+
+    .wall__item,
+    .wall__item:first-child,
+    .wall__item:last-child {
+      flex: none;
+      width: 78%; /* token-lint-ignore: the next card's edge stays visible */
+      padding: var(--space-20);
+      border: 0;
+      background: var(--surface-muted);
+      scroll-snap-align: start;
+    }
+
+    .wall__stat {
+      width: 100%;
+    }
+
+    .wall__score {
+      font: var(--type-display-4xl);
+      font-stretch: var(--display-stretch);
+    }
+  }
+</style>

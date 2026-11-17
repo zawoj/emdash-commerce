@@ -1,0 +1,205 @@
+---
+// Figma "site - search bar" component "search" (787:33503): a white radius-lg tile — the search
+// field on top, then the "Filtry" label with its selects on the left and the "Sortowanie" label with the sort select on the right.
+// Axes: `size` (`l` = strona 40px controls, `m` = zawody 34px) × `isFilled` (Figma Property 2):
+// the filled strona bar widens its selects to 164px, sets their values in medium weight and its
+// labels in gray/400. A typed query switches the field to its filled look on its own (strona:
+// 16px inset, 16px text — `--search-bar-query-font` overrides that text style).
+// Icons come in through slots (rendered once, reused for every select): `search-icon`,
+// `filter-icon`, `sort-icon` and `select-icon` (chevron).
+import FilterLabel from '../../atoms/filter-label/index.astro'
+import { filterLabelTones } from '../../atoms/filter-label/variants'
+import SearchField from '../../atoms/search-field/index.astro'
+import { searchFieldSizes } from '../../atoms/search-field/variants'
+import Select, { type SelectOption } from '../../atoms/select/index.astro'
+import { selectSizes } from '../../atoms/select/variants'
+import { searchBarSizes, type SearchBarSize } from './variants'
+
+export interface SearchBarSelect {
+  readonly id: string
+  readonly name: string
+  readonly ariaLabel: string
+  readonly options: readonly SelectOption[]
+  readonly value?: string
+}
+
+export interface SearchBarQuery {
+  readonly id: string
+  readonly name: string
+  readonly placeholder: string
+  readonly ariaLabel: string
+  readonly value?: string
+}
+
+interface Props {
+  search: SearchBarQuery
+  /** Both are optional together: without filters the filter group is left out. */
+  filterLabel?: string
+  filters?: readonly SearchBarSelect[]
+  /** Both are optional together: without them the sort group is left out. */
+  sortLabel?: string
+  sort?: SearchBarSelect
+  size?: SearchBarSize
+  isFilled?: boolean
+  class?: string
+}
+
+const {
+  search,
+  filterLabel,
+  filters = [],
+  sortLabel,
+  sort,
+  size = searchBarSizes.l,
+  isFilled = false,
+  class: className,
+} = Astro.props
+
+const hasFilters = filters.length > 0
+const isLarge = size === searchBarSizes.l
+const controlSize = isLarge ? selectSizes.l : selectSizes.m
+const labelTone = isLarge && isFilled ? filterLabelTones.muted : filterLabelTones.subtle
+const searchIcon = await Astro.slots.render('search-icon')
+const filterIcon = await Astro.slots.render('filter-icon')
+const sortIcon = await Astro.slots.render('sort-icon')
+const selectIcon = await Astro.slots.render('select-icon')
+---
+
+<div class:list={['search-bar', `search-bar--${size}`, isFilled && 'search-bar--filled', className]}>
+  <SearchField
+    id={search.id}
+    name={search.name}
+    placeholder={search.placeholder}
+    value={search.value}
+    ariaLabel={search.ariaLabel}
+    size={isLarge ? searchFieldSizes.l : searchFieldSizes.m}
+  >
+    <Fragment slot="icon" set:html={searchIcon} />
+  </SearchField>
+
+  {
+    (hasFilters || sort) && (
+      <div class="search-bar__row">
+        {
+          hasFilters && (
+            <div class="search-bar__group">
+              <FilterLabel tone={labelTone}>
+                <Fragment slot="icon" set:html={filterIcon} />
+                {filterLabel}
+              </FilterLabel>
+              <div class="search-bar__stack">
+                {
+                  filters.map((filter) => (
+                    <div class="search-bar__select">
+                      <Select id={filter.id} name={filter.name} ariaLabel={filter.ariaLabel} options={filter.options} value={filter.value} size={controlSize}>
+                        <Fragment slot="icon" set:html={selectIcon} />
+                      </Select>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          )
+        }
+
+        {
+          sort && (
+            <div class="search-bar__group">
+              <FilterLabel tone={labelTone}>
+                <Fragment slot="icon" set:html={sortIcon} />
+                {sortLabel}
+              </FilterLabel>
+              <div class="search-bar__select">
+                <Select id={sort.id} name={sort.name} ariaLabel={sort.ariaLabel} options={sort.options} value={sort.value} size={controlSize}>
+                  <Fragment slot="icon" set:html={selectIcon} />
+                </Select>
+              </div>
+            </div>
+          )
+        }
+      </div>
+    )
+  }
+</div>
+
+<style>
+  /* 787:33502 — white tile, 20px padding, 16px between the field and the filter row. */
+  .search-bar {
+    --search-bar-select-width: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding: var(--space-20);
+    border-radius: var(--radius-panel);
+    background: var(--surface);
+  }
+
+  /* Strona selects: Figma sets the value in button-regular-xs, medium text-medium-xs when filled. */
+  .search-bar--l {
+    --select-font: var(--type-label-regular-xs);
+    --select-font-weight: 400;
+  }
+
+  .search-bar--l.search-bar--filled {
+    --search-bar-select-width: 164px;
+    --select-font: var(--type-text-medium-xs);
+    --select-font-weight: 500;
+  }
+
+  /* A typed query: strona's field pads 16px and sets the query in text-regular-md. */
+  .search-bar--l :global(.search-field:has(input:not(:placeholder-shown))) {
+    --search-field-inset: var(--space-16);
+    --search-field-font: var(--search-bar-query-font, var(--type-text-regular-md));
+  }
+
+  .search-bar__row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16);
+  }
+
+  .search-bar__group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-16);
+  }
+
+  /* Without a filter group the sort keeps Figma's right edge. */
+  .search-bar__row > .search-bar__group:only-child {
+    margin-left: auto;
+  }
+
+  .search-bar__stack {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .search-bar__select {
+    width: var(--search-bar-select-width);
+  }
+
+  /* Phones: both groups stack the same way — the label on its own line, the controls below it
+     at full width. */
+  @media (max-width: 640px) {
+    .search-bar__group,
+    .search-bar__stack {
+      width: 100%;
+    }
+
+    .search-bar__select {
+      flex: 1 1 var(--search-bar-select-width);
+    }
+
+    .search-bar__group > .search-bar__select {
+      flex-basis: 100%;
+    }
+  }
+</style>

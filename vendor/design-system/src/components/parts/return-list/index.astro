@@ -1,0 +1,102 @@
+---
+// The customer's returns as hairline-separated entries: number and order, ONE status line, the
+// progress, what comes back and the refund.
+import StatusBadge from '../../atoms/status-badge/index.astro'
+import OrderProgress from '../order-progress/index.astro'
+import type { ReturnListProps } from './types'
+
+type Props = ReturnListProps
+
+const { returns, label } = Astro.props
+---
+
+<ul class="return-list" aria-label={label}>
+  {
+    returns.map((item) => (
+      <li class="return-list__item">
+        <div class="return-list__head">
+          <div class="return-list__id">
+            <h3 class="return-list__number">{item.number}</h3>
+            <p class="return-list__meta"><a href={item.orderHref}>{item.orderLabel}</a> · {item.requestedOn}</p>
+          </div>
+          <StatusBadge label={item.status.label} tone={item.status.tone} variant="line" />
+        </div>
+        {item.progress && <OrderProgress {...item.progress} />}
+        <ul class="return-list__lines">{item.lines.map((line) => <li>{line}</li>)}</ul>
+        {item.note && <p class="return-list__note">{item.note}</p>}
+        {item.refund && <p class="return-list__refund">{item.refund}</p>}
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .return-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--border);
+    list-style: none;
+  }
+
+  .return-list__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding: var(--space-24) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .return-list__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-8) var(--space-16);
+  }
+
+  .return-list__id {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .return-list__number {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-title-md);
+    font-weight: 700;
+  }
+
+  .return-list__meta,
+  .return-list__note {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .return-list__meta a {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .return-list__lines {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+    list-style: none;
+  }
+
+  .return-list__refund {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

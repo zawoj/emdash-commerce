@@ -1,0 +1,262 @@
+---
+// The card of a shop grid, a borderless tile: the rounded 4:5 photo, then the title (the card's one link, stretched
+// over the whole card), an optional two-line excerpt and the price with the stock status on one row, all on the
+// page background and aligned to the photo's edge. Markers ("New", "-23%") are quiet text above the title. The
+// photo arrives as ready <img> attributes; without one the frame stays, filled with the muted
+// surface, so a grid row keeps one height. A reduced product shows the previous price struck through
+// and the Omnibus note; badges sit on the photo; a product that cannot be bought keeps its place,
+// dimmed, with its status as text on the photo. An optional second photo cross-fades in on hover and
+// an optional size row slides up over the photo bottom (desktop hover only, presentational: the
+// whole card stays one link). Without them the photo zooms gently.
+import Availability from '../../atoms/availability/index.astro'
+import Price from '../../atoms/price/index.astro'
+import type { ProductCardContent } from './types'
+import Image from '../../atoms/image/index.astro'
+
+interface Props {
+  product: ProductCardContent
+  /** The photo is above the fold (a first grid row): eager with high priority; otherwise lazy. */
+  isEager?: boolean
+  /** With `isEager`: also `fetchpriority="high"`. Only the page's one LCP candidate sets it. */
+  isLead?: boolean
+}
+
+const { product, isEager = false, isLead = true } = Astro.props
+const badges = product.badges ?? []
+const isSoldOut = product.availability?.isAvailable === false
+const hover = product.hoverImage
+const sizes = product.sizes ?? []
+const availableSizes = sizes.filter((size) => size.isAvailable).map((size) => size.label)
+---
+
+<article class:list={['product-card', isSoldOut && 'product-card--sold-out', hover && 'product-card--has-hover']}>
+  <div class="product-card__frame">
+    {product.image && <Image class="product-card__img" {...product.image} isEager={isEager} isLead={isLead} />}
+    {product.image && hover && <Image class="product-card__img product-card__img--hover" {...hover} alt="" isEager={false} />}
+    {
+      isSoldOut && product.availability && (
+        <ul class="product-card__badges">
+          <li class="product-card__badge product-card__badge--sold-out">{product.availability.label}</li>
+        </ul>
+      )
+    }
+    {
+      sizes.length > 0 && !isSoldOut && (
+        <>
+          <ul class="product-card__sizes" aria-hidden="true">
+            {sizes.map((size) => (
+              <li class:list={['product-card__size', !size.isAvailable && 'product-card__size--sold-out']}>{size.label}</li>
+            ))}
+          </ul>
+          {product.sizesLabel && availableSizes.length > 0 && <span class="visually-hidden">{product.sizesLabel}: {availableSizes.join(', ')}</span>}
+        </>
+      )
+    }
+  </div>
+  <div class="product-card__body">
+    {/* The marker line is always there (empty when there is nothing to say), so the titles and
+        prices of a grid row stay on one line whether a sibling is marked or not. */}
+    <p class="product-card__markers" aria-hidden={badges.length === 0 ? 'true' : undefined}>{badges.join(' · ')}</p>
+    <h2 class="product-card__title">
+      <a class="product-card__link" href={product.href}>{product.title}</a>
+    </h2>
+    {product.excerpt && <p class="product-card__excerpt">{product.excerpt}</p>}
+    <div class="product-card__meta">
+      <Price label={product.price.label} value={product.price.value} compareAt={product.compareAtPrice}>
+        {product.lowestPriceNote && <Fragment slot="note">{product.lowestPriceNote}</Fragment>}
+      </Price>
+      {product.availability && !isSoldOut && product.availability.isLow && <Availability label={product.availability.label} isAvailable={product.availability.isAvailable} isLow={product.availability.isLow} />}
+    </div>
+  </div>
+</article>
+
+<style>
+  .product-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .product-card:focus-within {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .product-card__frame {
+    position: relative;
+    isolation: isolate; /* the photo gets its own layer; badges and sizes stay above it */
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .product-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* A second photo lies over the first, transparent until the hover. */
+  .product-card__img--hover {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (hover: hover) {
+    .product-card:hover .product-card__img--hover {
+      opacity: 1;
+    }
+  }
+
+  /* The size row: hidden on touch, shown over the photo bottom on a desktop hover. */
+  .product-card__sizes {
+    display: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .product-card__sizes {
+      position: absolute;
+      z-index: 2;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--space-4) var(--space-12);
+      margin: 0;
+      padding: var(--space-12);
+      background: var(--surface);
+      color: var(--text-primary);
+      list-style: none;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .product-card:hover .product-card__sizes,
+    .product-card:focus-within .product-card__sizes {
+      opacity: 1;
+    }
+
+    .product-card__size {
+      font: var(--type-text-medium-sm);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .product-card__size--sold-out {
+      color: var(--text-subtle);
+      text-decoration: line-through;
+    }
+  }
+
+  .product-card__badges {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none; /* the stretched title link stays the target under the badge */
+    top: var(--space-8);
+    left: var(--space-8);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .product-card__badge {
+    padding: var(--space-2) var(--space-8);
+    border-radius: var(--radius-chip);
+    background: var(--action-primary);
+    color: var(--on-action-primary);
+    font: var(--type-label-semibold-xs);
+  }
+
+  .product-card__badge--sold-out {
+    border: 1px solid var(--control-edge);
+    background: var(--surface);
+    color: var(--text-primary);
+  }
+
+  /* The marker line above the title: "New · -23%" as quiet text, not a sticker on the photo. */
+  .product-card__markers {
+    min-height: 20px; /* token-lint-ignore: one line of text-regular-sm, reserved when empty */
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  /* Dimmed by colour, not opacity: only the photo is faded, the title keeps the muted token (AA on the surface). */
+  .product-card--sold-out .product-card__img:not(.product-card__img--hover) {
+    opacity: 0.6;
+  }
+
+  .product-card--sold-out .product-card__title {
+    color: var(--text-secondary);
+  }
+
+  .product-card__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-12) 0 0;
+  }
+
+  .product-card__title {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-regular-md);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .product-card__link {
+    color: inherit;
+  }
+
+  .product-card__link:focus-visible {
+    outline: none;
+  }
+
+  /* The title link covers the whole card, so the photo and the price are part of the target. */
+  .product-card__link::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  .product-card__link {
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+  }
+
+  .product-card:hover .product-card__link {
+    text-decoration-color: currentcolor;
+  }
+
+  .product-card__excerpt {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .product-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-8);
+    margin-top: auto;
+    padding-top: var(--space-8);
+  }
+</style>

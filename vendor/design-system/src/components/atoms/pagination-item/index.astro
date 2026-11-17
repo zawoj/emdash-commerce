@@ -1,0 +1,71 @@
+---
+// Figma pagination item (706:15894; active 706:15892) — a 34×34 radius-sm box, gray/50 with a
+// gray/300 number, or gray/800 with a gray/100 number when active.
+// A link when it has an href and isn't the active page; a non-interactive span otherwise.
+interface Props {
+  label: string | number
+  href?: string
+  isActive?: boolean
+}
+
+const { label, href, isActive = false } = Astro.props
+const isLink = Boolean(href) && !isActive
+---
+
+{
+  isLink ? (
+    <a class="pagination-item" href={href} data-active="false">
+      {label}
+    </a>
+  ) : (
+    <span class="pagination-item" data-active={isActive} aria-current={isActive ? 'page' : undefined}>
+      {label}
+    </span>
+  )
+}
+
+<style>
+  .pagination-item {
+    font: var(--type-text-medium-sm);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-control);
+    text-decoration: none;
+  }
+
+  .pagination-item[data-active='false'] {
+    background: none;
+    color: var(--text-primary);
+  }
+
+  @media (hover: hover) {
+    a.pagination-item[data-active='false']:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  .pagination-item[data-active='true'] {
+    background: var(--control-solid);
+    color: var(--on-control-solid);
+  }
+
+  /* A full Figma sequence (prev, 1–5, …, last, next) is 338px at 34px per item — too wide for a
+     phone. Slightly smaller items keep it on one row. */
+  @media (max-width: 480px) {
+    .pagination-item {
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  @media (pointer: coarse) {
+    .pagination-item {
+      width: 44px; /* token-lint-ignore: touch target */
+      height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

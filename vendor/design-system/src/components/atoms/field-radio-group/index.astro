@@ -1,0 +1,94 @@
+---
+// A group of radio options: the uppercase caption of the form fields as the legend, the options
+// in a row that wraps. Further attributes go to every `<input>` (`data-*` hooks of the form script).
+import type { HTMLAttributes } from 'astro/types'
+
+export interface FieldRadioOption {
+  readonly label: string
+  readonly value: string
+}
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'id' | 'name' | 'type' | 'value' | 'required' | 'disabled' | 'checked'> {
+  /** Prefix of the options' ids. */
+  id: string
+  name: string
+  label: string
+  options: readonly FieldRadioOption[]
+  value?: string | null
+  description?: string | null
+  isRequired?: boolean
+}
+
+const { id, name, label, options, value, description, isRequired = false, ...attrs } = Astro.props
+const descriptionId = description ? `${id}-description` : undefined
+---
+
+<fieldset class="field-radio-group" aria-describedby={descriptionId}>
+  <legend>{label}</legend>
+  <div class="field-radio-group__options">
+    {
+      options.map((option, index) => (
+        <label for={`${id}-${index}`}>
+          <input id={`${id}-${index}`} {...attrs} type="radio" name={name} value={option.value} required={isRequired} checked={option.value === value} />
+          <span>{option.label}</span>
+        </label>
+      ))
+    }
+  </div>
+  {description && <p id={descriptionId} class="field-radio-group__description">{description}</p>}
+</fieldset>
+
+<style>
+  .field-radio-group {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .field-radio-group legend {
+    padding: 0;
+    margin-bottom: var(--space-8);
+    font: var(--type-text-medium-sm);
+    color: var(--text-primary);
+  }
+
+  .field-radio-group__options {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-8) var(--space-24);
+  }
+
+  .field-radio-group label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-8);
+    font: var(--type-text-regular-sm);
+    color: var(--text-body);
+    cursor: pointer;
+  }
+
+  .field-radio-group input {
+    margin: 0;
+    accent-color: var(--control-edge);
+    cursor: pointer;
+  }
+
+  .field-radio-group__description {
+    margin: 0;
+    font: var(--type-text-regular-xs);
+    color: var(--text-muted);
+  }
+
+  @media (pointer: coarse) {
+    .field-radio-group label {
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

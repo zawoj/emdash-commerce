@@ -1,0 +1,178 @@
+---
+// The desktop mega-menu panel of one top item: a white sheet across the full width under the header
+// bar, its columns (a heading link and a list of links, the first link "All" when the item has an
+// `allLabel`) centred under the nav, optional photo tiles on the right. The nav's ancestors are not
+// positioned, so `top: 100%` resolves against the main bar. Closed = `visibility: hidden`, so its links
+// are no tab stops. The open state is `data-open` on the menu item, set by `mega-menu.ts`.
+import type { ChromeMenuItem } from '../types'
+import MenuTile from './menu-tile.astro'
+import { columnAllLink, featuredTiles, isLongColumn, linkRel, linkTarget, menuColumns, panelTrackCount } from './mega-columns'
+
+interface Props {
+  item: ChromeMenuItem
+  id: string
+}
+
+const { item, id } = Astro.props
+const columns = menuColumns(item)
+const tiles = featuredTiles(item)
+// A flat list (no column of its own) is headed by the item's name, like a column.
+const isFlat = columns.length === 1 && !columns[0]?.label
+---
+
+<div class="mega" id={id} data-site-mega>
+  <div class="mega__clip">
+    <div class="mega__inner">
+      <div class="mega__columns" style={`--mega-cols: ${panelTrackCount(columns)}`}>
+        {
+          columns.map((group, index) => {
+            const all = columnAllLink(item, group)
+            return (
+              <div class:list={['mega__column', isLongColumn(group) && 'mega__column--long']} style={`--i: ${index}`}>
+                {(group.label || isFlat) && (
+                  <p class="mega__heading">
+                    {group.label ? group.href ? <a href={group.href}>{group.label}</a> : <span>{group.label}</span> : <a href={item.href}>{item.label}</a>}
+                  </p>
+                )}
+                <ul class="mega__links">
+                  {all && (
+                    <li>
+                      <a href={all.href}>{all.label}</a>
+                    </li>
+                  )}
+                  {group.links.map((link) => (
+                    <li>
+                      <a href={link.href} target={linkTarget(link)} rel={linkRel(link)}>{link.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })
+        }
+      </div>
+      {
+        tiles.length > 0 && (
+          <ul class="mega__tiles" style={`--tiles: ${tiles.length}`}>
+            {tiles.map((tile, index) => (
+              <li class="mega__tile" style={`--i: ${columns.length + index}`}>
+                <MenuTile tile={tile} />
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </div>
+</div>
+
+<style>
+  .mega {
+    position: absolute;
+    inset: 100% 0 auto;
+    z-index: 20;
+    display: grid;
+    grid-template-rows: 0fr;
+    visibility: hidden;
+    opacity: 0;
+    background: var(--surface);
+    text-align: left;
+    white-space: normal;
+  }
+
+  .mega__clip {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Columns (and the optional tiles) are centred as one block under the nav, like the top items above. */
+  .mega__inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--space-64);
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    padding: var(--space-40) var(--page-gutter);
+  }
+
+  .mega__columns {
+    display: grid;
+    grid-template-columns: repeat(var(--mega-cols), minmax(180px, 226px)); /* token-lint-ignore: column track, no token */
+    justify-content: center;
+    gap: var(--space-32) var(--space-24);
+    min-width: 0;
+  }
+
+  .mega__column {
+    min-width: 0;
+  }
+
+  .mega__column--long {
+    grid-column: span 2;
+  }
+
+  .mega__heading {
+    margin: 0 0 var(--space-12);
+    font: var(--type-text-medium-md);
+    color: var(--text-primary);
+  }
+
+  /* 20px lines + 6px gap = the 26px rhythm of the reference. */
+  .mega__links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mega__column--long .mega__links {
+    display: block;
+    column-count: 2;
+    column-gap: var(--space-24);
+  }
+
+  .mega__column--long .mega__links li {
+    break-inside: avoid;
+    padding-bottom: var(--space-6);
+  }
+
+  .mega a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  .mega__links a {
+    display: block;
+    font: var(--type-text-regular-sm);
+  }
+
+  .mega .mega__heading a,
+  .mega a:hover {
+    color: var(--text-primary);
+  }
+
+  .mega a:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .mega__tiles {
+    display: grid;
+    grid-template-columns: repeat(var(--tiles), clamp(180px, 16vw, 250px)); /* token-lint-ignore: tile width, no token */
+    gap: var(--space-16);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Open: the sheet unfolds (a 0fr → 1fr row), fades in, and its columns follow 30ms apart. Closing is quick. */
+  :global([data-site-menu-item][data-open]) > .mega {
+    grid-template-rows: 1fr;
+    visibility: visible;
+    opacity: 1;
+  }
+
+</style>

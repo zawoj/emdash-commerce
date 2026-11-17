@@ -1,0 +1,33 @@
+---
+// The partners list: the card grid (`card-grid`, the discounts list's tile) of partner cards. The
+// container (max 1400 between 24px gutters) is the page's; the section only adds the 128px under
+// the grid (less the gutter the container already keeps), like the discounts list. Without a
+// partner the grid shows `emptyLabel`.
+import CardGrid from '../card-grid/index.astro'
+import PartnerCard from '../partner-card/index.astro'
+import type { PartnerGridProps } from './types'
+
+type Props = PartnerGridProps
+
+const { label, partners, emptyLabel } = Astro.props
+---
+
+<section class="partner-grid" aria-label={label}>
+  <CardGrid isEmpty={partners.length === 0} emptyLabel={emptyLabel}>
+    {partners.map((partner) => <PartnerCard partner={partner} />)}
+  </CardGrid>
+</section>
+
+<style>
+  .partner-grid {
+    width: 100%;
+    min-width: 0;
+    padding-bottom: calc(var(--space-128) - var(--space-24));
+  }
+
+  @media (max-width: 640px) {
+    .partner-grid {
+      padding-bottom: calc(var(--space-64) - var(--space-16));
+    }
+  }
+</style>

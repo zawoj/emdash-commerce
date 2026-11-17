@@ -1,0 +1,149 @@
+---
+// The "featuredCategories" section: photo tiles (4:5), each with the category name as a white pill
+// bottom-left on the photo. The name is the tile's one link, stretched over the whole tile; the count
+// stays for screen readers.
+import ContentTile from '../../../parts/content-tile/index.astro'
+import type { FeaturedCategoriesProps } from './types'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = FeaturedCategoriesProps
+
+const { heading, headingId, more, items } = Astro.props
+---
+
+{
+  items.length > 0 && (
+    <div class="featured-categories-section">
+      <ContentTile heading={heading} headingId={headingId} more={more}>
+        <ul class="featured-categories">
+          {items.map((item) => (
+            <li class="featured-categories__item">
+              <div class="featured-categories__frame">{item.image && <Image {...item.image} />}</div>
+              <h3 class="featured-categories__title">
+                <a href={item.href}>{item.title}{item.countLabel && <span class="featured-categories__count">, {item.countLabel}</span>}</a>
+              </h3>
+            </li>
+          ))}
+        </ul>
+      </ContentTile>
+    </div>
+  )
+}
+
+<style>
+  .featured-categories-section {
+    padding-block: var(--space-24);
+  }
+
+  .featured-categories-section :global(.tile-title__heading) {
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .featured-categories-section :global(.tile-title__more) {
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .featured-categories {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--grid-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .featured-categories__item {
+    position: relative;
+    display: grid;
+  }
+
+  .featured-categories__item > * {
+    grid-area: 1 / 1;
+  }
+
+  .featured-categories__item:has(a:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .featured-categories__frame {
+    isolation: isolate;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .featured-categories__frame :global(img) {
+    position: relative;
+    z-index: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The name: a white pill on the photo, bottom-left. */
+  .featured-categories__title {
+    z-index: 1; /* a grid item: stacks above the zooming photo without being positioned */
+    align-self: end;
+    justify-self: start;
+    max-width: 100%;
+    margin: var(--space-16);
+    font: var(--type-button-sm);
+  }
+
+  .featured-categories__title a {
+    display: inline-block;
+    max-width: 100%;
+    padding: var(--space-12) var(--space-20);
+    border-radius: var(--radius-control);
+    background: var(--ink-0);
+    color: var(--ink-1000);
+    text-decoration: none;
+  }
+
+  .featured-categories__title a:focus-visible {
+    outline: none;
+  }
+
+  .featured-categories__title a::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  @media (hover: hover) {
+    .featured-categories__item:hover .featured-categories__title a {
+      background: var(--ink-200);
+    }
+  }
+
+  .featured-categories__count {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @container content-tile (width < 760px) {
+    .featured-categories {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--grid-gap-tight);
+    }
+
+    .featured-categories__title {
+      margin: var(--space-12);
+    }
+
+    .featured-categories__title a {
+      padding: var(--space-8) var(--space-16);
+    }
+  }
+</style>

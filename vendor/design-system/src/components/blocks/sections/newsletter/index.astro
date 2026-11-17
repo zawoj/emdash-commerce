@@ -1,0 +1,195 @@
+---
+// The home newsletter: a dark tile with the optional eyebrow, the heading, the copy and the sign-up form passed in the default slot.
+import type { NewsletterProps } from './types'
+
+type Props = NewsletterProps
+
+const { eyebrow, heading, headingId = 'newsletter-heading', body } = Astro.props
+---
+
+<section class="home-newsletter" data-surface="dark" aria-labelledby={headingId}>
+  <div class="home-newsletter__panel">
+    <div class="home-newsletter__content">
+      {eyebrow && <p class="home-newsletter__eyebrow">{eyebrow}</p>}
+      <div class="home-newsletter__text">
+        <h2 id={headingId}>{heading}</h2>
+        <p class="home-newsletter__body">{body}</p>
+      </div>
+      <div class="home-newsletter__form">
+        <slot />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .home-newsletter {
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .home-newsletter__panel {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-32);
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    overflow: hidden;
+    padding: var(--space-64) var(--space-48);
+  }
+
+  .home-newsletter__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    max-width: 900px; /* token-lint-ignore: heading measure */
+  }
+
+  .home-newsletter__eyebrow {
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    color: var(--text-secondary);
+  }
+
+  .home-newsletter__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .home-newsletter__text h2 {
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    color: var(--text-primary);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .home-newsletter__body {
+    font: var(--type-text-regular-md);
+    color: var(--text-secondary);
+    white-space: pre-line;
+  }
+
+  /* The sign-up form is passed in (the website's CMS form, the preview's static markup): its first
+     child holds the fields, a submit button follows. Figma: a 401px row, 8px apart. */
+  .home-newsletter__form {
+    width: 480px; /* token-lint-ignore: sign-up row width */
+    max-width: 100%;
+  }
+
+  .home-newsletter__form :global(form) {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: flex-start;
+    gap: var(--space-8);
+    margin: 0;
+  }
+
+  .home-newsletter__form :global(form > *) {
+    margin: 0;
+  }
+
+  .home-newsletter__form :global(form > :first-child) {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    margin-inline: 0;
+    padding: 0;
+  }
+
+  .home-newsletter__form :global(form > :first-child > *) {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .home-newsletter__form :global([data-captcha-widget]) {
+    flex: 1 1 100%;
+  }
+
+  /* The field has no visible label in Figma — keep it for accessibility, hide it visually. */
+  .home-newsletter__form :global(label) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  /* A pill input beside the pill button. */
+  .home-newsletter__form :global(input:not([type='hidden'])) {
+    width: 100%;
+    height: 48px;
+    padding: var(--space-12) var(--space-16);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  .home-newsletter__form :global(input::placeholder) {
+    color: var(--text-muted);
+  }
+
+  .home-newsletter__form :global([data-form-status]),
+  .home-newsletter__form :global([data-form-confirmation]) {
+    margin: var(--space-8) 0 0;
+    font: var(--type-text-regular-sm);
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 900px) {
+    .home-newsletter__panel {
+      padding: var(--space-48) var(--space-32);
+    }
+
+    .home-newsletter__text h2 {
+      font: var(--type-display-md);
+      font-stretch: var(--display-stretch);
+      letter-spacing: var(--tracking-display);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .home-newsletter__panel {
+      padding: var(--space-32) var(--space-24);
+    }
+
+    .home-newsletter__text h2 {
+      font: var(--type-display-sm);
+      font-stretch: var(--display-stretch);
+      letter-spacing: var(--tracking-display);
+    }
+
+    .home-newsletter__body {
+      white-space: normal;
+    }
+
+    .home-newsletter__form {
+      width: 100%;
+    }
+
+    .home-newsletter__form :global(form) {
+      flex-direction: column;
+    }
+
+    .home-newsletter__form :global(form > :first-child) {
+      flex: none;
+      width: 100%;
+    }
+  }
+
+  @media (pointer: coarse) {
+    .home-newsletter__form :global(input:not([type='hidden'])) {
+      font: var(--type-text-regular-md); /* 16px: iOS does not zoom the page on focus */
+    }
+  }
+</style>

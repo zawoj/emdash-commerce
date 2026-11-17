@@ -1,0 +1,154 @@
+---
+// The account's order history as rows on hairlines: stacked product photos, the number (the row's
+// one link, stretched over the row), the date, ONE status line with a quiet detail under it, the
+// total and a chevron.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import StatusBadge from '../../atoms/status-badge/index.astro'
+import ThumbStack from '../../molecules/thumb-stack/index.astro'
+import type { OrderListProps } from './types'
+
+type Props = OrderListProps
+
+const { orders, label, dateLabel, totalLabel, viewLabel } = Astro.props
+---
+
+<ul class="order-list" aria-label={label}>
+  {
+    orders.map((order) => (
+      <li class="order-list__item">
+        {((order.images?.length ?? 0) > 0 || order.moreLabel) && <ThumbStack images={order.images ?? []} moreLabel={order.moreLabel} />}
+        <div class="order-list__main">
+          <h3 class="order-list__number">
+            <a href={order.href}>
+              {order.number}
+              <span class="visually-hidden">: {viewLabel}</span>
+            </a>
+          </h3>
+          <p class="order-list__date">
+            <span class="visually-hidden">{dateLabel} </span><time datetime={order.date.iso}>{order.date.label}</time>
+            {order.summary && <span class="order-list__summary"> · {order.summary}</span>}
+          </p>
+          {order.status && <StatusBadge label={order.status.label} tone={order.status.tone} variant="line" />}
+          {order.detail && <p class="order-list__detail">{order.detail}</p>}
+          {
+            !order.status && order.statuses && (
+              <ul class="order-list__statuses">
+                {order.statuses.map((status) => <li><StatusBadge axis={status.axis} label={status.label} tone={status.tone} /></li>)}
+              </ul>
+            )
+          }
+        </div>
+        <p class="order-list__total"><span class="visually-hidden">{totalLabel}: </span>{order.total}</p>
+        <span class="order-list__arrow" aria-hidden="true"><Icon name={iconNames.chevronRight} size={20} /></span>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .order-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--border);
+    list-style: none;
+  }
+
+  .order-list__item {
+    position: relative;
+    display: flex;
+    gap: var(--space-20);
+    align-items: center;
+    padding: var(--space-20) 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .order-list__item:focus-within {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    .order-list__item:hover .order-list__arrow {
+      color: var(--text-primary);
+    }
+  }
+
+  .order-list__main {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .order-list__number {
+    margin: 0;
+    font: var(--type-title-md);
+    font-weight: 700;
+  }
+
+  .order-list__number a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .order-list__number a:focus-visible {
+    outline: none;
+  }
+
+  .order-list__number a::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  .order-list__date,
+  .order-list__detail {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .order-list__statuses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .order-list__total {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-price-md);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .order-list__arrow {
+    display: inline-flex;
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .order-list__item {
+      flex-wrap: wrap;
+      gap: var(--space-12) var(--space-16);
+    }
+
+    .order-list__main {
+      flex-basis: 100%;
+      order: 3;
+    }
+
+    .order-list__total {
+      margin-left: auto;
+    }
+  }
+</style>

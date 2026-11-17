@@ -1,0 +1,123 @@
+---
+// Strategic-partners strip (main column): the heading next to a partner-logo row. The row used to be a
+// scrolling marquee; the wireframe has no motion, so it is one static row that wraps. Renders nothing
+// without partners.
+import type { StrategicPartnersProps } from './types'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = StrategicPartnersProps
+
+const { heading, headingId, partners } = Astro.props
+const rowCopies = [false] as const
+---
+
+{
+  partners.length > 0 && (
+    <section class="strategic-partners" aria-labelledby={headingId}>
+      <div class="strategic-partners__lead">
+        <h2 id={headingId}>{heading}</h2>
+      </div>
+
+      <div class="strategic-partners__logos">
+        <div class="strategic-partners__viewport">
+          <div class="strategic-partners__track">
+            {rowCopies.map((isDuplicate) => (
+              <ul class="strategic-partners__row" aria-hidden={isDuplicate ? 'true' : undefined}>
+                {partners.map(({ name, logo, href }) => {
+                  const image = { ...logo, alt: isDuplicate ? '' : logo.alt || name }
+                  return (
+                    <li>
+                      {href && !isDuplicate ? (
+                        <a href={href} rel="sponsored noopener">
+                          <Image {...image} />
+                        </a>
+                      ) : (
+                        <Image {...image} />
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .strategic-partners {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-32);
+    padding: var(--space-32) var(--space-24);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--accent);
+    color: var(--on-accent);
+    overflow: hidden;
+  }
+
+  .strategic-partners__lead {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    gap: var(--space-8);
+  }
+
+  /* One word per line. */
+  .strategic-partners__lead h2 {
+    width: min-content;
+    margin: 0;
+    font: var(--type-display-lg);
+    color: var(--on-accent);
+  }
+
+  .strategic-partners__logos {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .strategic-partners__row {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    gap: var(--space-16) var(--space-40);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .strategic-partners__row li {
+    flex: none;
+  }
+
+  .strategic-partners__row a {
+    display: block;
+  }
+
+  /* Every logo is a flat ink silhouette. */
+  .strategic-partners__row :global(img) {
+    display: block;
+    width: auto;
+    max-width: none;
+    height: 24px;
+    object-fit: contain;
+    filter: var(--logo-filter-ink);
+  }
+
+  @media (max-width: 640px) {
+    .strategic-partners {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-24);
+    }
+
+    .strategic-partners__logos {
+      flex: none;
+    }
+  }
+</style>

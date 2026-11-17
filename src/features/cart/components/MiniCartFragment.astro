@@ -1,0 +1,34 @@
+---
+import MiniCart from "@emdash-commerce/design-system/components/parts/mini-cart/index.astro";
+import { iconNames } from "@emdash-commerce/design-system";
+import type { CartSummary } from "../summary";
+import type { ShellCopy } from "../../shell/copy";
+
+interface Props {
+	id: string;
+	copy: ShellCopy;
+	summary: CartSummary;
+	checkoutAction: string;
+	cartAction: string;
+}
+
+const { id, copy, summary, checkoutAction, cartAction } = Astro.props;
+---
+
+<MiniCart
+	id={id}
+	heading={copy.miniCartHeading}
+	closeLabel={copy.miniCartClose}
+	lines={summary.lines}
+	action={cartAction}
+	subtotal={{ label: copy.miniCartSubtotal, value: summary.subtotal.label }}
+	note={copy.miniCartNote}
+	checkout={{ href: checkoutAction, label: copy.miniCartCheckout }}
+	viewCart={{ href: "/cart", label: copy.miniCartViewCart }}
+	empty={{
+		title: copy.emptyTitle,
+		text: copy.emptyText,
+		icon: iconNames.shoppingBag,
+		action: { href: "/shop", label: copy.emptyAction },
+	}}
+/>

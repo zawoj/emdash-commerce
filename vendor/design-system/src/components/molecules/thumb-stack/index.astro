@@ -1,0 +1,57 @@
+---
+// Product thumbnails of an order in a row, each overlapping the previous one, with a "+N" tile when
+// more items follow. Decorative: the order's own text names the products.
+import Image from '../../atoms/image/index.astro'
+import type { ThumbStackProps } from './types'
+
+type Props = ThumbStackProps
+
+const { images, moreLabel, size = 'md' } = Astro.props
+---
+
+<span class:list={['thumb-stack', `thumb-stack--${size}`]} aria-hidden="true">
+  {images.map((image) => <span class="thumb-stack__item"><Image {...image} alt="" /></span>)}
+  {moreLabel && <span class="thumb-stack__item thumb-stack__more">{moreLabel}</span>}
+</span>
+
+<style>
+  .thumb-stack {
+    --thumb: 56px; /* token-lint-ignore: thumbnail edge */
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+  }
+
+  .thumb-stack--lg {
+    --thumb: 72px; /* token-lint-ignore: thumbnail edge */
+  }
+
+  .thumb-stack__item {
+    display: block;
+    width: var(--thumb);
+    height: var(--thumb);
+    overflow: hidden;
+    border: var(--stroke-bold) solid var(--surface);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .thumb-stack__item + .thumb-stack__item {
+    margin-left: calc(var(--space-12) * -1);
+  }
+
+  .thumb-stack__item :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .thumb-stack__more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font: var(--type-label-semibold-md);
+  }
+</style>

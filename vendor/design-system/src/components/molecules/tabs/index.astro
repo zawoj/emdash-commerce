@@ -1,0 +1,171 @@
+---
+// A tab bar over named slots (WAI-ARIA tabs). Without the script there is no bar and every panel is
+// visible, stacked, each under its own heading; the script (utils/tabs.ts) shows the bar, hides the
+// panels but one and visually hides the headings. With one tab left there is no bar at all: the
+// content stands alone and its heading is for assistive tech only.
+import { isTabBarShown } from '../../../utils/tabs-core'
+import type { TabsProps } from './types'
+
+type Props = TabsProps
+
+const { id, tabs, labelledby, label } = Astro.props
+const hasBar = isTabBarShown(tabs.length)
+const tabId = (tabKey: string) => `${id}-tab-${tabKey}`
+const panelId = (tabKey: string) => `${id}-panel-${tabKey}`
+---
+
+{
+  tabs.length > 0 && (
+    <div class:list={['tabs', !hasBar && 'tabs--single']} data-tabs>
+      {hasBar && (
+        <div class="tabs__bar" role="tablist" aria-labelledby={labelledby} aria-label={labelledby ? undefined : label} hidden>
+          {tabs.map((tab, index) => (
+            <button type="button" class="tabs__tab" role="tab" id={tabId(tab.id)} data-tab-id={tab.id} aria-controls={panelId(tab.id)} aria-selected={index === 0 ? 'true' : 'false'} tabindex={index === 0 ? 0 : -1}>
+              <span class="tabs__tab-label">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {tabs.map((tab) => (
+        <div class="tabs__panel" role={hasBar ? 'tabpanel' : undefined} id={panelId(tab.id)} aria-labelledby={hasBar ? tabId(tab.id) : undefined} data-tab-panel>
+          <h3 class="tabs__panel-title">{tab.label}</h3>
+          <slot name={`tab-${tab.id}`} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+<style>
+  .tabs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+    min-width: 0;
+  }
+
+  .tabs__bar {
+    display: flex;
+    gap: var(--space-16);
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+
+  .tabs__bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* `display` above would otherwise win over the `hidden` attribute (no script: no bar). */
+  .tabs__bar[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .tabs__bar {
+      gap: var(--space-32);
+    }
+  }
+
+  .tabs__tab {
+    position: relative;
+    flex: none;
+    min-height: 48px; /* token-lint-ignore: touch target */
+    margin: 0;
+    padding: var(--space-12) 0;
+    border: 0;
+    background: none;
+    color: var(--text-secondary);
+    font: var(--type-label-semibold-md);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  /* The solid underline of the open tab; it sits on the bar's hairline. */
+  .tabs__tab::after {
+    position: absolute;
+    right: 0;
+    bottom: -1px; /* token-lint-ignore: overlaps the bar's 1px hairline */
+    left: 0;
+    height: var(--stroke-bold);
+    background: var(--text-primary);
+    content: '';
+    visibility: hidden;
+  }
+
+  .tabs__tab[aria-selected='true'] {
+    color: var(--text-primary);
+  }
+
+  .tabs__tab[aria-selected='true']::after {
+    visibility: visible;
+  }
+
+  @media (hover: hover) {
+    .tabs__tab:hover {
+      color: var(--text-primary);
+    }
+  }
+
+  .tabs__tab:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* A phone: the expanded label width would push the third tab out of view, so the labels keep their
+     size and case but drop to the normal width; the bar still scrolls if a longer label overflows. */
+  @media (max-width: 479px) {
+    .tabs__tab {
+      font-stretch: normal;
+    }
+  }
+
+  .tabs__panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    min-width: 0;
+  }
+
+  .tabs__panel[hidden] {
+    display: none;
+  }
+
+  .tabs__panel-title {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-title-2);
+  }
+
+  /* With the bar (script on) or a single tab, the heading is for assistive tech only. */
+  .tabs[data-tabs-ready='true'] .tabs__panel-title,
+  .tabs--single .tabs__panel-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Without the script the panels stack: separate them. */
+  .tabs:not([data-tabs-ready='true']):not(.tabs--single) {
+    gap: var(--space-48);
+  }
+
+  @media (pointer: coarse) {
+    .tabs__tab {
+      min-width: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>
+
+<script>
+  import { mountAllTabs } from '../../../utils/tabs'
+
+  mountAllTabs()
+</script>

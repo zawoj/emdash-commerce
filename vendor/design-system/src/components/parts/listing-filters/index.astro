@@ -1,0 +1,456 @@
+---
+// The filter panel of a listing: one native modal <dialog> holding a GET form of option groups (a stock switch,
+// option chips, a checkbox list with counts, a segmented price choice, each group a fieldset with its legend) and a
+// footer with "Clear all" and the primary "Show N results" button. The same markup is a right-hand drawer from
+// 768px and a full-screen sheet below; the toolbar's Filters button opens it (`utils/listing-filters.ts`: focus
+// trap and Escape are the browser's, the script adds the scroll lock, focus back to the button, and a reset of
+// choices that were never applied). The app's own script keeps the count on the button and the options live
+// (the form's `change` event is the seam: the button carries `data-results-forms`, an option's number is
+// `[data-filter-count]`). Without a script the panel is a plain form shown inline (the noscript rule below) and
+// the Filters button is hidden, so filtering still works.
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import { filterGroupKinds } from './variants'
+import type { FilterOption, ListingFiltersProps } from './types'
+
+type Props = ListingFiltersProps
+
+const { id, action, title, closeLabel, groups, keep = {}, clearAll, results, countLabel } = Astro.props
+const titleId = `${id}-title`
+const forms = results.forms ? JSON.stringify(results.forms) : undefined
+
+const isEmpty = (option: FilterOption): boolean => option.count === 0 && !option.isChecked
+---
+
+<dialog id={id} class="listing-filters" aria-labelledby={titleId} data-listing-filters>
+  <form class="listing-filters__form" action={action} method="get" data-listing-form data-listing-filters-form>
+    <header class="listing-filters__head">
+      <h2 class="listing-filters__title" id={titleId}>{title}</h2>
+      <button class="listing-filters__close" type="button" aria-label={closeLabel} data-filters-close>
+        <Icon name={iconNames.x} size={20} />
+      </button>
+    </header>
+
+    <div class="listing-filters__body">
+      {Object.entries(keep).map(([name, value]) => <input type="hidden" name={name} value={value} />)}
+
+      {
+        groups.map((group) => (
+          <fieldset class="listing-filters__group">
+            <legend class="listing-filters__legend">{group.label}</legend>
+
+            {group.kind === filterGroupKinds.switch && (
+              <label class="listing-filters__switch" data-is-empty={isEmpty(group.option) ? '' : undefined}>
+                <span class="listing-filters__switch-label">
+                  {group.option.label}
+                  {group.option.count !== undefined && (
+                    <span class="listing-filters__count"><span data-filter-count>{group.option.count}</span>{countLabel && <span class="visually-hidden"> {countLabel}</span>}</span>
+                  )}
+                </span>
+                <input class="listing-filters__switch-input" id={`${group.id}-0`} type="checkbox" role="switch" name={group.name} value={group.option.value} checked={group.option.isChecked} />
+              </label>
+            )}
+
+            {group.kind === filterGroupKinds.checkbox && (
+              <ul class="listing-filters__list">
+                {group.options.map((option, index) => (
+                  <li>
+                    <label class="listing-filters__row" data-is-empty={isEmpty(option) ? '' : undefined}>
+                      <input class="listing-filters__check" id={`${group.id}-${index}`} type="checkbox" name={group.name} value={option.value} checked={option.isChecked} />
+                      <span class="listing-filters__row-label">{option.label}</span>
+                      {option.count !== undefined && (
+                        <span class="listing-filters__count"><span data-filter-count>{option.count}</span>{countLabel && <span class="visually-hidden"> {countLabel}</span>}</span>
+                      )}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {(group.kind === filterGroupKinds.chips || group.kind === filterGroupKinds.segmented) && (
+              <div class="listing-filters__pills">
+                {group.options.map((option, index) => (
+                  <label class="listing-filters__pill" data-is-empty={isEmpty(option) ? '' : undefined}>
+                    <input
+                      class="listing-filters__pill-input"
+                      id={`${group.id}-${index}`}
+                      type={group.kind === filterGroupKinds.chips ? 'checkbox' : 'radio'}
+                      name={group.name}
+                      value={option.value}
+                      checked={option.isChecked}
+                    />
+                    <span class="listing-filters__pill-box">
+                      {option.label}
+                      {option.count !== undefined && (
+                        <span class="listing-filters__count"><span data-filter-count>{option.count}</span>{countLabel && <span class="visually-hidden"> {countLabel}</span>}</span>
+                      )}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </fieldset>
+        ))
+      }
+    </div>
+
+    <footer class="listing-filters__foot">
+      <a class="listing-filters__clear" href={clearAll.href}>{clearAll.label}</a>
+      <Button type="submit" variant={buttonVariants.accent} size={buttonSizes.lg} class="listing-filters__submit" data-filters-results data-results-forms={forms}>{results.label}</Button>
+    </footer>
+  </form>
+</dialog>
+{/* No script, no way to open a dialog: show the panel inline as a plain form instead. */}
+<noscript>
+  <style is:inline>
+    /* More specific than the component's own scoped rules, which carry an attribute selector. */
+    html dialog.listing-filters[data-listing-filters] {
+      position: static;
+      display: block;
+      width: auto;
+      height: auto;
+      max-height: none;
+      margin: 0 0 var(--space-24);
+      border: 1px solid var(--border);
+    }
+
+    html dialog.listing-filters[data-listing-filters] .listing-filters__close {
+      display: none;
+    }
+  </style>
+</noscript>
+
+<script>
+  import '@emdash-commerce/design-system/listing-filters'
+</script>
+
+<style>
+  .listing-filters {
+    width: 100%;
+    max-width: none;
+    height: 100vh; /* token-lint-ignore: viewport fallback for browsers without dvh */
+    height: 100dvh; /* token-lint-ignore: full-screen sheet */
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--surface);
+    color: var(--text-body);
+    inset: 0;
+  }
+
+  .listing-filters[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .listing-filters::backdrop {
+    background: var(--image-scrim);
+  }
+
+  /* From a tablet up the same panel is a drawer on the right edge. */
+  @media (min-width: 768px) {
+    .listing-filters {
+      width: min(440px, 100%); /* token-lint-ignore: drawer width */
+      border-left: var(--stroke-thin) solid var(--border);
+      inset: 0 0 0 auto;
+    }
+  }
+
+  /* The page behind the open panel does not scroll; the gutter stays so nothing jumps. */
+  :global(html:has(.listing-filters[open])) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+
+  .listing-filters__form {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  /* ----- head ----- */
+  .listing-filters__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16);
+    padding: var(--space-8) var(--space-12) var(--space-8) var(--space-24);
+    border-bottom: var(--stroke-thin) solid var(--border);
+  }
+
+  .listing-filters__title {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+  }
+
+  .listing-filters__close {
+    display: inline-flex;
+    width: 44px; /* token-lint-ignore: touch target */
+    height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: none;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    .listing-filters__close:hover {
+      background: var(--surface-muted);
+    }
+  }
+
+  .listing-filters__close:focus-visible,
+  .listing-filters__clear:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* ----- groups ----- */
+  .listing-filters__body {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 var(--space-24);
+  }
+
+  .listing-filters__group {
+    min-width: 0;
+    margin: 0;
+    padding: var(--space-20) 0 var(--space-24);
+    border: 0;
+    border-bottom: var(--stroke-thin) solid var(--border);
+  }
+
+  .listing-filters__group:last-of-type {
+    border-bottom: 0;
+  }
+
+  /* A floated legend is laid out like any block (a plain one sits on the fieldset's top edge); what follows clears it. */
+  .listing-filters__legend {
+    float: left;
+    width: 100%;
+    margin: 0 0 var(--space-12);
+    padding: 0;
+    color: var(--text-primary);
+    font: var(--type-title-md);
+  }
+
+  .listing-filters__legend + * {
+    clear: both;
+  }
+
+  .listing-filters__count {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* An option that would leave nothing stays choosable (it may be checked in another group's favour) but is quiet. */
+  [data-is-empty] {
+    color: var(--text-subtle);
+  }
+
+  [data-is-empty] .listing-filters__count {
+    color: var(--text-subtle);
+  }
+
+  /* ----- the stock switch ----- */
+  .listing-filters__switch {
+    display: flex;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16);
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+    cursor: pointer;
+  }
+
+  .listing-filters__switch-label {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-8);
+  }
+
+  .listing-filters__switch-input {
+    position: relative;
+    flex: none;
+    width: 44px; /* token-lint-ignore: switch track */
+    height: 24px; /* token-lint-ignore: switch track */
+    margin: 0;
+    border: var(--stroke-bold) solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    appearance: none;
+    cursor: pointer;
+  }
+
+  /* The knob sits left when off and right when on: the position says it, the fill only repeats it. */
+  .listing-filters__switch-input::before {
+    position: absolute;
+    top: 2px; /* token-lint-ignore: knob inset */
+    left: 2px; /* token-lint-ignore: knob inset */
+    width: 16px; /* token-lint-ignore: knob */
+    height: 16px; /* token-lint-ignore: knob */
+    border-radius: var(--radius-control);
+    background: var(--border-strong);
+    content: '';
+  }
+
+  .listing-filters__switch-input:checked {
+    border-color: var(--text-primary);
+    background: var(--text-primary);
+  }
+
+  .listing-filters__switch-input:checked::before {
+    left: calc(100% - 18px); /* token-lint-ignore: knob width plus inset */
+    background: var(--surface);
+  }
+
+  .listing-filters__switch-input:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* ----- the checkbox list (brands) ----- */
+  .listing-filters__list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .listing-filters__row {
+    display: flex;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    gap: var(--space-12);
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+    cursor: pointer;
+  }
+
+  .listing-filters__row-label {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .listing-filters__check {
+    flex: none;
+    width: 20px; /* token-lint-ignore: native checkbox box */
+    height: 20px; /* token-lint-ignore: native checkbox box */
+    margin: 0;
+    accent-color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .listing-filters__check:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* ----- option chips (sizes) and the segmented choice (price) ----- */
+  .listing-filters__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+  }
+
+  .listing-filters__pill {
+    position: relative;
+    display: inline-flex;
+    cursor: pointer;
+  }
+
+  .listing-filters__pill-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-radius: 0;
+    opacity: 0;
+    appearance: none;
+    cursor: inherit;
+  }
+
+  .listing-filters__pill-box {
+    display: inline-flex;
+    min-width: 44px; /* token-lint-ignore: touch target */
+    min-height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-6);
+    padding: 0 var(--space-16);
+    border: var(--stroke-thin) solid var(--border-strong);
+    border-radius: var(--radius-chip);
+    background: var(--surface);
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    white-space: nowrap;
+  }
+
+  @media (hover: hover) {
+    .listing-filters__pill:hover .listing-filters__pill-box {
+      border-color: var(--text-primary);
+    }
+  }
+
+  .listing-filters__pill-input:checked + .listing-filters__pill-box {
+    border-color: var(--text-primary);
+    background: var(--text-primary);
+    color: var(--surface);
+  }
+
+  .listing-filters__pill-input:checked + .listing-filters__pill-box .listing-filters__count {
+    color: inherit;
+  }
+
+  .listing-filters__pill-input:focus-visible + .listing-filters__pill-box {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  [data-is-empty] .listing-filters__pill-box {
+    border-color: var(--border);
+    color: var(--text-subtle);
+  }
+
+  /* ----- foot ----- */
+  .listing-filters__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+    padding: var(--space-16) var(--space-24) calc(var(--space-16) + env(safe-area-inset-bottom, 0px));
+    border-top: var(--stroke-thin) solid var(--border);
+    background: var(--surface);
+  }
+
+  .listing-filters__clear {
+    display: inline-flex;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .listing-filters__foot :global(.listing-filters__submit) {
+    min-height: 48px; /* token-lint-ignore: primary action */
+    flex: 1;
+  }
+</style>

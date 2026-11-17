@@ -1,0 +1,76 @@
+---
+// Figma "ad-info" (625:6097): the caption under an ad or a partner slot. `default` ("General ad
+// info") is a centred 12px line in a 299px box (`isFitted` stretches the box to its container,
+// as the main-column ad slot does); `horizontal` / `vertical` ("Partner zdrowie / trening") put a
+// 14px caption beside / above the partner's logo inside an 8px-padded box.
+import type { ImageAsset } from '../../../types/asset'
+import { adInfoLayouts, type AdInfoLayout } from './variants'
+import Image from '../../atoms/image/index.astro'
+
+interface Props {
+  text: string
+  /** Partner logo (horizontal / vertical layouts). */
+  logo?: ImageAsset
+  layout?: AdInfoLayout
+  /** `default` layout: the text box fills its container instead of Figma's 299px box. */
+  isFitted?: boolean
+}
+
+const { text, logo, layout = adInfoLayouts.default, isFitted = false } = Astro.props
+---
+
+<div class:list={['ad-info', `ad-info--${layout}`, isFitted && 'ad-info--fitted']}>
+  <p class="ad-info__text">{text}</p>
+  {logo && <Image class="ad-info__logo" {...logo} />}
+</div>
+
+<style>
+  .ad-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-inline: auto;
+    border-radius: var(--radius-card);
+    color: var(--text-subtle);
+    text-align: center;
+  }
+
+  .ad-info__text {
+    margin: 0;
+  }
+
+  .ad-info--default {
+    width: 100%;
+    max-width: 299px;
+    font: var(--type-text-regular-xs);
+  }
+
+  .ad-info--fitted {
+    max-width: none;
+  }
+
+  .ad-info--horizontal,
+  .ad-info--vertical {
+    padding: var(--space-8);
+    font: var(--type-text-regular-sm);
+  }
+
+  .ad-info--horizontal {
+    gap: var(--space-6);
+  }
+
+  .ad-info--horizontal .ad-info__text {
+    white-space: nowrap;
+  }
+
+  .ad-info--vertical {
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .ad-info__logo {
+    display: block;
+    flex: none;
+  }
+</style>

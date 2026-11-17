@@ -1,0 +1,126 @@
+---
+import InlineNotice from "@emdash-commerce/design-system/components/atoms/inline-notice/index.astro";
+import QuantityStepper from "@emdash-commerce/design-system/components/atoms/quantity-stepper/index.astro";
+import VariantPicker from "@emdash-commerce/design-system/components/molecules/variant-picker/index.astro";
+import type { CartCopy } from "../../cart/copy";
+import type { CatalogCopy } from "../copy";
+import { MAX_QUANTITY } from "../domain/constants";
+import type { ProductViewModel } from "../domain/product-view";
+import AddToCartForm from "./AddToCartForm.astro";
+import BuyState from "./BuyState.astro";
+
+interface Props {
+	model: ProductViewModel & { buyState: { axes: string[]; imageAxis: string | null; variants: { id: number; options: Record<string, string>; isPurchasable: boolean; priceId: string }[] } };
+	catalogCopy: CatalogCopy;
+	cartCopy: CartCopy;
+}
+
+const { model, catalogCopy, cartCopy } = Astro.props;
+const initial = model.variantStates.find((state) => state.surrogateId === model.preselectedSurrogateId) ?? model.defaultState;
+const unavailableLabel = catalogCopy.addToCartSoldOut;
+const skuLabel = (sku: string | null) => (sku ? catalogCopy.skuLabel.replace("{sku}", sku) : "");
+---
+
+<div
+	class="buy-box"
+	data-product-buy
+	data-buy-state={JSON.stringify(model.buyState)}
+	data-sold-out-label={unavailableLabel}
+	data-add-label={catalogCopy.addToCart}
+>
+	<div class="buy-box__state" data-buy-target aria-live="polite">
+		<BuyState state={initial} skuLabel={skuLabel(initial.sku)} />
+	</div>
+	{
+		model.isSoldOut ? (
+			<InlineNotice>
+				{catalogCopy.soldOutNotice}{" "}<a href="#related">{catalogCopy.soldOutSimilar}</a>
+			</InlineNotice>
+		) : null
+	}
+	<AddToCartForm
+		copy={cartCopy}
+		priceFieldName={model.hasVariants ? model.priceFieldName : undefined}
+		isDisabled={model.isSoldOut}
+		submitLabel={model.isSoldOut ? unavailableLabel : catalogCopy.addToCart}
+	>
+		{model.picker && <VariantPicker {...model.picker} />}
+		{!model.hasVariants && model.defaultState.priceId ? (
+			<input type="hidden" data-default-price value={model.defaultState.priceId} />
+		) : null}
+		<QuantityStepper
+			id="pdp-quantity"
+			name="quantity"
+			value={1}
+			min={1}
+			max={MAX_QUANTITY}
+			label={catalogCopy.quantity}
+			decreaseLabel={catalogCopy.quantityDecrease}
+			increaseLabel={catalogCopy.quantityIncrease}
+			isDisabled={model.isSoldOut}
+		/>
+	</AddToCartForm>
+	{
+		model.variantStates.map((state) => (
+			<template data-buy-template={state.surrogateId}>
+				<BuyState state={state} skuLabel={skuLabel(state.sku)} />
+			</template>
+		))
+	}
+</div>
+
+<script>
+	import "./product-buy.client";
+</script>
+
+<style>
+	.buy-box {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-16);
+		width: 100%;
+	}
+
+	.buy-box__state {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-8);
+	}
+
+	.buy-box :global(form[data-add-to-cart]) {
+		display: grid;
+		width: 100%;
+		grid-template-columns: auto minmax(0, 1fr);
+		align-items: stretch;
+		gap: var(--space-16);
+	}
+
+	.buy-box :global(form[data-add-to-cart] > *) {
+		grid-column: 1 / -1;
+	}
+
+	.buy-box :global(form[data-add-to-cart] > .quantity-stepper),
+	.buy-box :global(form[data-add-to-cart] > [data-quantity-stepper]) {
+		grid-column: 1;
+		grid-row: 2;
+		width: auto;
+	}
+
+	.buy-box :global(form[data-add-to-cart] > button[type="submit"]) {
+		grid-column: 2;
+		grid-row: 2;
+	}
+
+	.buy-box {
+		container-type: inline-size;
+	}
+
+	@container (width < 400px) {
+		.buy-box :global(form[data-add-to-cart] > button[type="submit"]) {
+			grid-column: 1 / -1;
+			grid-row: 3;
+		}
+	}
+</style>

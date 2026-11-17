@@ -1,0 +1,15 @@
+---
+import { decodeSlug } from "emdash";
+import { fetchCatalogProducts } from "../../../utils/commerce-fetch";
+
+// `/shop/brand/{slug}` is the URL pattern the plugin gives a brand. Same rule as `/shop/c/{slug}`: a known brand goes
+// to the filtered listing, an unknown one is a real 404.
+const slug = decodeSlug(Astro.params.slug);
+const catalog = slug ? await fetchCatalogProducts(Astro.url.origin, { brand: slug, limit: 1 }).catch(() => null) : null;
+
+if (!slug || !catalog || catalog.items.length === 0) {
+	return Astro.rewrite("/404");
+}
+
+return Astro.redirect(`/shop?brand=${encodeURIComponent(slug)}`, 301);
+---

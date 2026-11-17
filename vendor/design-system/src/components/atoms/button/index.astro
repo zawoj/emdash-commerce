@@ -1,0 +1,210 @@
+---
+import type { HTMLAttributes } from 'astro/types'
+
+import {
+  buttonVariants,
+  buttonSizes,
+  buttonKinds,
+  type ButtonVariant,
+  type ButtonSize,
+  type ButtonKind,
+} from './variants'
+
+// Attributes beyond these (`aria-*`, `data-*`) land on the button or link itself.
+interface Props extends Omit<HTMLAttributes<'button'>, 'type' | 'disabled' | 'class' | 'rel' | 'target' | 'href'> {
+  variant?: ButtonVariant
+  size?: ButtonSize
+  kind?: ButtonKind
+  href?: string
+  /** Link attributes, used only with `href`. */
+  rel?: string
+  target?: '_blank' | '_self' | '_parent' | '_top'
+  type?: 'button' | 'submit' | 'reset'
+  isDisabled?: boolean
+  class?: string
+}
+
+const {
+  variant = buttonVariants.primary,
+  size: requestedSize,
+  kind = buttonKinds.default,
+  href,
+  rel,
+  target,
+  type = 'button',
+  isDisabled = false,
+  class: className,
+  ...attrs
+} = Astro.props
+
+const isCta = kind === buttonKinds.cta
+// A CTA is Figma's lg icon button unless the caller asks for sm.
+const size = requestedSize ?? (isCta ? buttonSizes.lg : buttonSizes.sm)
+const hasIcon = Astro.slots.has('icon')
+const showIcon = isCta || hasIcon
+const Tag = href ? 'a' : 'button'
+---
+<Tag
+  class:list={['button', `button--${variant}`, `button--${size}`, isCta && 'button--cta', className]}
+  href={href}
+  rel={href ? rel : undefined}
+  target={href ? target : undefined}
+  type={href ? undefined : type}
+  disabled={!href && isDisabled ? true : undefined}
+  aria-disabled={href && isDisabled ? 'true' : undefined}
+  tabindex={href && isDisabled ? -1 : undefined}
+  {...attrs}
+>
+  <span class="button__label"><slot /></span>
+  {showIcon && <span class="button__icon"><slot name="icon" /></span>}
+</Tag>
+
+<style>
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-8);
+    border: none;
+    border-radius: var(--radius-control);
+    text-transform: var(--button-case);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .button[disabled],
+  .button[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .button__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+  }
+
+  /* Whatever glyph the caller slots in is scaled to this tier's icon box via its viewBox. */
+  .button__icon > :global(svg) {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Color axis — Figma's button fill (gray/800) and the page instances' accent / white overrides. */
+  .button--primary {
+    background: var(--control-solid);
+    color: var(--on-control-solid);
+  }
+
+  .button--accent {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .button--inverse {
+    background: var(--ink-0);
+    color: var(--ink-1000);
+  }
+
+  .button--outline {
+    background: transparent;
+    border: var(--stroke-thin) solid var(--border-strong);
+    color: var(--text-primary);
+  }
+
+  @media (hover: hover) {
+    .button--primary:hover {
+      background: var(--action-primary-hover);
+    }
+
+    .button--accent:hover {
+      background: var(--accent-hover);
+    }
+
+    .button--inverse:hover {
+      background: var(--ink-200);
+    }
+
+    .button--outline:hover {
+      border-color: var(--text-primary);
+    }
+  }
+
+  [data-surface='dark'] .button--primary:hover {
+    background: var(--ink-200);
+  }
+
+  /* Pressed: one step darker than hover. */
+  .button--primary:active {
+    background: var(--accent-pressed);
+  }
+
+  [data-surface='dark'] .button--primary:active {
+    background: var(--ink-300);
+  }
+
+  .button--accent:active {
+    background: var(--accent-pressed);
+  }
+
+  .button--inverse:active {
+    background: var(--ink-300);
+  }
+
+  .button:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Size axis — Figma button 629:8399: sm 40px (button-sm, 16px icon), lg 48px (button-lg, 20px
+     icon), 16px side padding, square. */
+  .button--sm {
+    height: 40px;
+    padding: 0 var(--space-20);
+    font: var(--type-button-sm);
+  }
+
+  .button--sm .button__icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .button--lg {
+    height: 48px;
+    padding: 0 var(--space-24);
+    font: var(--type-button-lg);
+  }
+
+  .button--lg .button__icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* A default-kind lg button with a trailing icon tightens the trailing padding to 12px, like
+     Figma's icon variant. */
+  .button--lg:has(.button__icon) {
+    padding-right: var(--space-16);
+  }
+
+  /* Kind axis — Figma "Icon=Yes" (804:26071 sm, 804:26066 lg): a 240px button with the label and
+     the trailing arrow pushed apart; sm pads 12 / 8, lg 16 / 12. Callers stretch it with a class. */
+  .button--cta {
+    width: 240px;
+    justify-content: space-between;
+    padding: 0 var(--space-16) 0 var(--space-20);
+  }
+
+  .button--cta.button--lg {
+    padding: 0 var(--space-20) 0 var(--space-24);
+  }
+
+  @media (pointer: coarse) {
+    .button--sm {
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

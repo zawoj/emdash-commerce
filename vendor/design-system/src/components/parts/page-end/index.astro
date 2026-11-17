@@ -1,0 +1,42 @@
+---
+// The closing of a page's text column (Figma article body, after the last section): a divider, the
+// "Tagi" list when the record has tags, and the "Sitemap" trail.
+import type { LinkContent } from '../../../types/link'
+import Sitemap from '../sitemap/index.astro'
+import TagList from '../tag-list/index.astro'
+
+interface Props {
+  tagsLabel: string
+  sitemapLabel: string
+  /** Unique on the page — prefixes the landmark labels. */
+  idPrefix: string
+  tags: readonly LinkContent[]
+  crumbs: readonly LinkContent[]
+}
+
+const { tagsLabel, sitemapLabel, idPrefix, tags, crumbs } = Astro.props
+---
+
+<div class="page-end">
+  <hr class="page-end__divider" />
+  {tags.length > 0 && <TagList label={tagsLabel} labelId={`${idPrefix}-tags-label`} tags={tags} />}
+  <Sitemap label={sitemapLabel} labelId={`${idPrefix}-sitemap-label`} crumbs={crumbs} />
+</div>
+
+<style>
+  .page-end {
+    display: flex;
+    flex-direction: column;
+    gap: 31px; /* token-lint-ignore: Figma article wrap gap 31px, no token */
+    width: 100%;
+  }
+
+  /* Figma: Line 9 — a 1px stroke centered on a zero-height line, so it takes no layout space. */
+  .page-end__divider {
+    width: 100%;
+    height: 1px;
+    margin: -0.5px 0; /* token-lint-ignore: Figma zero-height line, half the 1px stroke each side */
+    border: 0;
+    background: var(--border);
+  }
+</style>

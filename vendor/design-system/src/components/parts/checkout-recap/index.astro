@@ -1,0 +1,113 @@
+---
+// The review step's recap: one hairline-separated row per decision the shopper made (contact,
+// delivery, billing, payment) — a quiet label, the answer, and a "Change" link back to its step.
+import type { CheckoutRecapProps } from './types'
+
+type Props = CheckoutRecapProps
+
+const { sections, label } = Astro.props
+---
+
+<ul class="checkout-recap" aria-label={label}>
+  {
+    sections.map((section) => (
+      <li class="checkout-recap__item">
+        <p class="checkout-recap__title">{section.title}</p>
+        <div class="checkout-recap__body">
+          <p class="checkout-recap__name">{section.name}</p>
+          {(section.lines ?? []).map((line) => <p class="checkout-recap__line">{line}</p>)}
+        </div>
+        <a class="checkout-recap__change" href={section.change.href} aria-label={section.change.ariaLabel}>{section.change.label}</a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .checkout-recap {
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--border);
+    list-style: none;
+  }
+
+  .checkout-recap__item {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr) auto; /* token-lint-ignore: label column */
+    gap: var(--space-16);
+    align-items: start;
+    padding: var(--space-20) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .checkout-recap__title {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .checkout-recap__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .checkout-recap__name {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    overflow-wrap: anywhere;
+  }
+
+  .checkout-recap__line {
+    margin: 0;
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+  }
+
+  .checkout-recap__change {
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .checkout-recap__change:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .checkout-recap__item {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'title change'
+        'body  body';
+      gap: var(--space-8) var(--space-16);
+    }
+
+    .checkout-recap__title {
+      grid-area: title;
+    }
+
+    .checkout-recap__body {
+      grid-area: body;
+    }
+
+    .checkout-recap__change {
+      grid-area: change;
+    }
+  }
+
+  @media (pointer: coarse) {
+    .checkout-recap__change {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

@@ -1,0 +1,100 @@
+/*
+ * Base reset for every app that consumes the design system.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  /* Full-bleed sections break out of the page column with `100vw`, which includes the scrollbar:
+     clipping (not hiding — no scroll container, so sticky still works) keeps that from ever adding a
+     horizontal scrollbar. */
+  overflow-x: clip;
+  /* This site has no automatic OS-driven dark mode — only explicit `[data-surface="dark"]`
+     sections. `light dark` would let the browser repaint any element with no explicit
+     color/background (the page canvas itself, any gap in component styling) to a UA dark
+     theme whenever the OS is in dark mode, fighting the tokens below. */
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* The design's default text line height is 1.2 (nearly every text node sets it explicitly) and
+   its default family is the body face — text that sets neither still matches the design. Multi-line copy
+   with a looser leading sets its own line-height. */
+/* The page shell is a column at least one screen tall (`dvh` follows the phone's collapsing
+   toolbars; `vh` is the fallback): `<main>` grows into the free space, so the footer always sits at
+   the bottom of the screen on a short page and nothing ever shows below it. */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: var(--font-body);
+  line-height: 1.2;
+  color: var(--text-primary);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* A link no component styled (inside a checkbox label, CMS rich text, a slotted anchor) reads in the
+   link colour, underlined, never in the browser's default blue. Components that style their links
+   override this with their own class. */
+:where(a) {
+  color: var(--link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* `<img>` sizes to its own `width`/`height` attributes (the intrinsic aspect ratio), but must
+   still shrink inside a narrower container — otherwise every fixed-size photo breaks layout
+   below the width it was authored at. Not applied to `svg`: inline icons are small fixed UI
+   elements that should never shrink with the viewport. */
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* One global photo filter (`--image-filter`, see index.css; `none` shows photos as shot). */
+img,
+video,
+picture {
+  filter: var(--image-filter);
+}
+
+/* One focus ring for every interactive element; components that need an inset ring override it. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Text for assistive technology only (a form label the design shows as a placeholder, a status
+   region). Apps use the class; components scope their own copy of the rule. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Only `<main>` (PageMain, PageGrid) grows; whatever closes the page (the site footer, a checkout
+   footer) keeps its height. */
+body > main {
+  flex: 1 0 auto;
+}
+
+body > footer,
+body > .site-footer {
+  flex-shrink: 0;
+}

@@ -1,0 +1,126 @@
+---
+// The long-form facts of a product page as short accordion rows (description, specification,
+// manufacturer, delivery and returns) instead of one wall of text or a tabbed block: every row is a
+// native <details> that works without a script, the description starts open. A row without content
+// is not rendered. It sits in the buy column under the promises, so a shopper reaches the facts
+// without leaving the buy button.
+import Disclosure from '../../molecules/disclosure/index.astro'
+import Prose from '../prose/text.astro'
+import SpecTable from '../spec-table/index.astro'
+import type { ProductDetailsPanel, ProductDetailsProps } from './types'
+
+type Props = ProductDetailsProps
+
+const { heading, headingId = 'product-details', descriptionLabel, highlights = [], specification, manufacturer, delivery } = Astro.props
+const hasText = Astro.slots.has('default')
+const hasRows = (panel: ProductDetailsPanel | undefined): panel is ProductDetailsPanel => panel !== undefined && panel.rows.length > 0
+const hasContent = hasText || hasRows(specification) || hasRows(manufacturer) || hasRows(delivery)
+---
+
+{
+  hasContent && (
+    <section class="product-details" aria-labelledby={headingId}>
+      <h2 class="visually-hidden" id={headingId}>{heading}</h2>
+      {hasText && (
+        <Disclosure summary={descriptionLabel} headingLevel={3} isOpen>
+          <div class="product-details__description">
+            {highlights.length > 0 && (
+              <ul class="product-details__highlights">
+                {highlights.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            )}
+            <Prose class="product-details__prose"><slot /></Prose>
+          </div>
+        </Disclosure>
+      )}
+      {hasRows(specification) && (
+        <Disclosure summary={specification.title} headingLevel={3}>
+          <div class="product-details__facts">
+            <SpecTable caption={specification.caption} rows={specification.rows} />
+            {specification.note && <p class="product-details__note">{specification.note}</p>}
+          </div>
+        </Disclosure>
+      )}
+      {hasRows(manufacturer) && (
+        <Disclosure summary={manufacturer.title} headingLevel={3}>
+          <div class="product-details__facts">
+            <SpecTable caption={manufacturer.caption} rows={manufacturer.rows} />
+            {manufacturer.note && <p class="product-details__note">{manufacturer.note}</p>}
+          </div>
+        </Disclosure>
+      )}
+      {hasRows(delivery) && (
+        <Disclosure summary={delivery.title} headingLevel={3}>
+          <div class="product-details__facts">
+            <SpecTable caption={delivery.caption} rows={delivery.rows} />
+            {delivery.note && <p class="product-details__note">{delivery.note}</p>}
+          </div>
+        </Disclosure>
+      )}
+    </section>
+  )
+}
+
+<style>
+  .product-details {
+    border-top: var(--stroke-thin) solid var(--border);
+  }
+
+  .product-details__description {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    min-width: 0;
+  }
+
+  /* The key points: plain checklist lines, no box. */
+  .product-details__highlights {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  .product-details__highlights li {
+    display: flex;
+    gap: var(--space-12);
+    align-items: baseline;
+  }
+
+  .product-details__highlights li::before {
+    flex: none;
+    width: var(--space-6);
+    height: var(--space-6);
+    border-radius: var(--radius-full);
+    background: var(--text-primary);
+    content: '';
+  }
+
+  /* Body copy at the accordion's own size, not the article's 18px. */
+  .product-details :global(.product-details__prose) {
+    font: var(--type-text-regular-sm);
+  }
+
+  /* Fact tables: label / value rows between hairlines; the row's own bottom line closes the last one. */
+  .product-details__facts :global(.spec-table th),
+  .product-details__facts :global(.spec-table td) {
+    padding-block: var(--space-12);
+  }
+
+  .product-details__facts :global(.spec-table tr:last-child th),
+  .product-details__facts :global(.spec-table tr:last-child td) {
+    border-bottom: 0;
+  }
+
+  .product-details__note {
+    margin: var(--space-8) 0 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+</style>

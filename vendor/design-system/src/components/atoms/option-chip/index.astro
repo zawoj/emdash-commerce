@@ -1,0 +1,131 @@
+---
+// A choice as a bordered chip around a native radio (or checkbox): the input is visually hidden
+// but focusable, so arrows, space and form submission are the browser's. State is never colour
+// alone: the chosen chip is filled and carries a check, a sold-out chip keeps its value and says
+// so in words under it (dashed outline), a disabled chip is struck through.
+import Icon from '../icon/index.astro'
+import { iconNames } from '../icon/names'
+import { soldOutNoteText } from '../../../utils/sold-out-note'
+import type { OptionChipProps } from './types'
+
+type Props = OptionChipProps
+
+const { id, name, option, soldOutLabel, kind = 'radio', ...attrs } = Astro.props
+---
+
+<label class:list={['option-chip', option.isSoldOut && 'option-chip--sold-out', option.isDisabled && 'option-chip--disabled']} for={id} data-sold-out-label={soldOutLabel}>
+  <input id={id} {...attrs} class="option-chip__input" type={kind} name={name} value={option.value} checked={option.isChecked} disabled={option.isDisabled} />
+  <span class="option-chip__box">
+    <span class="option-chip__check" aria-hidden="true"><Icon name={iconNames.check} size={12} /></span>
+    <span class="option-chip__label">{option.label}</span>
+    {soldOutLabel && option.isSoldOut && <span class="option-chip__note" data-sold-out-note>{soldOutNoteText(soldOutLabel)}</span>}
+  </span>
+</label>
+
+<style>
+  .option-chip {
+    position: relative;
+    display: inline-flex;
+    cursor: pointer;
+  }
+
+  .option-chip__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    appearance: none;
+    border-radius: 0;
+    opacity: 0;
+    cursor: inherit;
+  }
+
+  .option-chip__box {
+    display: inline-flex;
+    min-width: 48px; /* token-lint-ignore: touch target of a one-letter size */
+    min-height: 48px; /* token-lint-ignore: touch target */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-8) var(--space-16);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-chip);
+    background: var(--surface);
+    color: var(--text-body);
+    font: var(--type-text-medium-sm);
+    text-align: center;
+  }
+
+  /* The black fill already says "chosen"; the tick stays in the markup for assistive tech only. */
+  .option-chip__check {
+    display: none;
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    line-height: 0;
+  }
+
+  @media (hover: hover) {
+    .option-chip:hover .option-chip__box {
+      border-color: var(--text-primary);
+    }
+  }
+
+  .option-chip__input:checked + .option-chip__box {
+    border-color: var(--control-edge);
+    background: var(--control-solid);
+    color: var(--on-control-solid);
+  }
+
+  .option-chip__input:not(:disabled):active + .option-chip__box {
+    background: var(--surface-hover);
+    border-color: var(--text-primary);
+  }
+
+  .option-chip__input:checked:active + .option-chip__box {
+    background: var(--action-primary-hover);
+  }
+
+  .option-chip__input:focus-visible + .option-chip__box {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Sold out reads from the strike-through and dashed outline; the words, present only on a sold-out
+     chip, stay for screen readers so every chip keeps one height in a size grid. */
+  .option-chip__note {
+    position: absolute;
+    width: 1px; /* token-lint-ignore: visually hidden */
+    height: 1px; /* token-lint-ignore: visually hidden */
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .option-chip--sold-out .option-chip__box {
+    border-style: dashed;
+    color: var(--text-subtle);
+    text-decoration: line-through;
+  }
+
+  .option-chip--sold-out .option-chip__input:checked + .option-chip__box {
+    border-style: dashed;
+    color: var(--on-control-solid);
+  }
+
+  /* A value that cannot be chosen right now (sold out for the chosen colour, or no such combination), set by
+     the server or by the script flipping `disabled`: struck through, never selectable. */
+  .option-chip--disabled,
+  .option-chip:has(.option-chip__input:disabled) {
+    cursor: not-allowed;
+  }
+
+  .option-chip--disabled .option-chip__box,
+  .option-chip__input:disabled + .option-chip__box {
+    border-color: var(--border);
+    color: var(--text-subtle);
+    text-decoration: line-through;
+  }
+</style>

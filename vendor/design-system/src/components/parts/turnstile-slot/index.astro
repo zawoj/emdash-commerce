@@ -1,0 +1,81 @@
+---
+// The place of a Cloudflare Turnstile widget inside a form. The widget is the Managed kind in its
+// `interaction-only` appearance: nothing shows unless Cloudflare needs the visitor to do something, then it
+// takes the row (full width, 65px high). `utils/turnstile.ts` loads Cloudflare's script once, lazily (when
+// the slot nears the screen or a field of its form is touched), renders the widget, keeps the form's
+// `cf-turnstile-response` field current (an expired token is renewed on its own) and holds a submit that
+// comes before the token is ready until it arrives. The slot is the only markup the storefront adds; it
+// renders nothing at all without a site key, so a shop without Turnstile has no widget and no script.
+import type { TurnstileSlotProps } from './types'
+
+type Props = TurnstileSlotProps
+
+const { siteKey, action, language, pendingText, errorText, previewState } = Astro.props
+const isPreview = previewState !== undefined
+---
+
+<div
+  class="turnstile-slot"
+  data-turnstile
+  data-sitekey={siteKey}
+  data-action={action}
+  data-language={language}
+  data-pending-text={pendingText}
+  data-error-text={errorText}
+  data-turnstile-preview={isPreview ? previewState : undefined}
+>
+  <div class="turnstile-slot__widget" data-turnstile-widget>
+    {isPreview && <div class="turnstile-slot__frame" aria-hidden="true">Cloudflare</div>}
+  </div>
+  <p class="turnstile-slot__status" data-turnstile-status role="status" hidden={!isPreview}>
+    {previewState === 'pending' && pendingText}
+    {previewState === 'error' && errorText}
+  </p>
+</div>
+
+{!isPreview && <script>import '../../../utils/turnstile'</script>}
+
+<style>
+  .turnstile-slot {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    /* A challenge scrolled into view must clear the fixed bottom bars of the phone shell. */
+    scroll-margin-block: var(--space-24) calc(var(--bottom-bar-offset, 0px) + var(--space-24));
+  }
+
+  /* interaction-only: no height until a challenge is needed, so an invisible check costs the form no space. */
+  .turnstile-slot__widget {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .turnstile-slot__widget:empty {
+    display: none;
+  }
+
+  .turnstile-slot__status {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .turnstile-slot__status[hidden] {
+    display: none;
+  }
+
+  .turnstile-slot[data-turnstile-preview='error'] .turnstile-slot__status {
+    color: var(--text-primary);
+  }
+
+  .turnstile-slot__frame {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 65px; /* token-lint-ignore: Cloudflare's fixed widget height */
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+</style>

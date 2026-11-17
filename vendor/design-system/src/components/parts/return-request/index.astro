@@ -1,0 +1,141 @@
+---
+// The fields of a return request: a row per returnable item (tick, photo, name, quantity stepper,
+// reason) and the optional note. Lives inside the caller's <form>; the field names are the contract
+// of the return endpoint (`lines`, `quantity_<id>`, `reason_<id>`, `customerNote`).
+import FieldCheckbox from '../../atoms/field-checkbox/index.astro'
+import FieldSelect from '../../atoms/field-select/index.astro'
+import FieldTextarea from '../../atoms/field-textarea/index.astro'
+import Image from '../../atoms/image/index.astro'
+import QuantityStepper from '../../atoms/quantity-stepper/index.astro'
+import type { ReturnRequestProps } from './types'
+
+type Props = ReturnRequestProps
+
+const { lines, reasons, labels, noteValue = '', noteMaxLength = 2000 } = Astro.props
+---
+
+<fieldset class="return-request">
+  <legend class="return-request__legend">{labels.legend}</legend>
+  {
+    lines.map((line, index) => (
+      <div class="return-request__line">
+        <div class="return-request__product">
+          <FieldCheckbox id={`return-select-${index}`} name="lines" value={line.id} isChecked={line.isChecked}>
+            <span class="return-request__item">
+              <span class="return-request__thumb">{line.image && <Image {...line.image} alt="" />}</span>
+              <span class="return-request__text">
+                <strong class="return-request__name">{line.name}</strong>
+                {line.variantText && <span class="return-request__meta">{line.variantText}</span>}
+                <span class="return-request__meta">{line.availableLabel}</span>
+              </span>
+            </span>
+          </FieldCheckbox>
+        </div>
+        <div class="return-request__quantity">
+          <span class="return-request__caption">{labels.quantity}</span>
+          <QuantityStepper id={`return-qty-${index}`} name={`quantity_${line.id}`} value={line.quantity} min={1} max={line.available} label={`${labels.quantity}: ${line.name}`} decreaseLabel={labels.decrease} increaseLabel={labels.increase} />
+        </div>
+        <div class="return-request__reason">
+          <FieldSelect id={`return-reason-${index}`} name={`reason_${line.id}`} label={labels.reason} options={reasons} placeholder={labels.reasonPlaceholder} value={line.reason} />
+        </div>
+      </div>
+    ))
+  }
+  <FieldTextarea id="return-note" name="customerNote" label={labels.note} value={noteValue} maxlength={noteMaxLength} rows={4} />
+</fieldset>
+
+<style>
+  .return-request {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .return-request__legend {
+    margin: 0 0 var(--space-8);
+    padding: 0;
+    color: var(--text-primary);
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch);
+    text-transform: var(--text-case);
+  }
+
+  .return-request__line {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) auto minmax(0, 1fr);
+    gap: var(--space-16) var(--space-24);
+    align-items: end;
+    padding: var(--space-20);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .return-request__product {
+    align-self: center;
+  }
+
+  .return-request__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+  }
+
+  .return-request__thumb {
+    display: block;
+    flex: none;
+    width: 72px; /* token-lint-ignore: thumbnail edge */
+    height: 72px; /* token-lint-ignore: thumbnail edge */
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .return-request__thumb :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .return-request__text {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .return-request__name {
+    color: var(--text-primary);
+    font: var(--type-title-md);
+  }
+
+  .return-request__meta {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .return-request__quantity {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .return-request__caption {
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  @media (max-width: 760px) {
+    .return-request__line {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .return-request__product,
+    .return-request__reason {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

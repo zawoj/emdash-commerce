@@ -1,0 +1,211 @@
+---
+// The top of the page that follows placing an order: celebratory for a paid order, calm for one
+// that waits for a transfer, clear for a failed payment. A black band with a volt check, the
+// headline in condensed caps, the order number set large, a few facts and the next steps.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import { orderConfirmationTones, type OrderConfirmationProps } from './types'
+
+type Props = OrderConfirmationProps
+
+const { tone = orderConfirmationTones.success, heading, text, textTestId, numberLabel, number, numberTestId, facts = [], nextHeading, nextSteps = [] } = Astro.props
+const glyph = { success: iconNames.check, pending: iconNames.clock, failed: iconNames.octagonAlert }[tone]
+---
+
+<header class:list={['order-confirmation', `order-confirmation--${tone}`]} data-surface="dark">
+  <span class="order-confirmation__mark" aria-hidden="true"><Icon name={glyph} size={32} /></span>
+  <div class="order-confirmation__intro">
+    <h1 class="order-confirmation__heading">{heading}</h1>
+    {text && <p class="order-confirmation__text" data-testid={textTestId}>{text}</p>}
+  </div>
+  <dl class="order-confirmation__facts">
+    <div class="order-confirmation__fact order-confirmation__fact--number">
+      <dt>{numberLabel}</dt>
+      <dd data-testid={numberTestId}>{number}</dd>
+    </div>
+    {
+      facts.map((fact) => (
+        <div class="order-confirmation__fact">
+          <dt>{fact.label}</dt>
+          <dd>{fact.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+  {
+    nextSteps.length > 0 && (
+      <section class="order-confirmation__next" aria-label={nextHeading}>
+        {nextHeading && <h2 class="order-confirmation__next-heading">{nextHeading}</h2>}
+        <ol>
+          {
+            nextSteps.map((step) => (
+              <li>
+                <span class="order-confirmation__step-title">{step.title}</span>
+                <span class="order-confirmation__step-text">{step.text}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+    )
+  }
+</header>
+
+<style>
+  .order-confirmation {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-24) var(--space-48);
+    padding: var(--space-48) var(--space-48) var(--space-40);
+    background: var(--surface);
+    color: var(--text-body);
+  }
+
+  .order-confirmation__mark {
+    display: inline-flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    justify-content: center;
+    width: 64px; /* token-lint-ignore: marker disc */
+    height: 64px; /* token-lint-ignore: marker disc */
+    border-radius: var(--radius-full);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .order-confirmation--pending .order-confirmation__mark {
+    background: var(--surface-muted);
+    color: var(--text-primary);
+  }
+
+  .order-confirmation--failed .order-confirmation__mark {
+    background: var(--hot);
+    color: var(--on-color);
+  }
+
+  .order-confirmation__intro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .order-confirmation__heading {
+    max-width: 16ch; /* token-lint-ignore: keeps the headline on two or three lines */
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-3xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .order-confirmation__text {
+    max-width: 52ch; /* token-lint-ignore: readable line length */
+    margin: 0;
+    font: var(--type-text-regular-lg);
+  }
+
+  .order-confirmation__facts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    min-width: 260px; /* token-lint-ignore: facts column */
+    margin: 0;
+    padding-left: var(--space-24);
+    border-left: 1px solid var(--border-strong);
+  }
+
+  .order-confirmation__fact dt {
+    color: var(--text-secondary);
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .order-confirmation__fact dd {
+    margin: var(--space-4) 0 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+  }
+
+  .order-confirmation__fact--number dd {
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+  }
+
+  .order-confirmation__next {
+    display: flex;
+    grid-column: 1 / -1;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding-top: var(--space-24);
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .order-confirmation__next-heading {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .order-confirmation__next ol {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* token-lint-ignore: step columns */
+    gap: var(--space-24);
+    margin: 0;
+    padding: 0;
+    counter-reset: step;
+    list-style: none;
+  }
+
+  .order-confirmation__next li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    counter-increment: step;
+  }
+
+  .order-confirmation__next li::before {
+    content: counter(step, decimal-leading-zero);
+    color: var(--accent-text);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+  }
+
+  .order-confirmation__step-title {
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+  }
+
+  .order-confirmation__step-text {
+    font: var(--type-text-regular-sm);
+  }
+
+  @media (max-width: 899px) {
+    .order-confirmation {
+      grid-template-columns: minmax(0, 1fr);
+      padding: var(--space-32) var(--space-16);
+    }
+
+    .order-confirmation__heading {
+      font: var(--type-display-xl);
+      font-stretch: var(--display-stretch);
+      letter-spacing: var(--tracking-display);
+    }
+
+    .order-confirmation__facts {
+      min-width: 0;
+      padding: var(--space-16) 0 0;
+      border-top: 1px solid var(--border-strong);
+      border-left: 0;
+    }
+  }
+</style>

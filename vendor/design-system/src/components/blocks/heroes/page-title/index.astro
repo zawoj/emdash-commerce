@@ -1,0 +1,61 @@
+---
+// Page title band (contact page): a dark tile with one centered display-3xl headline. Fills the width its parent gives it.
+import type { PageTitleProps } from './types'
+
+type Props = PageTitleProps
+
+const { title } = Astro.props
+---
+
+<section class="page-title" data-surface="dark">
+  <h1 class="page-title__title">{title}</h1>
+</section>
+
+<style>
+  .page-title {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    overflow: hidden;
+    padding: var(--space-96) var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .page-title__title {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 0;
+    min-width: 0;
+    color: var(--text-primary);
+    font: var(--type-display-4xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-align: center;
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  @media (max-width: 900px) {
+    .page-title {
+      padding: var(--space-64) var(--space-24);
+    }
+
+    .page-title__title {
+      font: var(--type-display-3xl);
+      font-stretch: var(--display-stretch);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .page-title {
+      padding: var(--space-48) var(--space-16);
+    }
+
+    .page-title__title {
+      font: var(--type-display-xl);
+      font-stretch: var(--display-stretch);
+    }
+  }
+</style>

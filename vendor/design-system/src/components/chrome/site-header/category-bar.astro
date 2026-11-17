@@ -1,0 +1,102 @@
+---
+// The main categories as one scrollable row under the header bar (a phone's quick links next to the
+// hamburger); a chevron on the right edge says there are more until the end is reached, and the
+// current category is brought into view.
+import type { HeaderCategoryBar } from '../types'
+
+interface Props {
+  categoryBar: HeaderCategoryBar
+}
+
+const { categoryBar } = Astro.props
+---
+
+<nav class="site-categories" aria-label={categoryBar.label} data-site-category-bar>
+  <ul>
+    {
+      categoryBar.links.map((link) => (
+        <li>
+          <a href={link.href} aria-current={link.isCurrent ? 'page' : undefined} class:list={[link.isCurrent && 'site-categories__current']}>{link.label}</a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-site-category-bar]')
+  const barList = bar?.querySelector<HTMLElement>('ul')
+  if (bar && barList) {
+    const syncEdge = () => bar.toggleAttribute('data-at-end', barList.scrollLeft + barList.clientWidth >= barList.scrollWidth - 2)
+    barList.addEventListener('scroll', syncEdge, { passive: true })
+    window.addEventListener('resize', syncEdge)
+    const current = barList.querySelector<HTMLElement>('[aria-current="page"]')
+    if (current) barList.scrollLeft = Math.max(0, current.offsetLeft - barList.clientWidth / 2 + current.clientWidth / 2)
+    syncEdge()
+  }
+</script>
+
+<style>
+  /* The main categories as one scrollable row under the bar (a phone's alternative to the hamburger alone). */
+  .site-categories {
+    position: relative;
+    display: none;
+    background: var(--surface);
+    border-bottom: var(--stroke-thin) solid var(--border);
+  }
+
+  /* A flat scrim with a chevron on the right edge: more categories are out of sight. */
+  .site-categories::after {
+    content: '›';
+    position: absolute;
+    inset: 0 0 0 auto;
+    display: flex;
+    width: var(--space-40);
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: var(--space-12);
+    background: color-mix(in srgb, var(--surface) 85%, transparent);
+    color: var(--text-primary);
+    font: var(--type-button-lg);
+    pointer-events: none;
+  }
+
+  .site-categories[data-at-end]::after {
+    display: none;
+  }
+
+  .site-categories ul {
+    display: flex;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0 var(--page-gutter);
+    overflow-x: auto;
+    scrollbar-width: none;
+    list-style: none;
+  }
+
+  .site-categories a {
+    display: block;
+    padding: var(--space-12) var(--space-8);
+    border-bottom: var(--stroke-bold) solid transparent;
+    color: var(--text-secondary);
+    font: var(--type-text-medium-sm);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .site-categories a:hover {
+    color: var(--text-primary);
+  }
+
+  .site-categories .site-categories__current {
+    border-bottom-color: var(--text-primary);
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 1100px) {
+    .site-categories {
+      display: block;
+    }
+  }
+</style>

@@ -1,0 +1,84 @@
+---
+// Figma "scroll-partners": the partner-logo strip under the header (661:5146) and above the
+// footer (699:14617). Figma lays one 1500px row of logo groups centered in the band; the wireframe
+// has no motion, so the row is one static group that stays on its own line and clips at the edge.
+// Header and footer differ only in band height, logo offset and gap. Figma's header instances in
+// the 1200 frames (and on the Sylwetki listing) are 146.95px tall: the same strip cut to 36px with
+// the logos where they were — so the header band is 36px at ≤1200px, or always with `isShort`.
+import type { PartnerStripPlacement } from './variants'
+import type { PartnerLogo } from '../types'
+import Image from '../../atoms/image/index.astro'
+
+interface Props {
+  logos: readonly PartnerLogo[]
+  placement: PartnerStripPlacement
+  /** Header only: the 36px band at every width. */
+  isShort?: boolean
+}
+
+const { logos, placement, isShort = false } = Astro.props
+const groups = [0]
+---
+
+<div
+  class:list={['partner-strip', `partner-strip--${placement}`, isShort && 'partner-strip--short']}
+  aria-hidden="true"
+>
+  <div class="partner-strip__track">
+    {
+      groups.map(() =>
+        logos.map((logo) => <Image src={logo.src} width={logo.width} height={logo.height} alt="" />),
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .partner-strip {
+    display: flex;
+    align-items: flex-start;
+    overflow: hidden;
+    background: var(--surface-muted);
+  }
+
+  /* 661:5146 — the 17.95px logo row centered in 42px: 12.02px from the top. */
+  .partner-strip--header {
+    --partner-strip-gap: var(--space-48);
+    height: 42px;
+    padding-top: 12.023px; /* token-lint-ignore: Figma logo row offset */
+  }
+
+  .partner-strip--short {
+    height: 36px;
+  }
+
+  @media (max-width: 1200px) {
+    .partner-strip--header {
+      height: 36px;
+    }
+  }
+
+  /* 699:14617 — the logo row 16px from the top of a 50px band. */
+  .partner-strip--footer {
+    --partner-strip-gap: var(--space-32);
+    height: 50px;
+    padding-top: var(--space-16);
+  }
+
+  .partner-strip__track {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--partner-strip-gap);
+    margin-inline: auto;
+  }
+
+  /* Every logo is drawn in one flat grey (neutral-500): black, then inverted 45% — whatever
+     colours the uploaded logo has. */
+  .partner-strip__track :global(img) {
+    display: block;
+    flex: none;
+    filter: var(--logo-filter-muted);
+  }
+
+</style>

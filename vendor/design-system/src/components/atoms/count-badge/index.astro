@@ -1,0 +1,47 @@
+---
+// The number on the cart icon. The wrapper is a polite live region that is always in the page, so a
+// change is announced; the visible bubble is hidden at 0. The client script
+// (`@emdash-commerce/design-system/count-badge`) updates every badge when `cart:changed` fires with
+// `detail: { count }`.
+import { pluralLabel } from '../../../utils/plural-label'
+import type { CountBadgeProps } from './types'
+
+type Props = CountBadgeProps
+
+const { count, labelTemplate, labelForms, locale, max = 99 } = Astro.props
+const shown = count > max ? `${max}+` : String(count)
+const spoken = pluralLabel(labelTemplate, labelForms, locale, count)
+---
+
+<span class="count-badge" role="status" data-count-badge data-label-template={labelTemplate} data-label-forms={labelForms && JSON.stringify(labelForms)} data-locale={locale} data-max={max}>
+  <span class="count-badge__bubble" aria-hidden="true" hidden={count <= 0} data-count-bubble>{shown}</span>
+  <span class="visually-hidden" data-count-spoken>{spoken}</span>
+</span>
+
+<script>
+  import '@emdash-commerce/design-system/count-badge'
+</script>
+
+<style>
+  .count-badge {
+    display: inline-flex;
+  }
+
+  .count-badge__bubble {
+    display: inline-flex;
+    min-width: 18px; /* token-lint-ignore: bubble holds two digits */
+    height: 18px; /* token-lint-ignore: bubble holds two digits */
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-full);
+    background: var(--text-primary);
+    color: var(--surface);
+    font: var(--type-label-semibold-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .count-badge__bubble[hidden] {
+    display: none;
+  }
+</style>

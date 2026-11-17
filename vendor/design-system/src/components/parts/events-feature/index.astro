@@ -1,0 +1,255 @@
+---
+// Events feature: the accent panel — heading and the calendar button — beside dark event cards
+// (Date Badge, uppercase name, location).
+// `fullWidth` (home): a 450px+ panel and 314×314 cards on a dark band. The cards share the band's
+// rows through CSS subgrid (badges, free space, name, location), so names and locations stay on
+// one line across the cards whatever each name's length.
+// `article`: the panel and a single card as two equal halves.
+import Button from '../../atoms/button/index.astro'
+import DateBadge from '../../atoms/date-badge/index.astro'
+import { dateBadgeSizes } from '../../atoms/date-badge/variants'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { EventFeatureContent } from './types'
+import { eventFeatureVariants, type EventFeatureVariant } from './variants'
+
+interface Props extends EventFeatureContent {
+  variant?: EventFeatureVariant
+}
+
+const { heading, headingId, cta, events, variant = eventFeatureVariants.fullWidth } = Astro.props
+---
+
+<section
+  class:list={['events-feature', `events-feature--${variant}`]}
+  data-surface="dark"
+  data-band
+  aria-labelledby={headingId}
+  style={`--events-feature-cards: ${events.length}`}
+>
+  <div class="events-feature__panel" data-surface="light">
+    <div class="events-feature__heading">
+      <h2 id={headingId}>{heading}</h2>
+    </div>
+    <Button variant="primary" size="sm" href={cta.href} class="events-feature__cta">{cta.label}</Button>
+  </div>
+  {
+    events.map((event) => (
+      <a class="events-feature__event" href={event.href}>
+        <div class="events-feature__event-top">
+          <DateBadge size={dateBadgeSizes.l}>
+            <span slot="day">{event.day}</span>
+            <span slot="month">{event.month}</span>
+          </DateBadge>
+        </div>
+        <h3 class="events-feature__name">{event.name}</h3>
+        <p class="events-feature__location">
+          <Icon name={iconNames.pin} />
+          {event.location}
+        </p>
+      </a>
+    ))
+  }
+</section>
+
+<style>
+  .events-feature {
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .events-feature__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-24);
+    min-width: 0;
+    overflow: hidden;
+    padding: var(--space-32) var(--space-24);
+    background: var(--accent);
+  }
+
+  .events-feature__heading {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-16);
+  }
+
+  .events-feature__heading h2 {
+    margin: 0;
+    font: var(--type-display-2xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    color: var(--on-accent);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  /* Figma's button is 41px tall: 12px padding around the 17px label line. */
+  .events-feature__panel :global(.events-feature__cta) {
+    position: relative;
+    height: auto;
+    padding-block: var(--space-12);
+  }
+
+  .events-feature__event {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .events-feature__event-top {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-16);
+  }
+
+  .events-feature__name {
+    margin: 0;
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch-card);
+    color: var(--text-primary);
+    text-transform: var(--text-case);
+  }
+
+  .events-feature__event:hover .events-feature__name {
+    text-decoration: underline;
+  }
+
+  .events-feature__location {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-4);
+    margin: var(--space-20) 0 0;
+    font: var(--type-label-medium-sm);
+    color: var(--text-secondary);
+  }
+
+  /* fullWidth: at 1440 the cards are Figma's 314px and the panel takes the rest (450px); on
+     narrower rows the cards give way first so the panel keeps room for its 56px heading. Each card
+     spans the band's four rows: badges, free space, name, location. Figma's 1px gray/700
+     stroke offsets the 24/32 padding by its width. */
+  .events-feature--full-width {
+    display: grid;
+    grid-template-columns: minmax(300px, 1fr) repeat(var(--events-feature-cards), minmax(0, 314px));
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    background: var(--surface);
+  }
+
+  .events-feature--full-width .events-feature__panel {
+    grid-row: 1 / -1;
+    min-height: 314px;
+  }
+
+  .events-feature--full-width .events-feature__event {
+    display: grid;
+    grid-row: 1 / -1;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    min-height: 314px;
+    padding: var(--space-32) var(--space-24);
+    border: 1px solid var(--border);
+  }
+
+  .events-feature--full-width .events-feature__name {
+    grid-row: 3;
+    margin-top: var(--space-24);
+  }
+
+  .events-feature--full-width .events-feature__location {
+    grid-row: 4;
+  }
+
+  /* article: two equal halves at Figma's 254px; the card's 1px stroke is drawn inside it. */
+  .events-feature--article {
+    display: flex;
+    flex-direction: row;
+    min-height: 254px; /* token-lint-ignore: Figma tile height 254px */
+  }
+
+  .events-feature--article .events-feature__panel {
+    flex: 1 1 0;
+    gap: var(--space-48);
+    padding-bottom: var(--space-24);
+  }
+
+  .events-feature--article .events-feature__heading h2 {
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    text-wrap: wrap;
+  }
+
+  .events-feature--article .events-feature__event {
+    flex: 1 1 0;
+    padding: var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .events-feature--article .events-feature__name {
+    margin-top: var(--space-32);
+  }
+
+  @media (max-width: 1100px) {
+    .events-feature--full-width {
+      grid-template-columns: repeat(var(--events-feature-cards), minmax(0, 1fr));
+      grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    }
+
+    .events-feature--full-width .events-feature__panel {
+      grid-row: 1;
+      grid-column: 1 / -1;
+      min-height: 240px;
+    }
+
+    .events-feature--full-width .events-feature__event {
+      grid-row: 2 / -1;
+    }
+
+  }
+
+  /* One column: the cards simply stack — nothing to line up across. */
+  @media (max-width: 640px) {
+    .events-feature--full-width {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .events-feature--full-width .events-feature__panel {
+      min-height: 220px;
+      padding: var(--space-24) var(--space-16);
+    }
+
+    .events-feature--full-width .events-feature__heading h2 {
+      font-size: var(--font-size-40);
+      line-height: 40px; /* token-lint-ignore: no Figma spec below 1440, keeps display-2xl's 1:1 leading */
+    }
+
+    .events-feature--full-width .events-feature__event {
+      display: flex;
+      min-height: 0;
+      padding: var(--space-24) var(--space-16);
+    }
+
+    .events-feature--article {
+      flex-direction: column;
+    }
+
+    /* Stacked, each half takes its content's height (the clipped panel would collapse to 0). */
+    .events-feature--article .events-feature__panel,
+    .events-feature--article .events-feature__event {
+      flex: none;
+    }
+
+  }
+</style>

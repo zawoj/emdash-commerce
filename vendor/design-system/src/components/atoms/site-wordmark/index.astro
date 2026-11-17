@@ -1,0 +1,46 @@
+---
+interface Props {
+  siteName: string
+  /** `fill` spans the container width (footer band); `header` fits the main bar. */
+  variant?: 'header' | 'fill'
+  class?: string
+}
+
+const { siteName, variant = 'header', class: className } = Astro.props
+---
+
+<span class:list={['site-wordmark', `site-wordmark--${variant}`, className]}>{siteName}</span>
+
+<style>
+  .site-wordmark {
+    display: block;
+    font: var(--type-display-2xs);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-wrap: balance;
+    color: inherit;
+  }
+
+  .site-wordmark--fill {
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch);
+    width: 100%;
+    line-height: 0.95;
+  }
+
+  @media (max-width: 640px) {
+    .site-wordmark--header {
+      font: var(--type-display-3xs);
+      font-stretch: var(--display-stretch);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .site-wordmark--header {
+      max-width: 12rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+</style>

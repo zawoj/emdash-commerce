@@ -1,0 +1,165 @@
+---
+// Events list tile (right-bar widget or article body): a white header tile with the tile-title row
+// (a link to the full calendar), then one row per event — Date Badge (accent on featured events),
+// the uppercase name and pin + location. `sidebar`: the name column fills the row. `inline`: a
+// 386px badge + 270px-name group. Rows overlap by 1px and draw their 1px top/bottom separators as
+// inner strokes (no layout space).
+import DateBadge from '../../atoms/date-badge/index.astro'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import TileTitle from '../../molecules/tile-title/index.astro'
+import type { EventListContent } from './types'
+import { eventListVariants, type EventListVariant } from './variants'
+
+interface Props extends EventListContent {
+  variant?: EventListVariant
+}
+
+const { heading, headingId, more, events, variant = eventListVariants.sidebar } = Astro.props
+---
+
+<section class:list={['events-list', `events-list--${variant}`]} aria-labelledby={headingId}>
+  <div class="events-list__head">
+    <TileTitle heading={heading} headingId={headingId} more={more} extrasGap={16} />
+  </div>
+
+  <ol class="events-list__rows">
+    {
+      events.map((event) => (
+        <li class="events-list__row">
+          <div class="events-list__main">
+            <div class="events-list__badge">
+              <DateBadge isAccent={event.isFeatured}>
+                <span slot="day">{event.day}</span>
+                <span slot="month">{event.month}</span>
+              </DateBadge>
+            </div>
+            <div class="events-list__name">
+              <a class="events-list__title" href={event.href}>
+                {event.name}
+              </a>
+              <span class="events-list__location">
+                <Icon name={iconNames.pin} />
+                {event.location}
+              </span>
+            </div>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .events-list {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+  }
+
+  .events-list__head {
+    padding: var(--space-16) 0;
+  }
+
+  /* Figma: the sidebar heading wraps beside the link, which stays on the first line. */
+  .events-list__head :global(.tile-title) {
+    align-items: flex-start;
+  }
+
+  .events-list__rows {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .events-list__row {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--space-16);
+    overflow: hidden;
+    padding: var(--space-16) 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Figma: the rows' frame has gap -1, so each row's top separator covers the previous bottom one. */
+  .events-list__row + .events-list__row {
+    margin-top: -1px;
+  }
+
+  .events-list__row:last-child {
+    padding-bottom: 22px; /* token-lint-ignore: Figma last-row bottom padding 22px, no token */
+  }
+
+  .events-list__main {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--space-16);
+    min-width: 0;
+  }
+
+  .events-list__badge {
+    position: relative;
+    flex: none;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+  }
+
+  .events-list__name {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  .events-list__title {
+    font: var(--type-display-2xs);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display-2xs);
+    color: var(--text-primary);
+    text-decoration: none;
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .events-list__title:hover {
+    text-decoration: underline;
+  }
+
+  .events-list__location {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+    font: var(--type-text-regular-xs);
+    color: var(--text-secondary);
+  }
+
+  /* inline: the badge + name group is a 386px column (vertically centered). */
+  .events-list--inline .events-list__row {
+    justify-content: space-between;
+  }
+
+  .events-list--inline .events-list__main {
+    flex: 0 1 386px;
+    align-items: center;
+  }
+
+  .events-list--inline .events-list__name {
+    flex: 0 1 270px;
+  }
+
+  @media (max-width: 640px) {
+    .events-list--inline .events-list__row {
+      flex-wrap: wrap;
+    }
+  }
+</style>

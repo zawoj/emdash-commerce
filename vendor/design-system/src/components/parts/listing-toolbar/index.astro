@@ -1,0 +1,180 @@
+---
+// The row under a listing's category bar: the Filters button (with the number of applied filters), the applied
+// filters as removable chips with "clear all", and the sort as a quiet text select on the right. On a phone the
+// button and the sort share the first line and the chips become one scrolling line under them. The sort is a GET
+// form carrying the other query parameters as hidden fields, so filters survive a sort and the page works without a
+// script (`[data-auto-submit]` submits on change). The button opens a `ListingFilters` dialog; without a script it
+// is hidden, because the panel is then shown inline.
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import Select from '../../atoms/select/index.astro'
+import ActiveFilters from '../active-filters/index.astro'
+import type { ListingToolbarProps } from './types'
+
+type Props = ListingToolbarProps
+
+const { action, sort, keep = {}, filters, activeFilters = [], activeFiltersLabel = '', clearAll } = Astro.props
+const hiddenFields = Object.entries(keep).flatMap(([name, value]) => (typeof value === 'string' ? [[name, value]] : value.map((item) => [name, item])))
+const hasChips = activeFilters.length > 0
+---
+
+<div class="listing-toolbar">
+  {
+    filters && (
+      <button class="listing-toolbar__filters" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls={filters.controls} data-listing-filters-open>
+        <Icon name={iconNames.slidersHorizontal} size={16} />
+        <span>{filters.label}</span>
+        {filters.activeCount > 0 && (
+          <span class="listing-toolbar__badge">
+            <span aria-hidden="true">{filters.activeCount}</span>
+            <span class="visually-hidden">{filters.activeCount}{filters.activeCountLabel ? ` ${filters.activeCountLabel}` : ''}</span>
+          </span>
+        )}
+      </button>
+    )
+  }
+  {
+    hasChips && (
+      <div class="listing-toolbar__chips">
+        <ActiveFilters label={activeFiltersLabel} filters={activeFilters} clearAll={clearAll} isScrolling />
+      </div>
+    )
+  }
+  <form class="listing-toolbar__sort" action={action} method="get" data-listing-form data-auto-submit>
+    {hiddenFields.map(([name, value]) => <input type="hidden" name={name} value={value} />)}
+    <label class="listing-toolbar__label" for={sort.id}>{sort.label}</label>
+    <div class="listing-toolbar__select">
+      <Select id={sort.id} name={sort.name} options={sort.options} value={sort.value}>
+        <Icon slot="icon" name={iconNames.chevronDown} size={14} />
+      </Select>
+    </div>
+    <span data-auto-submit-hide><Button type="submit" variant={buttonVariants.primary} size={buttonSizes.sm}>{sort.submitLabel}</Button></span>
+  </form>
+</div>
+{/* Without a script the filter panel is shown inline, so the button that opens it has no job. */}
+<noscript>
+  <style is:inline>
+    /* More specific than the component's own scoped rule, which carries an attribute selector. */
+    button.listing-toolbar__filters[data-listing-filters-open] {
+      display: none;
+    }
+  </style>
+</noscript>
+
+<script>
+  import '@emdash-commerce/design-system/listing-filters'
+</script>
+
+<style>
+  .listing-toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'filters chips sort';
+    align-items: center;
+    gap: var(--space-8) var(--space-16);
+  }
+
+  .listing-toolbar__filters {
+    grid-area: filters;
+    display: inline-flex;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    gap: var(--space-8);
+    padding: 0 var(--space-16);
+    border: var(--stroke-thin) solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    .listing-toolbar__filters:hover {
+      border-color: var(--text-primary);
+    }
+  }
+
+  .listing-toolbar__filters:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .listing-toolbar__badge {
+    display: inline-flex;
+    min-width: 20px; /* token-lint-ignore: badge holds two digits */
+    height: 20px; /* token-lint-ignore: badge holds two digits */
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-full);
+    background: var(--text-primary);
+    color: var(--surface);
+    font: var(--type-label-semibold-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .listing-toolbar__chips {
+    grid-area: chips;
+    min-width: 0;
+  }
+
+  .listing-toolbar__sort {
+    grid-area: sort;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-left: auto;
+  }
+
+  .listing-toolbar__label {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  /* The sort reads as a quiet text control: no box, the value in medium weight, a chevron after it. */
+  .listing-toolbar__select {
+    width: auto;
+  }
+
+  .listing-toolbar .listing-toolbar__select :global(.select) {
+    width: auto;
+  }
+
+  .listing-toolbar .listing-toolbar__sort .listing-toolbar__select :global(.select select) {
+    width: auto;
+    height: 44px; /* token-lint-ignore: touch target */
+    padding: 0 var(--space-24) 0 var(--space-4);
+    border: 0;
+    border-radius: var(--radius-field);
+    background: transparent;
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    cursor: pointer;
+  }
+
+  .listing-toolbar .listing-toolbar__select :global(.select__chevron) {
+    right: var(--space-4);
+    color: var(--text-primary);
+  }
+
+  /* A phone: the button and the sort on one line, the chips as their own line under them. */
+  @media (max-width: 767px) {
+    .listing-toolbar {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas:
+        'filters sort'
+        'chips chips';
+    }
+  }
+
+  /* Touch: a 16px select (iOS zooms the page on focus below that); its label follows. */
+  @media (pointer: coarse) {
+    .listing-toolbar__label,
+    .listing-toolbar .listing-toolbar__sort .listing-toolbar__select :global(.select select) {
+      font: var(--type-text-medium-md);
+    }
+  }
+</style>

@@ -1,0 +1,94 @@
+---
+// Figma kontakt form message field: same caption-above-control pattern as FieldInput, a taller
+// control with no resize grip. Further attributes go to the `<textarea>`.
+import type { HTMLAttributes } from 'astro/types'
+
+interface Props extends Omit<HTMLAttributes<'textarea'>, 'id' | 'name' | 'placeholder' | 'rows' | 'required' | 'disabled'> {
+  id: string
+  name: string
+  label: string
+  placeholder?: string
+  value?: string
+  description?: string | null
+  rows?: number
+  isRequired?: boolean
+  isDisabled?: boolean
+}
+
+const { id, name, label, placeholder, value, description, rows, isRequired = false, isDisabled = false, ...attrs } = Astro.props
+const descriptionId = description ? `${id}-description` : undefined
+---
+
+<div class="field-textarea">
+  <label for={id}>{label}</label>
+  <textarea
+    id={id}
+    {...attrs}
+    name={name}
+    placeholder={placeholder}
+    rows={rows}
+    required={isRequired}
+    disabled={isDisabled}
+    aria-describedby={descriptionId}
+  >{value}</textarea>
+  {description && <p id={descriptionId} class="field-textarea__description">{description}</p>}
+</div>
+
+<style>
+  .field-textarea {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .field-textarea label {
+    font: var(--type-text-medium-sm);
+    color: var(--text-primary);
+  }
+
+  .field-textarea textarea {
+    font: var(--type-text-regular-md);
+    width: 100%;
+    min-height: 150px;
+    resize: none;
+    border-radius: var(--radius-field);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    /* Figma's stroke is inside the box: content starts 8px/12px from the outer edge. */
+    padding: calc(var(--space-12) - 1px) calc(var(--space-16) - 1px);
+    color: var(--text-body);
+  }
+
+  @media (hover: hover) {
+    .field-textarea textarea:hover:not(:focus-visible, :disabled, [aria-invalid='true']) {
+      border-color: var(--text-primary);
+    }
+  }
+
+  .field-textarea textarea:focus-visible {
+    border-color: var(--text-primary);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -1px;
+  }
+
+  .field-textarea textarea::placeholder {
+    color: var(--text-subtle);
+  }
+
+  .field-textarea__description {
+    margin: 0;
+    font: var(--type-text-regular-xs);
+    color: var(--text-muted);
+  }
+
+  .field-textarea textarea:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* A control the visitor filled in wrong, or left empty and tried to submit (native validation). */
+  .field-textarea textarea:user-invalid {
+    border: var(--stroke-bold) solid var(--text-primary);
+  }
+</style>

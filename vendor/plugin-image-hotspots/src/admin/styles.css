@@ -1,0 +1,410 @@
+/*
+ * Image hotspots field widget. Colours come from the admin's own tokens (--color-kumo-*, --text-color-kumo-*),
+ * which switch with its light/dark mode; the fallbacks only matter if a token is missing. The point markers sit
+ * on a photograph, so they keep a white ring and a dark shadow to stay readable on any image.
+ */
+.ihp {
+	--ihp-line: var(--color-kumo-line, #d4d4d8);
+	--ihp-surface: var(--color-kumo-base, #fff);
+	--ihp-tint: var(--color-kumo-tint, #f4f4f5);
+	--ihp-recessed: var(--color-kumo-recessed, #ececee);
+	--ihp-text: var(--text-color-kumo-default, #18181b);
+	--ihp-subtle: var(--text-color-kumo-subtle, #71717a);
+	--ihp-brand: var(--color-kumo-brand, #2563eb);
+	--ihp-danger: var(--color-kumo-danger, #dc2626);
+	--ihp-focus: var(--color-kumo-focus, #18181b);
+	--ihp-radius: var(--radius-md, 0.5rem);
+
+	container-type: inline-size;
+	display: grid;
+	gap: 0.75rem;
+	color: var(--ihp-text);
+	font-size: 0.875rem;
+	line-height: 1.4;
+}
+
+.ihp__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.ihp__label {
+	font-weight: 600;
+	font-size: 1rem;
+}
+
+.ihp-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.ihp__body {
+	display: grid;
+	gap: 1rem;
+	align-items: start;
+}
+
+@container (min-width: 640px) {
+	.ihp__body {
+		grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+	}
+}
+
+.ihp__side {
+	min-width: 0;
+}
+
+.ihp-muted {
+	color: var(--ihp-subtle);
+}
+
+.ihp-error {
+	color: var(--ihp-danger);
+	margin: 0;
+}
+
+.ihp-empty {
+	margin: 0;
+	padding: 1.25rem;
+	border: 1px dashed var(--ihp-line);
+	border-radius: var(--ihp-radius);
+	background: var(--ihp-tint);
+	color: var(--ihp-subtle);
+	text-align: center;
+}
+
+.ihp-help {
+	margin: 0.5rem 0 0;
+	color: var(--ihp-subtle);
+	font-size: 0.75rem;
+}
+
+.ihp-sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* Buttons and inputs */
+.ihp-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.375rem;
+	min-height: 2rem;
+	padding: 0.25rem 0.75rem;
+	border: 1px solid var(--ihp-line);
+	border-radius: var(--ihp-radius);
+	background: var(--color-kumo-control, var(--ihp-surface));
+	color: var(--ihp-text);
+	font: inherit;
+	cursor: pointer;
+}
+
+.ihp-btn:hover:not(:disabled) {
+	background: var(--ihp-tint);
+}
+
+.ihp-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.ihp-btn--primary {
+	border-color: transparent;
+	background: var(--ihp-brand);
+	color: #fff;
+}
+
+.ihp-btn--primary:hover:not(:disabled) {
+	background: var(--color-kumo-brand-hover, var(--ihp-brand));
+	filter: brightness(1.05);
+}
+
+.ihp-btn--quiet {
+	border-color: transparent;
+	background: transparent;
+	color: var(--ihp-subtle);
+}
+
+.ihp-btn--icon {
+	min-width: 2rem;
+	padding: 0.25rem;
+}
+
+.ihp-btn--danger:hover:not(:disabled) {
+	color: var(--ihp-danger);
+}
+
+.ihp-link {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--ihp-brand);
+	font: inherit;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.ihp-input {
+	width: 100%;
+	min-height: 2rem;
+	padding: 0.25rem 0.5rem;
+	border: 1px solid var(--ihp-line);
+	border-radius: var(--ihp-radius);
+	background: var(--color-kumo-control, var(--ihp-surface));
+	color: var(--ihp-text);
+	font: inherit;
+	box-sizing: border-box;
+}
+
+textarea.ihp-input {
+	resize: vertical;
+}
+
+.ihp-btn:focus-visible,
+.ihp-input:focus-visible,
+.ihp-link:focus-visible,
+.ihp-product__option:focus-visible,
+.ihp-marker:focus-visible {
+	outline: 2px solid var(--ihp-focus);
+	outline-offset: 2px;
+}
+
+.ihp-field {
+	display: grid;
+	gap: 0.25rem;
+	min-width: 0;
+}
+
+.ihp-field--coordinate {
+	flex: 1 1 6rem;
+}
+
+.ihp-field__label {
+	color: var(--ihp-subtle);
+	font-size: 0.75rem;
+	font-weight: 500;
+}
+
+/* Stage */
+.ihp-stage-wrap {
+	min-width: 0;
+}
+
+.ihp-stage {
+	position: relative;
+	/* Tall images stay within the viewport: the width shrinks instead of the height being cropped. */
+	width: min(100%, calc(70vh * var(--ihp-ratio, 1.5)));
+	margin-inline: auto;
+	aspect-ratio: var(--ihp-ratio, 1.5);
+	overflow: hidden;
+	border-radius: var(--ihp-radius);
+	background: var(--ihp-recessed);
+	touch-action: manipulation;
+}
+
+.ihp-stage[data-can-add="true"] {
+	cursor: crosshair;
+}
+
+.ihp-stage__img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	user-select: none;
+	-webkit-user-drag: none;
+	pointer-events: none;
+}
+
+.ihp-marker {
+	position: absolute;
+	display: grid;
+	place-items: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	padding: 0;
+	border: 2px solid #fff;
+	border-radius: 50%;
+	background: var(--ihp-brand);
+	box-shadow: 0 1px 4px rgb(0 0 0 / 0.5);
+	color: #fff;
+	font: inherit;
+	font-size: 0.75rem;
+	font-weight: 700;
+	line-height: 1;
+	transform: translate(-50%, -50%);
+	cursor: grab;
+	touch-action: none;
+}
+
+.ihp-marker:active {
+	cursor: grabbing;
+}
+
+.ihp-marker[data-selected="true"] {
+	background: var(--ihp-text);
+	box-shadow:
+		0 0 0 3px var(--ihp-brand),
+		0 1px 4px rgb(0 0 0 / 0.5);
+	z-index: 1;
+}
+
+.ihp-marker[data-selected="true"]:focus-visible {
+	outline-color: #fff;
+}
+
+/* Point list */
+.ihp-list {
+	display: grid;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ihp-item {
+	border: 1px solid var(--ihp-line);
+	border-radius: var(--ihp-radius);
+	background: var(--ihp-surface);
+}
+
+.ihp-item[data-selected="true"] {
+	border-color: var(--ihp-brand);
+	box-shadow: 0 0 0 1px var(--ihp-brand);
+}
+
+.ihp-item__head {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+	border-bottom: 1px solid var(--ihp-line);
+	background: var(--ihp-tint);
+	border-radius: var(--ihp-radius) var(--ihp-radius) 0 0;
+}
+
+.ihp-item__number {
+	display: grid;
+	place-items: center;
+	width: 1.5rem;
+	height: 1.5rem;
+	border-radius: 50%;
+	background: var(--ihp-brand);
+	color: #fff;
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.ihp-item__name {
+	flex: 1;
+}
+
+.ihp-item__actions {
+	display: inline-flex;
+	gap: 0.25rem;
+}
+
+.ihp-item__body {
+	display: grid;
+	gap: 0.625rem;
+	padding: 0.75rem;
+}
+
+/* Product picker */
+.ihp-product {
+	display: grid;
+	gap: 0.5rem;
+}
+
+.ihp-product__current {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.5rem;
+}
+
+.ihp-product__name {
+	font-weight: 600;
+}
+
+.ihp-product__slug {
+	color: var(--ihp-subtle);
+	font-size: 0.75rem;
+}
+
+.ihp-product__panel {
+	display: grid;
+	gap: 0.5rem;
+	padding: 0.5rem;
+	border: 1px solid var(--ihp-line);
+	border-radius: var(--ihp-radius);
+	background: var(--ihp-tint);
+}
+
+.ihp-product__list {
+	display: grid;
+	gap: 0.125rem;
+	max-height: 14rem;
+	margin: 0;
+	padding: 0;
+	overflow-y: auto;
+	list-style: none;
+}
+
+.ihp-product__option {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.5rem;
+	width: 100%;
+	padding: 0.375rem 0.5rem;
+	border: 0;
+	border-radius: var(--ihp-radius);
+	background: transparent;
+	color: var(--ihp-text);
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+}
+
+.ihp-product__option:hover {
+	background: var(--ihp-recessed);
+}
+
+.ihp-product__option[aria-pressed="true"] {
+	background: var(--ihp-brand);
+	color: #fff;
+}
+
+.ihp-product__option[aria-pressed="true"] .ihp-product__slug {
+	color: inherit;
+}
+
+.ihp-badge {
+	padding: 0 0.375rem;
+	border-radius: 999px;
+	background: var(--ihp-recessed);
+	color: var(--ihp-subtle);
+	font-size: 0.6875rem;
+}
+
+.ihp-badge--warn {
+	background: var(--color-kumo-warning-tint, #fef3c7);
+	color: var(--ihp-text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.ihp-marker {
+		transition: box-shadow 120ms ease;
+	}
+}

@@ -1,0 +1,38 @@
+---
+// Figma "Frame 481293" (944:29542): two category tiles side by side (944:29543, 944:29561). The
+// pair defines the rows both tiles subgrid into (title, lead photo, lead title, lead excerpt, lead
+// date, list items), so both tiles share one height and their dates and list items line up.
+import CategoryTile from '../../../parts/category-tile/index.astro'
+import type { CategoryPairProps } from './types'
+
+type Props = CategoryPairProps
+
+const { tiles } = Astro.props
+const rowCount = 5 + Math.max(0, ...tiles.map((tile) => tile.articles.length))
+---
+
+{
+  tiles.length > 0 && (
+    <div class="category-pair" style={`--category-pair-rows: ${rowCount}`}>
+      {tiles.map((tile) => <CategoryTile tile={tile} />)}
+    </div>
+  )
+}
+
+<style>
+  .category-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(var(--category-pair-rows), auto);
+    column-gap: var(--stack-gap);
+  }
+
+  /* One column: nothing to line up, the tiles simply stack. */
+  @media (max-width: 640px) {
+    .category-pair {
+      display: flex;
+      flex-direction: column;
+      gap: var(--stack-gap);
+    }
+  }
+</style>

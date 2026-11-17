@@ -1,0 +1,194 @@
+---
+// Event details card: an accent card (3px stroke, included in its layout) with an optional
+// wordmark header over a white panel — a one-column grid of event facts 24px apart (name, date,
+// place, organizer, extras) and the full-width sign-up button. Every fact renders only when given;
+// the `inline` variant drops the card for the content column.
+import Button from '../../../atoms/button/index.astro'
+import { buttonKinds, buttonSizes, buttonVariants } from '../../../atoms/button/variants'
+import Icon from '../../../atoms/icon/index.astro'
+import { iconNames } from '../../../atoms/icon/names'
+import TileTitle from '../../../molecules/tile-title/index.astro'
+import type { EventDetailsProps } from './types'
+import { eventDetailsVariants } from './variants'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = EventDetailsProps
+
+const { variant = eventDetailsVariants.card, heading, headingId, wordmark, name, date, location, organizer, extras = [], cta } = Astro.props
+const isCard = variant === eventDetailsVariants.card
+---
+
+<section class:list={['event-details', `event-details--${variant}`]} aria-labelledby={headingId}>
+  {
+    isCard && wordmark && (
+      <div class="event-details__header">
+        <span class="event-details__wordmark">
+          <Image {...wordmark} />
+        </span>
+      </div>
+    )
+  }
+  <div class="event-details__panel">
+    {isCard ? <h2 id={headingId} class="visually-hidden">{heading}</h2> : <TileTitle heading={heading} headingId={headingId} />}
+    <dl class="event-details__facts">
+      {
+        name && (
+          <div class="event-details__fact">
+            <dt>{name.label}</dt>
+            <dd>{name.value}</dd>
+          </div>
+        )
+      }
+      {
+        date && (
+          <div class="event-details__fact event-details__fact--fixed">
+            <dt>{date.label}</dt>
+            <dd>
+              <time datetime={date.start.iso}>{date.start.label}</time>
+              {date.end && (
+                <>
+                  {' – '}
+                  <time datetime={date.end.iso}>{date.end.label}</time>
+                </>
+              )}
+            </dd>
+          </div>
+        )
+      }
+      {
+        location && (
+          <div class="event-details__fact">
+            <dt>{location.label}</dt>
+            <dd class="event-details__place">
+              <Icon name={iconNames.pin} />
+              {location.value}
+            </dd>
+          </div>
+        )
+      }
+      {
+        organizer && (
+          <div class="event-details__fact">
+            <dt>{organizer.label}</dt>
+            <dd>{organizer.value}</dd>
+          </div>
+        )
+      }
+      {
+        extras.map((fact) => (
+          <div class="event-details__fact">
+            <dt>{fact.label}</dt>
+            <dd>{fact.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+    {
+      cta && (
+        <Button class="event-details__cta" variant={buttonVariants.primary} size={buttonSizes.sm} kind={buttonKinds.cta} href={cta.href} rel="noopener" target="_blank">
+          {cta.label}
+          <Icon name={iconNames.arrowUpRight} slot="icon" />
+        </Button>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .event-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+  }
+
+  .event-details--card {
+    background: var(--accent);
+  }
+
+  .event-details__header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px var(--space-8) var(--space-12) var(--space-20); /* token-lint-ignore: Figma 10px top padding, no token */
+  }
+
+  /* Figma's wordmark box is 14px tall; the artwork (its ® mark included) hangs 2px below it. */
+  .event-details__wordmark {
+    display: block;
+    height: 14px; /* token-lint-ignore: Figma wordmark box height, no token */
+  }
+
+  .event-details__wordmark :global(img) {
+    display: block;
+    max-width: none;
+  }
+
+  .event-details__panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    margin: var(--space-4);
+    padding: var(--space-20);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .event-details__facts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+
+  .event-details__fact {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+
+  .event-details__fact--fixed {
+    height: 36px; /* token-lint-ignore: Figma fixed fact height, no token */
+  }
+
+  .event-details__fact dt {
+    color: var(--text-secondary);
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .event-details__fact dd {
+    max-width: 100%;
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  .event-details__place {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .event-details__place :global(svg) {
+    flex: none;
+  }
+
+  /* Figma stretches the sm icon button across the panel and sets it 41px tall. */
+  .event-details__panel :global(.event-details__cta) {
+    width: 100%;
+    height: 41px; /* token-lint-ignore: Figma 41px button height, no token */
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

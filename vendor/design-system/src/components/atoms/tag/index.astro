@@ -1,0 +1,47 @@
+---
+// Figma "tag-label" (915:28319): a bordered pill for a topic tag, 30px tall — onLight / onDark
+// follow the surface theme (`data-surface="dark"` flips --tag-* to the onDark colors).
+interface Props {
+  class?: string
+}
+
+const { class: className } = Astro.props
+---
+
+<span class:list={['tag', className]}>
+  <slot />
+</span>
+
+<style>
+  /* Figma lays the 1px stroke outside the 4px/8px padding: 20px line + 8 + 2 = 30px tall.
+     `calc-size` rounds the auto width up to the next whole pixel as Figma does (elsewhere a pill
+     is ≤1px narrower). */
+  .tag {
+    width: calc-size(max-content, round(up, size, 1px));
+    font: var(--type-text-medium-sm);
+    letter-spacing: var(--tracking-text-medium-sm);
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-4) var(--space-8);
+    border: var(--stroke-thin) solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  /* A tag inside a link takes the link's states. */
+  :global(a:hover) > .tag {
+    border-color: var(--text-primary);
+    background: var(--surface-hover);
+  }
+
+  :global(a:active) > .tag {
+    background: var(--border);
+  }
+
+  :global(a:focus-visible) > .tag {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+</style>

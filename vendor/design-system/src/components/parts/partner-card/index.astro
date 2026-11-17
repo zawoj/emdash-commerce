@@ -1,0 +1,101 @@
+---
+// The partners-list card, built on the card-deal's frame (Figma "card-deal" 706:26776): a 170px
+// frame (radius 12, 3px white inner stroke) holding the partner's logo as one monochrome mark, then the
+// uppercase 24px name, the description and the accent CTA to the partner page. The card fills its
+// grid track.
+import Button from '../../atoms/button/index.astro'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { PartnerCardContent } from './types'
+import Image from '../../atoms/image/index.astro'
+
+interface Props {
+  partner: PartnerCardContent
+}
+
+const { partner } = Astro.props
+---
+
+<article class="partner-card">
+  <div class="partner-card__media">
+    {partner.logo && <Image {...partner.logo} class="partner-card__logo" />}
+  </div>
+  <div class="partner-card__content">
+    <div class="partner-card__text">
+      <h2 class="partner-card__name">{partner.name}</h2>
+      {partner.description && <p class="partner-card__description">{partner.description}</p>}
+    </div>
+    <Button variant="accent" kind="cta" href={partner.href} class="partner-card__cta">
+      {partner.ctaLabel}
+      <Icon name={iconNames.arrowUpRight} slot="icon" />
+    </Button>
+  </div>
+</article>
+
+<style>
+  .partner-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .partner-card__media {
+    position: relative;
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    height: 170px;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .partner-card__logo {
+    width: auto;
+    max-width: 60%;
+    height: auto;
+    max-height: 96px;
+    object-fit: contain;
+    /* One monochrome mark whatever the upload's colours: the logos are made for dark strips (light) or for white pages. */
+    filter: var(--logo-filter-ink);
+  }
+
+  .partner-card__content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-24);
+    padding: var(--space-16) 0 0;
+  }
+
+  .partner-card__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .partner-card__name {
+    margin: 0;
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch-card);
+    color: var(--text-primary);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .partner-card__description {
+    margin: 0;
+    font: var(--type-text-medium-sm);
+    letter-spacing: var(--tracking-text-medium-sm);
+    color: var(--text-body);
+  }
+
+  /* The CTA fills the card's content width (the atom's `cta` kind defaults to 320px). */
+  .partner-card__content :global(.partner-card__cta.button--cta) {
+    width: 100%;
+  }
+</style>

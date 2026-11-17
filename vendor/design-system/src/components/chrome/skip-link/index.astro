@@ -1,0 +1,30 @@
+---
+// The "skip to content" link: out of sight until it takes keyboard focus, then pinned over the header.
+interface Props {
+  href: string
+  label: string
+}
+
+const { href, label } = Astro.props
+---
+
+<a class="skip-link" href={href}>{label}</a>
+
+<style>
+  .skip-link {
+    position: absolute;
+    top: var(--space-16);
+    left: -9999px;
+    z-index: 100;
+    padding: var(--space-8) var(--space-16);
+    border-radius: var(--radius-control);
+    background: var(--control-solid);
+    color: var(--on-control-solid);
+    font: var(--type-button-sm);
+    text-decoration: none;
+  }
+
+  .skip-link:focus {
+    left: var(--space-16);
+  }
+</style>

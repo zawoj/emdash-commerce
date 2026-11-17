@@ -1,0 +1,68 @@
+---
+import Button from "@emdash-commerce/design-system/components/atoms/button/index.astro";
+import { OrderConfirmation } from "@emdash-commerce/design-system";
+import { buttonSizes, buttonVariants } from "@emdash-commerce/design-system";
+import Base from "../../layouts/Base.astro";
+import { checkoutSuccessOf } from "../../features/checkout/view-model";
+import { checkoutCopy } from "../../features/checkout/copy";
+import { resolveLocale } from "../../lib/i18n";
+import { getSiteLocale } from "../../utils/locale";
+import { fetchCheckoutStatus } from "../../utils/commerce-fetch";
+
+const locale = resolveLocale(getSiteLocale());
+const copy = checkoutCopy[locale];
+const sessionId = Astro.url.searchParams.get("session_id");
+const initialStatus = sessionId ? await fetchCheckoutStatus(Astro.url.origin, sessionId) : null;
+const model = initialStatus ? checkoutSuccessOf(initialStatus, copy) : null;
+---
+
+<Base title={copy.pageTitle} pageTitle={copy.pageTitle} robots="noindex, nofollow">
+	<section
+		class="checkout-success"
+		data-checkout-success
+		data-session-id={sessionId ?? undefined}
+		data-initial-status={initialStatus ? JSON.stringify(initialStatus) : undefined}
+	>
+		{
+			model ? (
+				<div data-checkout-confirmation data-tone={model.confirmation.tone}>
+					<OrderConfirmation {...model.confirmation} />
+				</div>
+			) : (
+				<OrderConfirmation
+					tone="pending"
+					heading={copy.headingPending}
+					text={copy.textNoSession}
+					textTestId="checkout-status"
+					numberLabel={copy.numberLabel}
+					number={copy.numberPending}
+				/>
+			)
+		}
+		<p class="checkout-success__actions">
+			<Button href="/shop" variant={buttonVariants.accent} size={buttonSizes.lg}>
+				{copy.backToShop}
+			</Button>
+		</p>
+	</section>
+	{sessionId ? (
+		<script>
+			import "../../features/checkout/client/success.client";
+		</script>
+	) : null}
+</Base>
+
+<style>
+	.checkout-success {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-32);
+		padding: var(--space-24) var(--page-gutter) var(--space-64);
+		max-width: var(--page-max);
+		margin-inline: auto;
+	}
+
+	.checkout-success__actions {
+		margin: 0;
+	}
+</style>

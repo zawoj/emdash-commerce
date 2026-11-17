@@ -1,0 +1,91 @@
+---
+// The account's sub-navigation: a column of links on a wide screen, one scrollable row on a phone.
+// The current page carries `aria-current="page"` and a filled marker bar; the `footer` slot takes
+// the sign-out control.
+import type { AccountNavProps } from './types'
+
+type Props = AccountNavProps
+
+const { items, label } = Astro.props
+---
+
+<nav class="account-nav" aria-label={label}>
+  <ul class="account-nav__list">
+    {
+      items.map((item) => (
+        <li>
+          <a class:list={['account-nav__link', item.isCurrent && 'account-nav__link--current']} href={item.href} aria-current={item.isCurrent ? 'page' : undefined}>
+            {item.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <div class="account-nav__footer"><slot name="footer" /></div>
+</nav>
+
+<style>
+  .account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  .account-nav__list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .account-nav__link {
+    display: block;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    padding: var(--space-12) var(--space-16);
+    border-left: var(--stroke-bold) solid transparent;
+    color: var(--text-body);
+    font: var(--type-text-medium-sm);
+    text-decoration: none;
+  }
+
+  .account-nav__link--current {
+    border-left-color: var(--control-edge);
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  @media (hover: hover) {
+    .account-nav__link:hover {
+      background: var(--surface-muted);
+    }
+  }
+
+  .account-nav__link:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+  }
+
+  .account-nav__footer:empty {
+    display: none;
+  }
+
+  @media (max-width: 899px) {
+    .account-nav__list {
+      flex-direction: row;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .account-nav__link {
+      border-bottom: var(--stroke-bold) solid transparent;
+      border-left: 0;
+      padding-inline: var(--space-12);
+      white-space: nowrap;
+    }
+
+    .account-nav__link--current {
+      border-bottom-color: var(--control-edge);
+    }
+  }
+</style>

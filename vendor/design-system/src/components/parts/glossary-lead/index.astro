@@ -1,0 +1,20 @@
+---
+// The short definition under a glossary term's title: the lead of the term page, set in the
+// plain-text page's greeting size (Figma "plain text" 1021:52569, text-medium-lg).
+interface Props {
+  text: string
+}
+
+const { text } = Astro.props
+---
+
+<p class="glossary-lead">{text}</p>
+
+<style>
+  .glossary-lead {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-lg);
+    overflow-wrap: anywhere;
+  }
+</style>

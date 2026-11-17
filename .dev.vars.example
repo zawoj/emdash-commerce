@@ -1,0 +1,16 @@
+# Secrets for local development (`pnpm dev`, `wrangler dev`): copy this file to .dev.vars. Never commit .dev.vars.
+# In production set them as Worker secrets: `pnpm exec wrangler secret put <NAME>` (or type them into the Deploy form).
+
+# emdash_enc_v1_ + 43 base64url characters. Generate: npx emdash secrets generate
+# Never change it once the database holds a secret.
+EMDASH_ENCRYPTION_KEY=replace-with-emdash-secrets-generate
+
+# Stripe sandbox secret or restricted key (sk_test_... / rk_test_...). Never a live key unless the site is meant to be live.
+STRIPE_SECRET_KEY=sk_test_replace_me
+
+# Optional on a deployed site: press "Register webhook" in the Commerce admin page instead.
+# Locally: the whsec_... that `stripe listen` prints.
+STRIPE_WEBHOOK_SECRET=whsec_replace_me
+
+# Optional: signs the links in guest order emails. Generated on first use when EMDASH_ENCRYPTION_KEY is set.
+# COMMERCE_ACCESS_TOKEN_SECRET=

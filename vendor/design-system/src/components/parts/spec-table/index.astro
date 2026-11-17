@@ -1,0 +1,58 @@
+---
+// The technical specification as a two-column table (term | value) with row headers, so a screen
+// reader announces each value with its term.
+import type { SpecTableProps } from './types'
+
+type Props = SpecTableProps
+
+const { rows, caption } = Astro.props
+---
+
+<table class="spec-table">
+  <caption class="visually-hidden">{caption}</caption>
+  <tbody>
+    {
+      rows.map((row) => (
+        <tr data-spec-key={row.key} hidden={row.isHidden}>
+          <th scope="row">{row.term}</th>
+          <td>{row.href ? <a href={row.href} rel="noopener noreferrer">{row.value}</a> : row.value}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>
+
+<style>
+  .spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font: var(--type-text-regular-sm);
+  }
+
+  .spec-table th,
+  .spec-table td {
+    padding: var(--space-16) var(--space-8) var(--space-16) 0;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .spec-table th {
+    width: 40%;
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .spec-table td {
+    color: var(--text-primary);
+    /* A value with line breaks (a material built of several parts) keeps them. */
+    white-space: pre-line;
+  }
+
+  .spec-table a {
+    color: var(--link);
+  }
+</style>

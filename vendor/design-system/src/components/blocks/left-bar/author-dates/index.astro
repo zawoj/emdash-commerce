@@ -1,0 +1,207 @@
+---
+// Figma col-side "tile" (944:33080) — author identity, publication/update dates and, when the
+// article was made with a brand, a divider and the collaboration note. Each part renders only when
+// it has content; the tile renders nothing without any.
+import type { AuthorDatesProps } from './types'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = AuthorDatesProps
+
+const { heading, headingId, author, dates, collaboration } = Astro.props
+const avatar = author?.avatar
+const hasContent = Boolean(author) || dates.length > 0 || Boolean(collaboration)
+---
+
+{
+  hasContent && (
+    <section class="author-dates" aria-labelledby={headingId}>
+      <h2 id={headingId} class="author-dates__heading">
+        {heading}
+      </h2>
+      {author && (
+        <div class="author-dates__identity">
+          {avatar && (
+            <span class="author-dates__avatar">
+              <Image
+                {...avatar.image}
+                alt=""
+                style={avatar.crop ? `left: ${avatar.crop.x}px; top: ${avatar.crop.y}px; width: ${avatar.crop.width}px; height: ${avatar.crop.height}px` : undefined}
+                data-is-cropped={avatar.crop ? '' : undefined}
+              />
+            </span>
+          )}
+          <div class="author-dates__person">
+            <p class="author-dates__name">{author.href ? <a href={author.href} rel="author">{author.name}</a> : author.name}</p>
+            {author.role && <p class="author-dates__role">{author.role}</p>}
+          </div>
+        </div>
+      )}
+      {dates.length > 0 && (
+        <dl class="author-dates__dates">
+          {dates.map((entry) => (
+            <div>
+              <dt>{entry.label}</dt>
+              <dd>
+                <time datetime={entry.date.iso}>{entry.date.label}</time>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {collaboration && (
+        <>
+          <hr />
+          <p class="author-dates__collab">
+            <span>{collaboration.label}</span>
+            {collaboration.brand.href ? (
+              <a href={collaboration.brand.href} rel="sponsored noopener">
+                {collaboration.brand.label}
+              </a>
+            ) : (
+              <strong>{collaboration.brand.label}</strong>
+            )}
+          </p>
+        </>
+      )}
+    </section>
+  )
+}
+
+<style>
+  .author-dates {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding: var(--space-16) 0;
+    border-block: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .author-dates__heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .author-dates__identity {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .author-dates__avatar {
+    position: relative;
+    display: block;
+    flex: none;
+    width: 40px; /* token-lint-ignore: Figma 40px avatar frame, no token */
+    height: 40px; /* token-lint-ignore: Figma 40px avatar frame, no token */
+    overflow: hidden;
+    border-radius: var(--radius-full);
+    background: var(--accent);
+  }
+
+  .author-dates__avatar :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .author-dates__avatar :global(img[data-is-cropped]) {
+    position: absolute;
+    max-width: none;
+  }
+
+  .author-dates__person {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+    color: var(--text-primary);
+  }
+
+  .author-dates__name {
+    margin: 0;
+    font: var(--type-display-2xs);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display-2xs);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .author-dates__name a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .author-dates__role {
+    margin: 0;
+    font: var(--type-text-regular-xs);
+    color: var(--text-secondary);
+  }
+
+  .author-dates__dates {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    margin: 0;
+  }
+
+  .author-dates__dates div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--space-8);
+  }
+
+  .author-dates__dates dt {
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-secondary);
+  }
+
+  .author-dates__dates dd {
+    margin: 0;
+    font: var(--type-text-medium-sm);
+    color: var(--text-primary);
+  }
+
+  .author-dates hr {
+    width: 100%;
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background: var(--border);
+  }
+
+  /* Figma: Frame 195 is fixed at 32px while its two lines (14 + 8 + 14) need 36px, so the note
+     overhangs 4px into the tile's bottom padding instead of growing the tile. */
+  .author-dates__collab {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-8);
+    margin: 0 0 calc(-1 * var(--space-4));
+  }
+
+  .author-dates__collab span {
+    font: var(--type-text-regular-xs);
+    color: var(--text-secondary);
+  }
+
+  .author-dates__collab a,
+  .author-dates__collab strong {
+    font: var(--type-text-medium-xs);
+    color: var(--text-primary);
+  }
+
+  .author-dates__collab a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

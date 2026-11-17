@@ -1,0 +1,4 @@
+/*
+ * The wireframe skin uses system font stacks (`--font-body` / `--font-display` in index.css),
+ * nothing is loaded here. A project that wants a webfont imports it in this file.
+ */

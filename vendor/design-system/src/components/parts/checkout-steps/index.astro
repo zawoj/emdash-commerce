@@ -1,0 +1,147 @@
+---
+// The checkout's progress: an ordered list with a numbered marker per step — a check for a finished
+// step (it links back), a filled marker for the current one (`aria-current="step"`), an outline for
+// the rest. On a phone only the current step is spelled out, in one line ("Step 2 of 4: Delivery").
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import { checkoutStepStates } from './variants'
+import type { CheckoutStepsProps } from './types'
+
+type Props = CheckoutStepsProps
+
+const { steps, label, stateLabels, summaryTemplate } = Astro.props
+const currentIndex = Math.max(0, steps.findIndex((step) => step.state === checkoutStepStates.current))
+const current = steps[currentIndex]
+const summary = current ? summaryTemplate.replace('{current}', String(currentIndex + 1)).replace('{total}', String(steps.length)).replace('{label}', current.label) : ''
+---
+
+<nav class="checkout-steps" aria-label={label}>
+  <p class="checkout-steps__summary" aria-hidden="true">{summary}</p>
+  <ol class="checkout-steps__list">
+    {
+      steps.map((step, index) => {
+        const Wrapper = step.href && step.state === checkoutStepStates.done ? 'a' : 'span'
+        return (
+          <li class:list={['checkout-steps__item', `checkout-steps__item--${step.state}`]} aria-current={step.state === checkoutStepStates.current ? 'step' : undefined}>
+            <Wrapper class="checkout-steps__step" href={Wrapper === 'a' ? step.href : undefined}>
+              <span class="checkout-steps__marker" aria-hidden="true">
+                {step.state === checkoutStepStates.done ? <Icon name={iconNames.check} size={14} /> : index + 1}
+              </span>
+              <span class="checkout-steps__label">
+                <span class="visually-hidden">{stateLabels[step.state]}: </span>{step.label}
+              </span>
+            </Wrapper>
+          </li>
+        )
+      })
+    }
+  </ol>
+</nav>
+
+<style>
+  .checkout-steps__summary {
+    display: none;
+    margin: 0 0 var(--space-8);
+    color: var(--text-primary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .checkout-steps__list {
+    display: flex;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .checkout-steps__item {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-8);
+    padding-top: var(--space-8);
+    border-top: var(--space-2) solid var(--border);
+  }
+
+  .checkout-steps__item--done {
+    border-top-color: var(--text-primary);
+  }
+
+  .checkout-steps__item--current {
+    border-top-color: var(--text-primary);
+    border-top-width: var(--space-4);
+    margin-top: calc(-1 * var(--space-2));
+  }
+
+  .checkout-steps__step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    min-height: 44px; /* token-lint-ignore: touch target of a step link */
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-decoration: none;
+    text-transform: var(--label-case);
+  }
+
+  a.checkout-steps__step:hover .checkout-steps__label {
+    text-decoration: underline;
+  }
+
+  a.checkout-steps__step:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .checkout-steps__marker {
+    display: inline-flex;
+    flex: none;
+    width: 24px; /* token-lint-ignore: marker box */
+    height: 24px; /* token-lint-ignore: marker box */
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    color: var(--text-secondary);
+    font: var(--type-label-semibold-xs);
+    letter-spacing: 0;
+  }
+
+  .checkout-steps__item--done .checkout-steps__marker,
+  .checkout-steps__item--current .checkout-steps__marker {
+    border-color: var(--control-solid);
+    background: var(--control-solid);
+    color: var(--on-control-solid);
+  }
+
+  .checkout-steps__item--current .checkout-steps__step {
+    color: var(--text-primary);
+  }
+
+  .checkout-steps__item--done .checkout-steps__step {
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 640px) {
+    .checkout-steps__summary {
+      display: block;
+    }
+
+    /* The summary line says where the shopper is; the labels stay for screen readers. */
+    .checkout-steps__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+</style>

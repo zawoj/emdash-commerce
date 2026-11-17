@@ -1,0 +1,49 @@
+---
+// Figma's second category tile ("Zdrowie", 944:29511): tile-title with the partner credit after the
+// heading, then two rows (Frame 481343 / 481344) of three card-articles with an author.
+// Columns: 3 → 2 → 1 as the tile narrows.
+import ArticleCard from '../../../parts/article-card/index.astro'
+import ContentTile from '../../../parts/content-tile/index.astro'
+import PoweredBy from '../../../parts/powered-by/index.astro'
+import { creditPlacements } from '../../../parts/powered-by/variants'
+import type { CategoryGridProps } from './types'
+
+type Props = CategoryGridProps
+
+const { heading, headingId, more, credit, items } = Astro.props
+const hasItems = items.length > 0
+---
+
+{
+  hasItems && (
+    <ContentTile heading={heading} headingId={headingId} more={more} extrasGap={16}>
+      {credit && <PoweredBy slot="after-heading" credit={credit} placement={creditPlacements.heading} />}
+      {credit && <PoweredBy credit={credit} placement={creditPlacements.row} />}
+      <div class="category-grid">
+        {items.map((article) => <ArticleCard article={article} />)}
+      </div>
+    </ContentTile>
+  )
+}
+
+<style>
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-24);
+  }
+
+  @container content-tile (width < 640px) {
+    .category-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* One column of compact rows (thumbnail beside title) — rows sit closer than stacked cards. */
+  @container content-tile (width < 420px) {
+    .category-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-20);
+    }
+  }
+</style>

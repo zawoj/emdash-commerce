@@ -1,0 +1,110 @@
+---
+import { getEmDashEntry } from "emdash";
+import { PLUGIN_ID } from "../adapters/emdash/constants.js";
+import type { CatalogProductView } from "../contracts/api.js";
+import { productBlockViewModel, type ProductBlockNode } from "../blocks/product-block.js";
+
+const node = Astro.props.node as ProductBlockNode;
+const slug = typeof node.product_slug === "string" ? node.product_slug.trim() : "";
+const { entry: product } = slug ? await getEmDashEntry("products", slug) : { entry: null };
+
+let catalog: CatalogProductView | null = null;
+if (slug) {
+	const url = new URL(`/_emdash/api/plugins/${PLUGIN_ID}/catalog/product-legacy`, Astro.url.origin);
+	url.searchParams.set("slug", slug);
+	const res = await fetch(url, { headers: { accept: "application/json" } });
+	if (res.ok) {
+		const json = await res.json();
+		catalog = json?.data ?? null;
+	}
+}
+
+const view = productBlockViewModel(node, product, catalog);
+const apiBase = `/_emdash/api/plugins/${PLUGIN_ID}`;
+---
+
+<article class="product-block" data-product-block>
+	{view.imageSrc ? (
+		<img src={view.imageSrc} alt={view.imageAlt || view.title} width="320" height="180" loading="lazy" />
+	) : null}
+	<h3>{view.title}</h3>
+	{view.isAvailable ? (
+		<>
+			<p class="product-block__price">{view.priceLabel}</p>
+			<button
+				type="button"
+				class="btn"
+				data-add-to-cart
+				data-price-id={view.priceId}
+				data-api={apiBase}
+			>
+				Add to cart
+			</button>
+		</>
+	) : (
+		<p class="product-block__unavailable">{view.unavailableReason ?? "Unavailable"}</p>
+	)}
+</article>
+
+<script>
+	const CART_UPDATED = "cart:updated";
+
+	const blocks = document.querySelectorAll<HTMLElement>("[data-product-block]");
+	for (const block of blocks) {
+		const button = block.querySelector<HTMLButtonElement>("[data-add-to-cart]");
+		if (!button) continue;
+		button.addEventListener("click", async () => {
+			const priceId = button.getAttribute("data-price-id");
+			const api = button.getAttribute("data-api");
+			if (!priceId || !api) return;
+			const res = await fetch(`${api}/cart/lines`, {
+				method: "POST",
+				credentials: "include",
+				headers: {
+					"Content-Type": "application/json",
+					"X-EmDash-Request": "1",
+				},
+				body: JSON.stringify({ priceId, quantity: 1, mode: "add" }),
+			});
+			const json = await res.json();
+			if (!res.ok) {
+				button.textContent = "Failed";
+				return;
+			}
+			const payload = json.data ?? json;
+			const cartId = payload.cartId as string | undefined;
+			const isNew = payload.isNew === true;
+			// Plugin routes cannot set cookies; persist the bearer cart id in our httpOnly cookie.
+			if (cartId && isNew) {
+				await fetch("/api/cart-cookie", {
+					method: "POST",
+					credentials: "include",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ cartId }),
+				});
+			}
+			const count = typeof payload.itemCount === "number" ? payload.itemCount : undefined;
+			if (count !== undefined) {
+				document.dispatchEvent(new CustomEvent(CART_UPDATED, { detail: { count } }));
+			}
+			button.textContent = "Added";
+		});
+	}
+</script>
+
+<style>
+	.product-block {
+		border: 1px solid var(--color-border, #e5e5e5);
+		border-radius: var(--radius-lg, 8px);
+		padding: 1rem;
+		max-width: 20rem;
+	}
+	.product-block img {
+		width: 100%;
+		height: auto;
+		border-radius: var(--radius, 6px);
+	}
+	.product-block__unavailable {
+		color: var(--color-muted, #666);
+	}
+</style>

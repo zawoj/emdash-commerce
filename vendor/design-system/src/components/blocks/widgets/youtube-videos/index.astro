@@ -1,0 +1,115 @@
+---
+// "Filmy YouTube" in one of three looks. `grid` is Figma "tile-youtube" home-main (944:29442): the
+// shared YouTube tile shell, a row of video cards (8px apart, sharing the row's height so their dates
+// line up) and, when `pageCount` is given, the carousel page dots (931:31413). Below 1100px the row
+// wraps to two columns; on phones it becomes the swipeable carousel the dots stand for. `single` is
+// the sidebar "polecany film" tile (the first video as a wide card), `list` the "Polecane filmy"
+// rows. Renders nothing without videos.
+import VideoCard from '../../../parts/video-card/index.astro'
+import { videoCardSizes } from '../../../parts/video-card/variants'
+import VideoListWidget from '../../../parts/video-list-widget/index.astro'
+import VideoWidget from '../../../parts/video-widget/index.astro'
+import YoutubeTile from '../../../parts/youtube-tile/index.astro'
+import { youtubeTileSizes } from '../../../parts/youtube-tile/variants'
+import type { YoutubeVideosProps } from './types'
+import { youtubeVideosLooks } from './variants'
+
+type Props = YoutubeVideosProps
+
+const { look, heading, headingId, videos, pageCount = 0 } = Astro.props
+const [firstVideo] = videos
+const pages = Array.from({ length: pageCount }, (_, index) => index)
+---
+
+{
+  firstVideo && look === youtubeVideosLooks.single && <VideoWidget heading={heading} headingId={headingId} video={firstVideo} />
+}
+{
+  firstVideo && look === youtubeVideosLooks.list && (
+    <VideoListWidget
+      heading={heading}
+      headingId={headingId}
+      items={videos.map((video) => ({ title: video.title, href: video.href, author: video.author.name, thumbnail: video.thumbnail }))}
+    />
+  )
+}
+{
+  firstVideo && look === youtubeVideosLooks.grid && (
+    <YoutubeTile heading={heading} headingId={headingId} size={youtubeTileSizes.main}>
+      <div class="youtube-videos">
+        <ul class="youtube-videos__row">
+          {videos.map((video) => (
+            <li>
+              <VideoCard video={video} size={videoCardSizes.compact} />
+            </li>
+          ))}
+        </ul>
+        {pageCount > 0 && (
+          <div class="youtube-videos__dots" aria-hidden="true">
+            {pages.map((page) => (
+              <span class:list={['youtube-videos__dot', page === 0 && 'youtube-videos__dot--active']} />
+            ))}
+          </div>
+        )}
+      </div>
+    </YoutubeTile>
+  )
+}
+
+<style>
+  .youtube-videos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+
+  .youtube-videos__row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .youtube-videos__dots {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: var(--space-8);
+  }
+
+  .youtube-videos__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--border-strong);
+  }
+
+  .youtube-videos__dot--active {
+    background: var(--text-primary);
+  }
+
+  @media (max-width: 1100px) {
+    .youtube-videos__row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .youtube-videos__row {
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: 80%;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+
+    .youtube-videos__row > li {
+      scroll-snap-align: start;
+    }
+  }
+</style>

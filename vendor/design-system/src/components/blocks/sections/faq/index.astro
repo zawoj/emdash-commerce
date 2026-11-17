@@ -1,0 +1,216 @@
+---
+// The "faq" section: a two-column split on the page grid. Left (a third, sticky while the list is
+// long): eyebrow, display heading, intro and the help card. Right (two thirds): the questions as
+// full-width disclosure rows — the whole row opens its answer. Phones stack heading, intro, the
+// questions, then the help card.
+import Button from '../../../atoms/button/index.astro'
+import { buttonVariants } from '../../../atoms/button/variants'
+import Disclosure from '../../../molecules/disclosure/index.astro'
+import type { FaqProps } from './types'
+
+type Props = FaqProps
+
+const { heading, headingId, eyebrow, intro, items, help, isExclusive = false } = Astro.props
+const group = isExclusive ? `faq-${headingId ?? 'list'}` : undefined
+const hasHelpLinks = Boolean(help?.primary || help?.secondary)
+---
+
+{
+  items.length > 0 && (
+    <section class="faq" aria-labelledby={heading ? headingId : undefined}>
+      <div class="faq__aside">
+        <header class="faq__head">
+          {eyebrow && <p class="faq__eyebrow">{eyebrow}</p>}
+          {heading && <h2 class="faq__heading" id={headingId}>{heading}</h2>}
+          {intro && <p class="faq__intro">{intro}</p>}
+        </header>
+        {
+          help && (
+            <aside class="faq__help" aria-label={help.heading}>
+              <h3 class="faq__help-heading">{help.heading}</h3>
+              {help.text && <p class="faq__help-text">{help.text}</p>}
+              {hasHelpLinks && (
+                <div class="faq__help-actions">
+                  {help.primary && <Button href={help.primary.href} variant={buttonVariants.primary}>{help.primary.label}</Button>}
+                  {help.secondary && <a class="faq__help-link" href={help.secondary.href}>{help.secondary.label}</a>}
+                </div>
+              )}
+            </aside>
+          )
+        }
+      </div>
+      <div class="faq__list">
+        {items.map((item) => (
+          <Disclosure summary={item.question} headingLevel={3} group={group}>
+            <div class="faq__answer">{item.answer.map((paragraph) => <p>{paragraph}</p>)}</div>
+          </Disclosure>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .faq {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: start;
+    column-gap: var(--space-64);
+    padding-block: var(--space-40);
+    color: var(--text-primary);
+  }
+
+  /* Sticky while the list beside it is longer than the column. */
+  .faq__aside {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-24));
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+    min-width: 0;
+  }
+
+  .faq__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .faq__eyebrow {
+    margin: 0;
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-secondary);
+  }
+
+  .faq__heading {
+    margin: 0;
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .faq__intro {
+    margin: 0;
+    max-width: 40ch; /* token-lint-ignore: readable line length */
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+  }
+
+  .faq__help {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-12);
+    padding: var(--space-24);
+    background: var(--surface-muted);
+    border-radius: var(--radius-card);
+  }
+
+  .faq__help-heading {
+    margin: 0;
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+  }
+
+  .faq__help-text {
+    margin: 0;
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+  }
+
+  .faq__help-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-12) var(--space-24);
+    margin-top: var(--space-8);
+  }
+
+  .faq__help-link {
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    text-decoration: underline;
+    text-underline-offset: 4px; /* token-lint-ignore: underline offset */
+  }
+
+  .faq__help-link:hover {
+    text-decoration-thickness: var(--stroke-bold);
+  }
+
+  .faq__help-link:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .faq__list {
+    min-width: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .faq__answer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    max-width: 68ch; /* token-lint-ignore: readable answer measure */
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+  }
+
+  .faq__answer p {
+    margin: 0;
+  }
+
+  @media (max-width: 900px) {
+    .faq {
+      column-gap: var(--space-32);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .faq {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-24);
+      padding-block: var(--space-32);
+    }
+
+    /* The aside's children join the section's column: heading, intro, list, then the help card. */
+    .faq__aside {
+      display: contents;
+    }
+
+    .faq__head {
+      order: 0;
+    }
+
+    .faq__list {
+      order: 1;
+    }
+
+    .faq__help {
+      order: 2;
+    }
+
+    .faq__heading {
+      font: var(--type-display-sm);
+      font-stretch: var(--display-stretch);
+      letter-spacing: var(--tracking-display);
+    }
+  }
+
+  @media (pointer: coarse) {
+    .faq__help-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

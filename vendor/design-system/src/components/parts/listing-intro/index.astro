@@ -1,0 +1,85 @@
+---
+// The opening of a listing page (shop, category, brand, landing page): the H1 with a muted `meta` beside it (the
+// product count), its short intro text and, when there is one, the picture beside it (a brand's logo). The picture
+// sits above the fold: it loads eagerly. Without intro, meta or picture it is the bare heading.
+import Image from '../../atoms/image/index.astro'
+import type { ListingIntroProps } from './types'
+
+type Props = ListingIntroProps
+
+const { heading, headingId, meta, intro = [], image } = Astro.props
+---
+
+<header class:list={['listing-intro', image && 'listing-intro--with-image']}>
+  {image && <Image class="listing-intro__image" {...image} isEager />}
+  <div class="listing-intro__text">
+    <div class="listing-intro__title">
+      <h1 id={headingId} class="listing-intro__heading">{heading}</h1>
+      {meta && <p class="listing-intro__meta" role="status">{meta}</p>}
+    </div>
+    {intro.map((paragraph) => <p class="listing-intro__lead">{paragraph}</p>)}
+  </div>
+</header>
+
+<style>
+  .listing-intro {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-24);
+  }
+
+  .listing-intro__image {
+    flex: none;
+    width: 96px; /* token-lint-ignore: logo size, no token */
+    height: 96px; /* token-lint-ignore: logo size, no token */
+    background: var(--surface-muted);
+    object-fit: contain;
+  }
+
+  .listing-intro__text {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .listing-intro__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--space-12);
+  }
+
+  .listing-intro__meta {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-md);
+  }
+
+  .listing-intro__heading {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  .listing-intro__lead {
+    max-width: 72ch; /* token-lint-ignore: readable measure */
+    margin: 0;
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+  }
+
+  @media (max-width: 640px) {
+    .listing-intro--with-image {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-16);
+    }
+  }
+</style>

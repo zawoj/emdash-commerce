@@ -1,0 +1,41 @@
+---
+// Icon glyphs for the design-system atoms that take icon markup through a slot (Select,
+// SearchField, FilterLabel, Pagination/Arrow…) and for section markup —
+// one closed vocabulary (./names) so call sites never inline raw paths. Geometry lives in
+// ./glyphs. Every glyph uses `currentColor`; a container that sizes the svg (e.g. Button's icon
+// box) scales it through the viewBox.
+// `size` renders a glyph at another of Figma's sizes (phosphor arrow-up-right 20/16/14, map-pin
+// 16/12): filled glyphs scale; outline glyphs drawn below their 20px box keep Figma's 1.5px stroke.
+import { glyphs } from './glyphs'
+import type { IconName } from './names'
+
+interface Props {
+  name: IconName
+  size?: number
+}
+
+const { name, size } = Astro.props
+const glyph = glyphs[name]
+const renderedSize = size ?? glyph.box
+const isDownscaledStroke = glyph.kind === 'stroke' && renderedSize < glyph.box && glyph.box >= 20
+const strokeWidth = glyph.kind === 'stroke' && isDownscaledStroke ? (1.5 * glyph.box) / renderedSize : glyph.kind === 'stroke' ? glyph.strokeWidth : 0
+---
+
+<svg viewBox={`0 0 ${glyph.box} ${glyph.box}`} width={renderedSize} height={renderedSize} fill="none" aria-hidden="true">
+  {
+    glyph.kind === 'stroke' && (
+      <>
+        {glyph.lensD && <path d={glyph.lensD} fill="var(--icon-lens, none)" />}
+        <path d={glyph.d} stroke="currentColor" stroke-width={strokeWidth} stroke-linecap="round" stroke-linejoin="round" />
+      </>
+    )
+  }
+  {glyph.kind === 'path' && <path d={glyph.d} fill="currentColor" />}
+  {
+    glyph.kind === 'nested' && (
+      <svg x={glyph.x} y={glyph.y} width={glyph.width} height={glyph.height} viewBox={glyph.viewBox} preserveAspectRatio="none" overflow="visible">
+        <path d={glyph.d} fill="currentColor" fill-rule={glyph.isEvenOdd ? 'evenodd' : undefined} />
+      </svg>
+    )
+  }
+</svg>

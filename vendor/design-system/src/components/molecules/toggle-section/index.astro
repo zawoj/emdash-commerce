@@ -1,0 +1,94 @@
+---
+// A checkbox that reveals a fieldset (invoice details behind "I want an invoice"). The reveal is
+// CSS (`:has(:checked)`); the script keeps the hidden fieldset disabled so its fields are neither
+// validated nor submitted. Without the script the fields stay enabled and the server ignores them.
+import type { ToggleSectionProps } from './types'
+
+type Props = ToggleSectionProps
+
+const { id, name, label, legend, isChecked = false } = Astro.props
+const panelId = `${id}-panel`
+---
+
+<div class="toggle-section" data-toggle-section>
+  <label class="toggle-section__label" for={id}>
+    <input class="toggle-section__input" id={id} type="checkbox" name={name} checked={isChecked} aria-controls={panelId} data-toggle-section-input />
+    <span>{label}</span>
+  </label>
+  <div class="toggle-section__reveal">
+    <fieldset class="toggle-section__panel" id={panelId} data-toggle-section-panel>
+      <legend class="visually-hidden">{legend ?? label}</legend>
+      <slot />
+    </fieldset>
+  </div>
+</div>
+
+<script>
+  import '@emdash-commerce/design-system/toggle-section'
+</script>
+
+<style>
+  .toggle-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .toggle-section__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    min-height: 44px; /* token-lint-ignore: touch target */
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    .toggle-section__label:hover {
+      color: var(--text-primary);
+    }
+  }
+
+  .toggle-section__input {
+    flex: none;
+    width: 16px; /* token-lint-ignore: native checkbox box */
+    height: 16px; /* token-lint-ignore: native checkbox box */
+    margin: 0;
+    accent-color: var(--control-edge);
+  }
+
+  /* The reveal grows from 0 to its content height (grid rows 0fr -> 1fr) and fades in; hidden, it is not
+     focusable. The panel's padding animates with it so a closed section takes no space at all. */
+  .toggle-section__reveal {
+    display: grid;
+    grid-template-rows: 0fr;
+    margin-top: 0;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .toggle-section__panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0 var(--space-16);
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .toggle-section:has(.toggle-section__input:checked) .toggle-section__reveal {
+    grid-template-rows: 1fr;
+    margin-top: var(--space-12);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .toggle-section:has(.toggle-section__input:checked) .toggle-section__panel {
+    padding-block: var(--space-16);
+  }
+
+</style>

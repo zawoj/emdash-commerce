@@ -1,0 +1,42 @@
+---
+// Figma zawody TOC toggle: a tab-shaped button (square left corners, rounded right corners, no
+// left stroke) meant to sit flush against the page edge / the table-of-contents panel it
+// opens and closes, lifted by a soft drop shadow.
+// Icon markup comes from the caller via the "icon" slot (no icon-library dependency added here).
+interface Props {
+  ariaLabel?: string
+  isExpanded?: boolean
+  controlsId?: string
+}
+
+const { ariaLabel, isExpanded, controlsId } = Astro.props
+---
+
+<button type="button" class="toc-toggle" aria-label={ariaLabel} aria-expanded={isExpanded} aria-controls={controlsId}>
+  <span class="toc-toggle__icon">
+    <slot name="icon" />
+  </span>
+</button>
+
+<style>
+  .toc-toggle {
+    display: flex;
+    width: 56px;
+    height: 56px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 0 var(--radius-panel) var(--radius-panel) 0;
+    background: var(--control-solid);
+    cursor: pointer;
+  }
+
+  .toc-toggle__icon {
+    display: flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    color: var(--on-control-solid);
+  }
+</style>

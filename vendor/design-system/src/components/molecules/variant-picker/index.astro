@@ -1,0 +1,123 @@
+---
+// The variant axes of a product page, shown as chips rather than a dropdown so the choices and
+// their availability are visible at once. Each axis is a radio group (arrow keys move through it);
+// a sold-out value stays on the page labelled in words; the chosen value is spelled out beside the
+// caption. The axis has an id (`<id>-<name>`) so a failed add-to-cart can scroll to it and
+// show `error` (`revealMissingVariant` in the client script does that).
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import OptionChip from '../../atoms/option-chip/index.astro'
+import type { VariantPickerProps } from './types'
+
+type Props = VariantPickerProps
+
+const { id, axes, soldOutLabel, errorLabel } = Astro.props
+---
+
+<div class="variant-picker" data-variant-picker>
+  {
+    axes.map((axis) => {
+      const axisId = `${id}-${axis.name}`
+      const errorId = `${axisId}-error`
+      return (
+        <div class="variant-picker__axis" id={axisId} data-variant-axis>
+          <div class="variant-picker__head">
+            <p class="variant-picker__legend" id={`${axisId}-legend`}>
+              <span class="variant-picker__caption">{axis.label}:</span> <span class="variant-picker__value" data-variant-value>{axis.selectedLabel ?? ''}</span>
+            </p>
+            {axis.sizeGuide && <a class="variant-picker__guide" href={axis.sizeGuide.href}>{axis.sizeGuide.label}</a>}
+          </div>
+          <div class="variant-picker__options" role="radiogroup" aria-labelledby={`${axisId}-legend`} aria-describedby={axis.error ? errorId : undefined} aria-invalid={axis.error ? 'true' : undefined}>
+            {axis.options.map((option, index) => (
+              <OptionChip id={`${axisId}-${index}`} name={axis.name} option={option} soldOutLabel={soldOutLabel} />
+            ))}
+          </div>
+          {axis.error && (
+            <p class="variant-picker__error" id={errorId} role="alert" data-variant-error>
+              <Icon name={iconNames.octagonAlert} size={16} />
+              <span>{errorLabel && <span class="visually-hidden">{errorLabel}: </span>}{axis.error}</span>
+            </p>
+          )}
+        </div>
+      )
+    })
+  }
+  <slot />
+</div>
+
+<script>
+  import '@emdash-commerce/design-system/variant-picker'
+</script>
+
+<style>
+  .variant-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+
+  .variant-picker__axis {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    scroll-margin-top: var(--space-96);
+  }
+
+  .variant-picker__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-16);
+  }
+
+  .variant-picker__legend {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  .variant-picker__caption {
+    color: var(--text-primary);
+  }
+
+  .variant-picker__value {
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+
+  .variant-picker__guide {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+    text-underline-offset: 3px;
+  }
+
+  .variant-picker__guide:hover {
+    color: var(--text-primary);
+  }
+
+  .variant-picker__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+  }
+
+  .variant-picker__error {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    margin: 0;
+    padding: var(--space-8) var(--space-12);
+    border: 2px solid var(--text-primary);
+    border-radius: var(--radius-field);
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  @media (pointer: coarse) {
+    .variant-picker__guide {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

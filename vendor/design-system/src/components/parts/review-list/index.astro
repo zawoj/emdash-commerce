@@ -1,0 +1,223 @@
+---
+// Reviews of a product, one article each: stars, title, text, who and when, a badge when the
+// purchase is verified and the shop's answer. The sort options are links (the page re-renders on
+// the server), the pagination arrives through the `pagination` slot.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import RatingStars from '../../atoms/rating-stars/index.astro'
+import { ratingStarsSizes } from '../../atoms/rating-stars/variants'
+import type { ReviewListProps } from './types'
+
+type Props = ReviewListProps
+
+const { reviews, label, verifiedLabel, replyLabel, sort, empty, currentLabel } = Astro.props
+const paragraphs = (text: string): string[] => text.split(/\n+/).filter((line) => line.trim().length > 0)
+---
+
+<div class="review-list">
+  {
+    sort && reviews.length > 0 && (
+      <nav class="review-list__sort" aria-label={sort.label}>
+        <span class="review-list__sort-label" aria-hidden="true">{sort.label}</span>
+        <ul>
+          {sort.options.map((option) => (
+            <li>
+              <a href={option.href} rel="nofollow" aria-current={option.isCurrent ? 'true' : undefined}>
+                {option.label}{option.isCurrent && currentLabel ? <span class="visually-hidden"> ({currentLabel})</span> : null}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )
+  }
+  {
+    reviews.length === 0 ? (
+      <div class="review-list__empty">
+        <p class="review-list__empty-title">{empty.title}</p>
+        <p class="review-list__empty-text">{empty.text}</p>
+      </div>
+    ) : (
+      <ul class="review-list__items" aria-label={label}>
+        {reviews.map((review) => (
+          <li>
+            <article class="review-list__item" id={`review-${review.id}`}>
+              <div class="review-list__head">
+                <RatingStars value={review.ratingValue} label={review.ratingLabel} size={ratingStarsSizes.md} />
+                {review.title && <h3 class="review-list__title">{review.title}</h3>}
+              </div>
+              <div class="review-list__body">{paragraphs(review.body).map((line) => <p>{line}</p>)}</div>
+              <p class="review-list__meta">
+                {review.author && <span class="review-list__author">{review.author}</span>}
+                <time datetime={review.date.iso}>{review.date.label}</time>
+                {
+                  review.isVerified && (
+                    <span class="review-list__verified"><Icon name={iconNames.circleCheck} size={16} />{verifiedLabel}</span>
+                  )
+                }
+              </p>
+              {
+                review.reply && (
+                  <div class="review-list__reply">
+                    <p class="review-list__reply-label">{replyLabel}</p>
+                    {paragraphs(review.reply).map((line) => <p>{line}</p>)}
+                  </div>
+                )
+              }
+            </article>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  <slot name="pagination" />
+</div>
+
+<style>
+  .review-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+
+  .review-list__sort {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8) var(--space-16);
+    align-items: center;
+    font: var(--type-text-regular-sm);
+  }
+
+  .review-list__sort-label {
+    color: var(--text-secondary);
+  }
+
+  .review-list__sort ul,
+  .review-list__items {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .review-list__sort ul {
+    flex-wrap: wrap;
+    gap: var(--space-8);
+  }
+
+  .review-list__sort a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px; /* token-lint-ignore: touch target */
+    padding: 0 var(--space-12);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    color: var(--text-body);
+    text-decoration: none;
+  }
+
+  .review-list__sort a[aria-current='true'] {
+    border-color: var(--control-solid);
+    background: var(--control-solid);
+    color: var(--on-control-solid);
+    font-weight: 700;
+  }
+
+  .review-list__sort a:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    .review-list__sort a:hover {
+      border-color: var(--text-primary);
+    }
+  }
+
+  .review-list__items {
+    flex-direction: column;
+  }
+
+  .review-list__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    padding: var(--space-20) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .review-list__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-12);
+    align-items: center;
+  }
+
+  .review-list__title {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-title-sm);
+  }
+
+  .review-list__body p,
+  .review-list__reply p {
+    margin: 0 0 var(--space-8);
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+    overflow-wrap: anywhere;
+  }
+
+  .review-list__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-16);
+    align-items: center;
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .review-list__author {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .review-list__verified {
+    display: inline-flex;
+    gap: var(--space-4);
+    align-items: center;
+    color: var(--text-body);
+  }
+
+  .review-list__reply {
+    margin-top: var(--space-4);
+    padding: var(--space-12) var(--space-16);
+    background: var(--surface-muted);
+  }
+
+  .review-list__reply-label {
+    margin: 0 0 var(--space-4);
+    color: var(--text-primary);
+    font: var(--type-label-semibold-xs);
+  }
+
+  .review-list__empty {
+    padding: var(--space-32) var(--space-16);
+    background: var(--surface-muted);
+    text-align: center;
+  }
+
+  .review-list__empty-title {
+    margin: 0 0 var(--space-4);
+    color: var(--text-primary);
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch-card);
+    text-transform: var(--text-case);
+  }
+
+  .review-list__empty-text {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+</style>

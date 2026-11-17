@@ -1,0 +1,51 @@
+---
+// The standalone `image` block: one responsive photo centred at one of four widths, the caption
+// under it. The image arrives as ready <img> attributes — the caller decides `sizes` and whether it
+// is the page's LCP image (eager + high priority).
+import type { ImageBlockProps } from './types'
+import { imageBlockSizes } from './variants'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = ImageBlockProps
+
+const { image, caption, size = imageBlockSizes.lg } = Astro.props
+---
+
+<figure class:list={['image-block', `image-block--${size}`]}>
+  <Image class="image-block__img" {...image} />
+  {caption && <figcaption class="image-block__caption">{caption}</figcaption>}
+</figure>
+
+<style>
+  .image-block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .image-block--sm {
+    max-width: 512px; /* token-lint-ignore: block width, no token */
+  }
+
+  .image-block--md {
+    max-width: 768px; /* token-lint-ignore: block width, no token */
+  }
+
+  .image-block--lg {
+    max-width: 1024px; /* token-lint-ignore: block width, no token */
+  }
+
+  .image-block__img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-card);
+  }
+
+  .image-block__caption {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+    text-align: start;
+  }
+</style>

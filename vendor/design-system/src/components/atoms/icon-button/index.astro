@@ -1,0 +1,73 @@
+---
+// Icon button — a 40x40 square, no background fill, a centered 24px icon slot. One size only,
+// unlike Button.
+interface Props {
+  label: string
+  href?: string
+  type?: 'button' | 'submit' | 'reset'
+  isDisabled?: boolean
+  class?: string
+}
+
+const { label, href, type = 'button', isDisabled = false, class: className } = Astro.props
+
+const Tag = href ? 'a' : 'button'
+---
+<Tag
+  class:list={['icon-button', className]}
+  href={href}
+  type={href ? undefined : type}
+  aria-label={label}
+  disabled={!href && isDisabled ? true : undefined}
+  aria-disabled={href && isDisabled ? 'true' : undefined}
+  tabindex={href && isDisabled ? -1 : undefined}
+>
+  <span class="icon-button__icon"><slot name="icon" /></span>
+</Tag>
+
+<style>
+  .icon-button {
+    display: inline-flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: var(--radius-control);
+    background: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .icon-button:active {
+    background: var(--border);
+  }
+
+  @media (hover: hover) {
+    .icon-button:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  .icon-button:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .icon-button[disabled],
+  .icon-button[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .icon-button__icon {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+  }
+</style>

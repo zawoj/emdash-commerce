@@ -1,0 +1,191 @@
+---
+// The cart drawer: a modal <dialog> sliding in from the right with the lines, the subtotal, the
+// free-delivery progress and two ways on (checkout as the strong button, the cart page as a link).
+// An empty cart shows the empty state with its way back. Opened by the header's cart link
+// (`data-mini-cart-open="<id>"`) or a bubbling `cart:open` event; Escape, the close button and the
+// backdrop close it, and focus returns to the opener (`@emdash-commerce/design-system/mini-cart`).
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import CartLine from '../../molecules/cart-line/index.astro'
+import FreeShippingProgress from '../../molecules/free-shipping-progress/index.astro'
+import EmptyState from '../empty-state/index.astro'
+import type { MiniCartProps } from './types'
+
+type Props = MiniCartProps
+
+const { id, heading, closeLabel, lines, action, subtotal, note, freeShipping, checkout, viewCart, empty, isOpen = false } = Astro.props
+const headingId = `${id}-heading`
+const hasLines = lines.length > 0
+---
+
+<dialog id={id} class="mini-cart" aria-labelledby={headingId} open={isOpen} data-mini-cart>
+  <div class="mini-cart__panel">
+    <header class="mini-cart__header">
+      <h2 class="mini-cart__heading" id={headingId}>{heading}</h2>
+      <button class="mini-cart__close" type="button" aria-label={closeLabel} data-mini-cart-close>
+        <Icon name={iconNames.x} size={20} />
+      </button>
+    </header>
+    {
+      hasLines ? (
+        <>
+          <form class="mini-cart__lines" action={action} method="post" data-cart-form>
+            <ul class="mini-cart__list">
+              {lines.map((line) => <li><CartLine line={{ ...line, id: `${id}-${line.id}` }} isCompact /></li>)}
+            </ul>
+          </form>
+          <footer class="mini-cart__footer">
+            {freeShipping && <FreeShippingProgress {...freeShipping} id={`${id}-shipping`} />}
+            <p class="mini-cart__subtotal">
+              <span>{subtotal.label}</span>
+              <strong>{subtotal.value}</strong>
+            </p>
+            {note && <p class="mini-cart__note">{note}</p>}
+            <Button href={checkout.href} variant={buttonVariants.primary} size={buttonSizes.lg}>{checkout.label}</Button>
+            <a class="mini-cart__view" href={viewCart.href}>{viewCart.label}</a>
+          </footer>
+        </>
+      ) : (
+        <div class="mini-cart__empty"><EmptyState {...empty} headingLevel={3} /></div>
+      )
+    }
+  </div>
+</dialog>
+
+<script>
+  import '@emdash-commerce/design-system/mini-cart'
+</script>
+
+<style>
+  .mini-cart {
+    position: fixed;
+    inset: var(--space-8) var(--space-8) var(--space-8) auto;
+    width: min(440px, calc(100% - var(--space-16))); /* token-lint-ignore: drawer width */
+    max-width: none;
+    height: calc(100% - var(--space-16));
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-left: 1px solid var(--border-strong);
+    border-radius: var(--radius-panel);
+    background: var(--surface);
+    color: var(--text-body);
+  }
+
+  .mini-cart:not([open]) {
+    display: none;
+  }
+
+  .mini-cart::backdrop {
+    background: color-mix(in srgb, var(--ink-1000) 60%, transparent);
+  }
+
+  .mini-cart__panel {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+  }
+
+  .mini-cart__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16);
+    padding: var(--space-12) var(--space-12) var(--space-12) var(--space-24);
+    border-bottom: var(--stroke-thin) solid var(--border);
+  }
+
+  .mini-cart__heading {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+  }
+
+  .mini-cart__close {
+    display: inline-flex;
+    width: 44px; /* token-lint-ignore: touch target */
+    height: 44px; /* token-lint-ignore: touch target */
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: none;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .mini-cart__close:hover {
+    background: var(--surface-hover);
+  }
+
+  .mini-cart__close:focus-visible {
+    outline: 2px solid var(--focus-ring);
+  }
+
+  .mini-cart__lines {
+    flex: 1;
+    min-height: 0;
+    padding: 0 var(--space-24);
+    overflow-y: auto;
+  }
+
+  .mini-cart__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mini-cart__footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    padding: var(--space-20) var(--space-24) var(--space-24);
+    border-top: var(--stroke-thin) solid var(--border);
+    background: var(--surface);
+  }
+
+  .mini-cart__subtotal {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-price-md);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mini-cart__subtotal strong {
+    font-weight: 600;
+  }
+
+  .mini-cart__note {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+  }
+
+  .mini-cart__view {
+    align-self: center;
+    min-height: 44px; /* token-lint-ignore: touch target */
+    padding: var(--space-12) 0;
+    color: var(--link);
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .mini-cart__empty {
+    padding: var(--space-24);
+  }
+
+  .mini-cart__footer :global(.button) {
+    width: 100%;
+  }
+</style>

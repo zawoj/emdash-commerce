@@ -1,0 +1,63 @@
+---
+// "Reklama": a slot (Figma "tile-ad") that rotates between the campaigns eligible for it. Every
+// campaign is a <template>; a small script picks one per page view, evenly, so only the picked
+// creative loads, and <noscript> holds the first one. A single campaign needs none of
+// that and renders directly. Until the script has filled it, the slot keeps the room of the
+// tallest creative among its campaigns, so a rotation never moves the content below it.
+// Renders nothing without campaigns.
+import AdTile from '../../../parts/ad-tile/index.astro'
+import { adTilePlacements } from '../../../parts/ad-tile/variants'
+import type { AdCampaign, AdProps } from './types'
+import { AD_SLOT_CAPTION_ALLOWANCE } from './variants'
+
+type Props = AdProps
+
+const { placement, campaigns } = Astro.props
+const [first] = campaigns
+const isRotating = campaigns.length > 1
+const isMain = placement === adTilePlacements.main
+const tallest = campaigns.reduce<AdCampaign | undefined>(
+  (largest, campaign) => (largest && largest.creative.height >= campaign.creative.height ? largest : campaign),
+  undefined,
+)
+const reserve = tallest
+  ? `--ad-slot-width: ${tallest.creative.width}px; --ad-slot-height: ${tallest.creative.height}px; --ad-slot-ratio: ${tallest.creative.width} / ${tallest.creative.height + AD_SLOT_CAPTION_ALLOWANCE}`
+  : undefined
+---
+
+{
+  first && !isRotating && <AdTile {...first} placement={placement} />
+}
+{
+  first && isRotating && (
+    <div class:list={['ad-slot', isMain ? 'ad-slot--main' : 'ad-slot--sidebar']} data-ad-slot style={reserve}>
+      {campaigns.map((campaign) => (
+        <template data-ad-candidate>
+          <AdTile {...campaign} placement={placement} />
+        </template>
+      ))}
+      <noscript>
+        <AdTile {...first} placement={placement} />
+      </noscript>
+    </div>
+  )
+}
+
+<script>
+  import '@emdash-commerce/design-system/ad-rotation'
+</script>
+
+<style>
+  .ad-slot {
+    max-width: var(--ad-slot-width);
+    margin-inline: auto;
+  }
+
+  .ad-slot--main:not([data-ad-ready]) {
+    aspect-ratio: var(--ad-slot-ratio);
+  }
+
+  .ad-slot--sidebar:not([data-ad-ready]) {
+    min-height: calc(var(--ad-slot-height) + 44px); /* token-lint-ignore: AD_SLOT_CAPTION_ALLOWANCE */
+  }
+</style>

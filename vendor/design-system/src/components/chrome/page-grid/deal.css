@@ -1,0 +1,96 @@
+/* The deal variant of the page grid (a partner's discount page): the banner on top, then the offer bar |
+   the text | the sidebar. Plain stylesheet of `index.astro`; every rule is anchored on `.page-grid`. */
+
+.page-grid[data-variant='deal'] {
+  --rail: minmax(0, 360fr);
+  --side: minmax(0, 360fr);
+  --col-left: 2;
+  --col-right: 6;
+  --row-left: 4;
+  --row-right: 4;
+
+  /* Definite gutters (the page box is centred at its max width), so the fr columns share exactly the box. */
+  --deal-gutter: max(var(--gutter), calc((100% - var(--content)) / 2));
+
+  grid-template-columns: var(--deal-gutter) var(--rail) 0 minmax(0, 672fr) 0 var(--side) var(--deal-gutter);
+  align-items: start;
+  padding-block: 0 var(--space-128);
+}
+
+.page-grid[data-variant='deal']:not([data-left]) {
+  --rail: 0px;
+}
+
+.page-grid[data-variant='deal']:not([data-right]) {
+  --side: 0px;
+}
+
+.page-grid[data-variant='deal'] .page-grid__top {
+  margin-bottom: var(--gutter);
+}
+
+/* The text brings its own side padding (Figma 32px). */
+.page-grid[data-variant='deal'] .page-grid__main {
+  padding: 0;
+}
+
+@media (max-width: 1100px) {
+  .page-grid.page-grid[data-variant='deal'] {
+    --rail: minmax(0, 360px);
+    --side: 0px;
+    --col-right: 2;
+    --row-right: 5;
+
+    grid-template-columns: var(--deal-gutter) var(--rail) 0 minmax(0, 1fr) 0 0 var(--deal-gutter);
+    grid-template-rows: auto auto auto auto 1fr auto auto auto;
+    row-gap: 0;
+  }
+
+  .page-grid.page-grid[data-variant='deal']:not([data-left]) {
+    --rail: minmax(0, 360px);
+  }
+
+  .page-grid.page-grid[data-variant='deal'] .page-grid__main {
+    grid-row: 4 / 6;
+  }
+
+  .page-grid.page-grid[data-variant='deal'] .page-grid__right {
+    margin-top: var(--gutter);
+  }
+}
+
+@media (max-width: 900px) {
+  .page-grid.page-grid[data-variant='deal'] {
+    --rail: 0px;
+    --col-left: 4;
+    --col-right: 4;
+    --row-left: 3;
+    --row-right: 5;
+
+    grid-template-columns: var(--deal-gutter) 0 0 minmax(0, 1fr) 0 0 var(--deal-gutter);
+    padding-bottom: var(--space-64);
+  }
+
+  .page-grid.page-grid[data-variant='deal']:not([data-left]) {
+    --rail: 0px;
+  }
+
+  .page-grid.page-grid[data-variant='deal'] .page-grid__main {
+    grid-row: 4;
+    margin-top: var(--gutter);
+  }
+
+  .page-grid.page-grid[data-variant='deal'] :is(.page-grid__left, .page-grid__right) {
+    margin-top: 0;
+  }
+
+  .page-grid.page-grid[data-variant='deal'] .page-grid__right {
+    margin-top: var(--gutter);
+  }
+}
+
+@media (max-width: 640px) {
+  .page-grid.page-grid[data-variant='deal'] {
+    padding-bottom: var(--space-48);
+  }
+}

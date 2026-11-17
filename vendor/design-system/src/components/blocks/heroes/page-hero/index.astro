@@ -1,0 +1,229 @@
+---
+// The hero of a page (the starters' `pages` hero group): eyebrow, display H1, lead and a button.
+// With a photo it is the full-bleed campaign hero — the photo edge to edge (it breaks out of the
+// page column), the copy bottom-left on the scrim, aligned with the page content. Without one it is
+// the quiet grey tile (or the black band) with the type alone.
+import Button from '../../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../../atoms/button/variants'
+import Image from '../../../atoms/image/index.astro'
+import type { PageHeroProps } from './types'
+import { pageHeroAlignments, pageHeroTones } from './variants'
+
+type Props = PageHeroProps
+
+const { title, lead, eyebrow, action, secondaryAction, image, alignment = pageHeroAlignments.center, tone = pageHeroTones.light } = Astro.props
+const isDark = tone === pageHeroTones.dark
+const hasPhoto = Boolean(image)
+---
+
+{
+  hasPhoto && image ? (
+    <section class="page-hero page-hero--photo" data-surface="dark">
+      <Image class="page-hero__img" {...image} isEager />
+      <div class="page-hero__copy">
+        {eyebrow && <p class="page-hero__eyebrow">{eyebrow}</p>}
+        <h1 class="page-hero__title">{title}</h1>
+        {lead && <p class="page-hero__lead">{lead}</p>}
+        {(action || secondaryAction) && (
+          <div class="page-hero__actions">
+            {action && <Button variant={buttonVariants.accent} size={buttonSizes.lg} href={action.href}>{action.label}</Button>}
+            {secondaryAction && <Button variant={buttonVariants.inverse} size={buttonSizes.lg} href={secondaryAction.href}>{secondaryAction.label}</Button>}
+          </div>
+        )}
+      </div>
+    </section>
+  ) : (
+    <section class:list={['page-hero', `page-hero--${alignment}`]} data-surface={isDark ? 'dark' : undefined}>
+      {eyebrow && <p class="page-hero__eyebrow">{eyebrow}</p>}
+      <h1 class="page-hero__title">{title}</h1>
+      {lead && <p class="page-hero__lead">{lead}</p>}
+      {action && (
+        <div class="page-hero__actions">
+          <Button variant={isDark ? buttonVariants.accent : buttonVariants.primary} size={buttonSizes.lg} href={action.href}>
+            {action.label}
+          </Button>
+        </div>
+      )}
+    </section>
+  )
+}
+
+<style>
+  .page-hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding: var(--space-80) var(--space-40);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .page-hero--center {
+    align-items: center;
+    text-align: center;
+  }
+
+  .page-hero--start {
+    align-items: flex-start;
+    text-align: start;
+  }
+
+  .page-hero__eyebrow {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .page-hero__title {
+    margin: 0;
+    max-width: 22ch;
+    color: var(--text-primary);
+    font: var(--type-display-3xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .page-hero__lead {
+    margin: 0;
+    max-width: 60ch;
+    color: var(--text-body);
+    font: var(--type-text-regular-lg);
+  }
+
+  .page-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+    padding-top: var(--space-8);
+  }
+
+  /* The photo hero: full-bleed, as tall as `--hero-height`, copy bottom-left on the scrim. */
+  .page-hero--photo {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100vw;
+    min-height: var(--hero-height);
+    margin-inline: calc(50% - 50vw);
+    margin-top: calc(var(--space-40) * -1);
+    padding: 0;
+    overflow: hidden;
+    background: var(--surface);
+    color: var(--text-body);
+  }
+
+  .page-hero--photo::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--image-scrim);
+    content: '';
+  }
+
+  .page-hero__img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .page-hero__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-16);
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin-inline: auto;
+    padding: var(--space-96) var(--page-gutter) var(--space-64);
+    text-align: start;
+  }
+
+  .page-hero--photo .page-hero__eyebrow {
+    color: var(--text-primary);
+  }
+
+  .page-hero--photo .page-hero__title {
+    max-width: 14ch;
+    font: var(--type-display-5xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .page-hero--photo .page-hero__lead {
+    max-width: 44ch;
+    color: var(--text-primary);
+    font: var(--type-text-medium-lg);
+  }
+
+  .page-hero--photo .page-hero__actions {
+    padding-top: var(--space-8);
+  }
+
+  /* Copy rises in once on load, one line after the other. */
+
+  @media (max-width: 1100px) {
+    .page-hero--photo .page-hero__title {
+      font: var(--type-display-4xl);
+      font-stretch: var(--display-stretch);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .page-hero {
+      padding: var(--space-48) var(--space-24);
+    }
+
+    .page-hero__title {
+      font: var(--type-display-2xl);
+      font-stretch: var(--display-stretch);
+    }
+
+    .page-hero--photo {
+      padding: 0;
+    }
+
+    .page-hero--photo .page-hero__title {
+      font: var(--type-display-3xl);
+      font-stretch: var(--display-stretch);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .page-hero {
+      padding: var(--space-40) var(--space-16);
+    }
+
+    .page-hero__title {
+      font: var(--type-display-lg);
+      font-stretch: var(--display-stretch);
+    }
+
+    .page-hero--photo {
+      margin-top: calc(var(--space-24) * -1);
+      padding: 0;
+    }
+
+    .page-hero__copy {
+      padding-block: var(--space-64) var(--space-32);
+    }
+
+    .page-hero--photo .page-hero__title {
+      font: var(--type-display-2xl);
+      font-stretch: var(--display-stretch);
+    }
+
+    .page-hero--photo .page-hero__lead {
+      font: var(--type-text-medium-md);
+    }
+  }
+</style>

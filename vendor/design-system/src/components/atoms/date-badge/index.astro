@@ -1,0 +1,55 @@
+---
+// Figma event "Time" tile (home tile-zawody 920:28182, accent 920:28238, dark hero 944:29148): a
+// 56x56 tile stacking an ExtraBold day number over a month label — gray/50 (gray/700 on a dark
+// surface) or the accent fill; the month is gray/300 on both surfaces, gray/0 on the accent.
+import { dateBadgeSizes, type DateBadgeSize } from './variants'
+
+interface Props {
+  isAccent?: boolean
+  size?: DateBadgeSize
+  class?: string
+}
+
+const { isAccent = false, size = dateBadgeSizes.m, class: className } = Astro.props
+---
+
+<div class:list={['date-badge', `date-badge--${size}`, isAccent && 'date-badge--accent', className]}>
+  <span class="date-badge__day"><slot name="day" /></span>
+  <span class="date-badge__month"><slot name="month" /></span>
+</div>
+
+<style>
+  .date-badge {
+    display: flex;
+    width: 56px;
+    height: 56px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-chip);
+    background: var(--surface-muted);
+  }
+
+  .date-badge--accent {
+    background: var(--accent);
+  }
+
+  .date-badge__day {
+    font: var(--type-title-2);
+    color: var(--text-primary);
+  }
+
+  .date-badge--l .date-badge__day {
+    font: var(--type-numeric-lg);
+  }
+
+  .date-badge__month {
+    font: var(--type-label-medium-sm);
+    color: var(--text-secondary);
+  }
+
+  .date-badge--accent .date-badge__day,
+  .date-badge--accent .date-badge__month {
+    color: var(--on-accent);
+  }
+</style>

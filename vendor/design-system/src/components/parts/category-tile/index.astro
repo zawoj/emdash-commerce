@@ -1,0 +1,180 @@
+---
+// Figma "tile" with a lead article over a list (home 944:29543 / 944:29561): a tile-title row, a
+// lead "card-article" (448×266.7 photo, 20px uppercase title, an excerpt cut after 2 lines, date)
+// and a list of `row` card-articles (104×62 photo + 16px title + date).
+// Rows: title, lead photo, lead title, lead excerpt, lead date, then one row per list item. Placed in a grid that
+// defines those rows (the "Dwie kategorie" block), every level is a subgrid, so the dates,
+// the list start and each list item line up across sibling tiles whatever their text length.
+// Standalone (no grid parent) the subgrids fall back to ordinary stacked rows.
+import TileTitle from '../../molecules/tile-title/index.astro'
+import ArticleCard from '../article-card/index.astro'
+import { articleCardVariants } from '../article-card/variants'
+import type { CategoryTileContent } from './types'
+import Image from '../../atoms/image/index.astro'
+
+interface Props {
+  tile: CategoryTileContent
+}
+
+const { tile } = Astro.props
+const { lead } = tile
+/** Rows this tile occupies in a shared parent grid: title + lead photo/title/excerpt/date + list items. */
+const rowCount = 5 + tile.articles.length
+---
+
+<section
+  class="category-tile"
+  aria-labelledby={tile.headingId}
+  style={`--category-tile-rows: ${rowCount}; --category-tile-body-rows: ${rowCount - 1}; --category-tile-items: ${tile.articles.length}`}
+>
+  <TileTitle heading={tile.heading} headingId={tile.headingId} more={tile.more} />
+
+  <div class="category-tile__body">
+    <article class="category-tile__lead">
+      <a class="category-tile__lead-media" href={lead.href} tabindex="-1" aria-hidden="true">
+        {
+          lead.image && (
+            <Image {...lead.image} />
+          )
+        }
+      </a>
+      <div class="category-tile__lead-details">
+        <div class="category-tile__lead-text">
+          <h3 class="category-tile__lead-title" data-balanced-clamp><a href={lead.href}>{lead.title}</a></h3>
+          <div class="category-tile__excerpt">
+            {lead.excerpt.map((paragraph) => <p>{paragraph}</p>)}
+          </div>
+        </div>
+        <time class="category-tile__date" datetime={lead.date.iso}>{lead.date.label}</time>
+      </div>
+    </article>
+
+    <ul class="category-tile__list">
+      {
+        tile.articles.map((article) => (
+          <li>
+            <ArticleCard article={article} variant={articleCardVariants.row} isStretched />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<script>
+  import '@emdash-commerce/design-system/balanced-clamp'
+</script>
+
+<style>
+  /* Spacing between the shared rows is carried by margins, not gaps: a subgrid's gaps would be
+     added to tracks the sibling tile also uses. */
+  .category-tile {
+    display: grid;
+    grid-row: span var(--category-tile-rows);
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    padding: 0;
+  }
+
+  .category-tile__body {
+    display: grid;
+    grid-row: span var(--category-tile-body-rows);
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    margin-top: var(--tile-gap);
+  }
+
+  .category-tile__lead {
+    display: grid;
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+
+  .category-tile__lead-media {
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 448 / 266.7;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .category-tile__lead-media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .category-tile__lead-details {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    margin-top: var(--space-16);
+  }
+
+  .category-tile__lead-text {
+    display: grid;
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+
+  /* Figma: display face, uppercase, balanced (cut after 3 lines like the grid cards). */
+  .category-tile__lead-title {
+    display: -webkit-box;
+    overflow: hidden;
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch-card);
+    color: var(--text-primary);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .category-tile__lead-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .category-tile__lead-title a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Figma cuts the excerpt after 2 lines; its gray/600 sits between --text-body and
+     --text-secondary, so it stays a primitive. */
+  .category-tile__excerpt {
+    display: -webkit-box;
+    overflow: hidden;
+    margin-top: var(--space-8);
+    font: var(--type-text-regular-sm);
+    color: var(--ink-700);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .category-tile__date {
+    margin-top: var(--space-12);
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-secondary);
+  }
+
+  .category-tile__list {
+    display: grid;
+    grid-row: span var(--category-tile-items);
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    margin: var(--space-32) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .category-tile__list > li + li {
+    margin-top: var(--space-24);
+  }
+</style>

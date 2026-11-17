@@ -1,0 +1,190 @@
+---
+// The main column under the listing hero: the search row (the design-system SearchBar), the flat
+// article grid (rows of three, cards in a row sharing one height) and the pagination bar.
+import Icon from '../../../atoms/icon/index.astro'
+import { iconNames } from '../../../atoms/icon/names'
+import SearchBar from '../../../molecules/search-bar/index.astro'
+import { searchBarSizes } from '../../../molecules/search-bar/variants'
+import ArticleCard from '../../../parts/article-card/index.astro'
+import TileTitle from '../../../molecules/tile-title/index.astro'
+import PaginationBar from '../../../parts/pagination-bar/index.astro'
+import type { PostListProps } from './types'
+import { POST_LIST_FIELDS, postListPaginationTones, postListRhythms, postListSearchSizes } from './variants'
+
+type Props = PostListProps
+
+const {
+  label,
+  idPrefix,
+  search,
+  items,
+  groups,
+  emptyLabel,
+  pagination,
+  rhythm = postListRhythms.regular,
+  searchSize = postListSearchSizes.md,
+  paginationTone = postListPaginationTones.subtle,
+} = Astro.props
+const { filter } = search
+const hasItems = items.length > 0
+const hasGroups = groups !== undefined
+const hasPages = pagination.totalPages > 0
+---
+
+<div class:list={['post-list', `post-list--${rhythm}`]}>
+  <form class:list={['post-list__search', `post-list__search--${searchSize}`]} role="search" action={search.action} method="get">
+    <SearchBar
+      search={{
+        id: `${idPrefix}-q`,
+        name: POST_LIST_FIELDS.query,
+        placeholder: search.queryPlaceholder,
+        ariaLabel: search.queryLabel,
+        value: search.query,
+      }}
+      filterLabel={filter?.label}
+      filters={filter ? [{ id: `${idPrefix}-filter`, name: filter.name, ariaLabel: filter.label, options: filter.options, value: filter.value }] : []}
+      sortLabel={search.sortLabel}
+      sort={{
+        id: `${idPrefix}-sort`,
+        name: POST_LIST_FIELDS.sort,
+        ariaLabel: search.sortLabel,
+        options: search.sortOptions,
+        value: search.sortValue,
+      }}
+      size={searchBarSizes.l}
+      isFilled
+    >
+      <Icon name={iconNames.search} slot="search-icon" />
+      <Icon name={iconNames.funnel} slot="filter-icon" />
+      <Icon name={iconNames.arrowDownAZ} slot="sort-icon" />
+      <Icon name={iconNames.chevronDown} slot="select-icon" />
+    </SearchBar>
+  </form>
+
+  {
+    hasGroups ? (
+      groups.length > 0 ? (
+        groups.map((group) => (
+          <section class="post-list__grid" aria-labelledby={`${idPrefix}-${group.id}-heading`}>
+            <div class="post-list__group-title">
+              <TileTitle heading={group.heading} headingId={`${idPrefix}-${group.id}-heading`} more={group.more} />
+            </div>
+            <div class="post-list__cards">
+              {group.items.map((article) => (
+                <ArticleCard article={article} />
+              ))}
+            </div>
+          </section>
+        ))
+      ) : (
+        <section class="post-list__grid" aria-label={label}>
+          <p class="post-list__empty">{emptyLabel}</p>
+        </section>
+      )
+    ) : (
+      <section class="post-list__grid" aria-label={label}>
+        {
+          hasItems ? (
+            <div class="post-list__cards">
+              {items.map((article) => (
+                <ArticleCard article={article} />
+              ))}
+            </div>
+          ) : (
+            <p class="post-list__empty">{emptyLabel}</p>
+          )
+        }
+      </section>
+    )
+  }
+
+  {
+    hasPages && (
+      <div class:list={['post-list__pagination', `post-list__pagination--${paginationTone}`]}>
+        <PaginationBar {...pagination} />
+      </div>
+    )
+  }
+</div>
+
+<!-- A select has no way to submit its form without a script; the query field submits with Enter. -->
+<script>
+  document.querySelectorAll<HTMLSelectElement>('.post-list__search select').forEach((select) => {
+    select.addEventListener('change', () => select.form?.requestSubmit())
+  })
+</script>
+
+<style>
+  .post-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--post-list-gap);
+    min-width: 0;
+  }
+
+  .post-list--tight {
+    --post-list-gap: var(--space-8);
+  }
+
+  .post-list--regular {
+    --post-list-gap: var(--space-24);
+  }
+
+  .post-list__search {
+    margin: 0;
+  }
+
+  /* 944:39899 overrides the query's text style to text-medium-sm. */
+  .post-list__search--sm {
+    --search-bar-query-font: var(--type-text-medium-sm);
+    --search-field-tracking: var(--tracking-text-medium-sm);
+  }
+
+  /* Named like the shared content-tile so the article cards switch to their compact row layout
+     on a phone-width tile. */
+  .post-list__grid {
+    container: content-tile / inline-size;
+    width: 100%;
+    padding: 0;
+  }
+
+  .post-list__group-title {
+    margin-bottom: var(--space-24);
+  }
+
+  .post-list__cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-32) var(--space-24);
+  }
+
+  .post-list__empty {
+    margin: 0;
+    font: var(--type-text-regular-md);
+    color: var(--text-secondary);
+  }
+
+  @container content-tile (width < 700px) {
+    .post-list__cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @container content-tile (width < 420px) {
+    .post-list__cards {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* The pagination atoms draw inactive items in --text-subtle; 944:39918 sets them in
+     neutral-600 while its results line stays --text-muted. */
+  .post-list__pagination--secondary {
+    --text-subtle: var(--text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .post-list--regular {
+      --post-list-gap: var(--space-16);
+    }
+  }
+</style>

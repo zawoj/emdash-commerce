@@ -1,0 +1,44 @@
+---
+// The product tiles of a listing as a list in a grid: two columns on a phone, three from 640px, four from 1100px,
+// the same gap everywhere. It runs the full width of its container, so it lines up with the heading and the
+// toolbar above it (the page's own gutter is the only inset). The first `eagerCount` photos load eagerly.
+import ProductCard from '../product-card/index.astro'
+import type { ListingGridProps } from './types'
+
+type Props = ListingGridProps
+
+const { products, eagerCount = 0 } = Astro.props
+---
+
+<ul class="listing-grid">
+  {
+    products.map((product, index) => (
+      <li>
+        <ProductCard product={product} isEager={index < eagerCount} isLead={index < eagerCount} />
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .listing-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-24) var(--space-16);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 640px) {
+    .listing-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .listing-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>

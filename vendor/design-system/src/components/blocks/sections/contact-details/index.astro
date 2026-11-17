@@ -1,0 +1,151 @@
+---
+// Figma kontakt "tile" (1021:51699): the editorial contact tile — email and social profiles in
+// two equal columns 16px apart, a 1px border rule, then the publisher. Labels are label-caps-2xs
+// as expanded caps in text-muted, values text-medium-xs. A part without data is left out; the
+// tile renders nothing when it has none.
+import type { ContactDetailsProps } from './types'
+
+type Props = ContactDetailsProps
+
+const { label, emailLabel, email, socialsLabel, socials, publisherLabel, publisherName, publisherAddress } = Astro.props
+const hasEmail = Boolean(email)
+const hasSocials = socials.length > 0
+const hasPublisher = Boolean(publisherName || publisherAddress)
+---
+
+{
+  (hasEmail || hasSocials || hasPublisher) && (
+    <section class="contact-info" aria-label={label}>
+      {(hasEmail || hasSocials) && (
+        <dl class="contact-info__row">
+          {hasEmail && (
+            <div class="contact-info__item">
+              <dt class="contact-info__label">{emailLabel}</dt>
+              <dd class="contact-info__value">
+                <a href={`mailto:${email}`}>{email}</a>
+              </dd>
+            </div>
+          )}
+          {hasSocials && (
+            <div class="contact-info__item">
+              <dt class="contact-info__label">{socialsLabel}</dt>
+              <dd class="contact-info__value">
+                <ul class="contact-info__socials">
+                  {socials.map((social) => (
+                    <li>
+                      <a href={social.href}>{social.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          )}
+        </dl>
+      )}
+      {(hasEmail || hasSocials) && hasPublisher && <hr class="contact-info__rule" />}
+      {hasPublisher && (
+        <dl>
+          <div class="contact-info__item">
+            <dt class="contact-info__label">{publisherLabel}</dt>
+            <dd class="contact-info__value">
+              <address>
+                {publisherName}
+                {publisherName && publisherAddress && <br />}
+                {publisherAddress}
+              </address>
+            </dd>
+          </div>
+        </dl>
+      )}
+    </section>
+  )
+}
+
+<style>
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding: var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .contact-info__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-16);
+  }
+
+  .contact-info__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+
+  .contact-info__label {
+    color: var(--text-muted);
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .contact-info__value {
+    color: var(--text-body);
+    font: var(--type-text-medium-xs);
+    overflow-wrap: anywhere;
+  }
+
+  .contact-info__value a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .contact-info__value a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .contact-info__value address {
+    font-style: normal;
+  }
+
+  .contact-info__socials {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  .contact-info__socials li {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-6);
+  }
+
+  /* Figma's 2×2 text-muted squares between the profile names. */
+  .contact-info__socials li + li::before {
+    content: '';
+    width: var(--space-2);
+    height: var(--space-2);
+    background: var(--text-muted);
+  }
+
+  .contact-info__rule {
+    height: 1px;
+    border: none;
+    background: var(--border);
+  }
+
+  @media (max-width: 640px) {
+    .contact-info__row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

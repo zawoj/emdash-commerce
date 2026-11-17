@@ -1,0 +1,34 @@
+---
+// Empty mini-cart shell: filled later from the cart API (`data-mini-cart-mount`).
+import MiniCart from "@emdash-commerce/design-system/components/parts/mini-cart/index.astro";
+import { iconNames } from "@emdash-commerce/design-system/components/atoms/icon/names.ts";
+import type { ShellCopy } from "../features/shell/copy";
+import { MINI_CART_ID } from "../features/shell/tab-bar";
+
+interface Props {
+	copy: ShellCopy;
+	id?: string;
+}
+
+const { copy, id = MINI_CART_ID } = Astro.props;
+---
+
+<div data-mini-cart-mount>
+	<MiniCart
+		id={id}
+		heading={copy.miniCartHeading}
+		closeLabel={copy.miniCartClose}
+		lines={[]}
+		action="/cart"
+		subtotal={{ label: copy.miniCartSubtotal, value: "—" }}
+		note={copy.miniCartNote}
+		checkout={{ href: "/api/cart/checkout", label: copy.miniCartCheckout }}
+		viewCart={{ href: "/cart", label: copy.miniCartViewCart }}
+		empty={{
+			title: copy.emptyTitle,
+			text: copy.emptyText,
+			icon: iconNames.shoppingBag,
+			action: { href: "/shop", label: copy.emptyAction },
+		}}
+	/>
+</div>

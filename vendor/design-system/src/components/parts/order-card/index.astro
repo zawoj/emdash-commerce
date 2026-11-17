@@ -1,0 +1,128 @@
+---
+// The order that matters now, as a rich card on a quiet fill: product photos, number and date, ONE
+// human status, the four-step progress and the one action to take next.
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+import StatusDot from '../../atoms/status-badge/index.astro'
+import ThumbStack from '../../molecules/thumb-stack/index.astro'
+import OrderProgress from '../order-progress/index.astro'
+import type { OrderCardProps } from './types'
+
+type Props = OrderCardProps
+
+const { number, href, viewLabel, date, dateLabel, total, status, detail, images, moreLabel, summary, progress, action, secondaryAction, headingLevel = 3 } = Astro.props
+const Heading = `h${headingLevel}` as 'h2' | 'h3'
+---
+
+<article class="order-card">
+  <div class="order-card__top">
+    {(images.length > 0 || moreLabel) && <ThumbStack images={images} moreLabel={moreLabel} size="lg" />}
+    <div class="order-card__id">
+      <Heading class="order-card__number"><a href={href}>{number}<span class="visually-hidden">: {viewLabel}</span></a></Heading>
+      <p class="order-card__meta">{dateLabel} <time datetime={date.iso}>{date.label}</time> · <span class="order-card__total">{total}</span></p>
+      {summary && <p class="order-card__summary">{summary}</p>}
+    </div>
+  </div>
+  <div class="order-card__status">
+    <StatusDot label={status.label} tone={status.tone} variant="line" />
+    {detail && <p class="order-card__detail">{detail}</p>}
+  </div>
+  {progress && <OrderProgress {...progress} />}
+  {
+    (action || secondaryAction) && (
+      <div class="order-card__actions">
+        {action && <Button href={action.href} variant={buttonVariants.primary} size={buttonSizes.lg}>{action.label}</Button>}
+        {secondaryAction && <a class="order-card__link" href={secondaryAction.href}>{secondaryAction.label}</a>}
+      </div>
+    )
+  }
+</article>
+
+<style>
+  .order-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    padding: var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .order-card__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-20);
+  }
+
+  .order-card__id {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .order-card__number {
+    margin: 0;
+    font: var(--type-title-md);
+    font-weight: 700;
+  }
+
+  .order-card__number a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .order-card__number a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .order-card__meta,
+  .order-card__summary,
+  .order-card__detail {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .order-card__total {
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .order-card__status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-8);
+  }
+
+  .order-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-24);
+  }
+
+  .order-card__link {
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 640px) {
+    .order-card {
+      padding: var(--space-20);
+    }
+  }
+
+  @media (pointer: coarse) {
+    .order-card__number a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

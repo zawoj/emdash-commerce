@@ -1,0 +1,53 @@
+---
+// The page's <main> landmark for a site that composes its pages from full-width sections (the
+// starters): one column as wide as the header's content, the sections stacked `--stack-gap` apart.
+// The skip link targets its `id`. Pages laid out on the editorial three-column grid use `PageGrid`
+// instead, which renders its own <main>. It grows to fill a short page (see reset.css), and a page
+// that ends on a band — a section marked `data-band` (newsletter, marquee, campaign banner, the
+// error panel, drop, dark heroes) — loses the bottom padding, so the band meets the footer with no
+// white strip in between.
+interface Props {
+  /** The skip link's target. */
+  id: string
+}
+
+const { id } = Astro.props
+---
+
+<main id={id} class="page-main">
+  <slot />
+</main>
+
+<style>
+  .page-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-40);
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    padding: var(--page-main-padding-top) var(--page-gutter) var(--space-80);
+    /* Read by content that runs flush under the header (the phone's breadcrumb bar). */
+    --page-main-padding-top: var(--space-40);
+  }
+
+  @media (max-width: 640px) {
+    .page-main {
+      gap: var(--space-24);
+      padding: var(--page-main-padding-top) var(--page-gutter) var(--space-48);
+      --page-main-padding-top: var(--space-24);
+    }
+  }
+
+  /* The last section is a band (directly, or as the last child of the view's own wrapper). The inner
+     selectors are global: the sections come from other components, without this one's scope attribute. */
+  .page-main:has(> :global([data-band]:last-child), > :global(:last-child > [data-band]:last-child)) {
+    padding-bottom: 0;
+  }
+
+  /* A closing band runs edge to edge, so with the footer it reads as one dark surface instead of an
+     inset box standing on it (its own content stays centred by its inner max-width). */
+  .page-main > :global([data-band]:last-child) {
+    margin-inline: calc(50% - 50vw);
+  }
+</style>

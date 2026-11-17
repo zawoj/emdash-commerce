@@ -1,0 +1,128 @@
+---
+// Figma "tile-title" (625:4236): the heading row every content tile opens with — an uppercase
+// condensed display heading, optional extras before it (`before-heading`, e.g. the fire glyph) or
+// after it (`after-heading`, e.g. labels), and on the right either the "read more" link
+// (`more`, label passed in) or anything passed to the `aside` slot (e.g. a partner badge).
+// Colors come from the surface theme, so the same row works on a white tile (Black) and on a
+// `data-surface="dark"` tile (onDarkBg, orange link); a tile whose link color differs from
+// `--link` sets `--tile-link`.
+import type { LinkContent } from '../../../types/link'
+import { tileTitleSizes, tileTitleTones, type TileTitleSize, type TileTitleTone } from './variants'
+
+interface Props {
+  heading: string
+  headingId?: string
+  headingLevel?: 2 | 3
+  more?: LinkContent
+  /** Gap between the heading and its `before-heading`/`after-heading` extras — Figma uses 4px or 16px. */
+  extrasGap?: 4 | 16
+  size?: TileTitleSize
+  tone?: TileTitleTone
+}
+
+const {
+  heading,
+  headingId,
+  headingLevel = 2,
+  more,
+  extrasGap = 4,
+  size = tileTitleSizes.l,
+  tone = tileTitleTones.default,
+} = Astro.props
+const Heading = `h${headingLevel}` as const
+const hasAside = Boolean(more) || Astro.slots.has('aside')
+---
+
+<div class:list={['tile-title', `tile-title--${size}`, `tile-title--${tone}`]}>
+  <div class="tile-title__lead" style={`--tile-title-extras-gap: ${extrasGap}px`}>
+    <slot name="before-heading" />
+    <Heading id={headingId} class="tile-title__heading">{heading}</Heading>
+    <slot name="after-heading" />
+  </div>
+  {
+    hasAside && (
+      <div class="tile-title__aside">
+        <slot name="aside" />
+        {more && (
+          <a class="tile-title__more" href={more.href}>
+            {more.label}
+          </a>
+        )}
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .tile-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16);
+    min-height: 26px;
+  }
+
+  .tile-title--s {
+    min-height: 22px;
+  }
+
+  .tile-title__lead {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--tile-title-extras-gap);
+    min-width: 0;
+  }
+
+  .tile-title__heading {
+    margin: 0;
+    font: var(--type-display-sm);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+    color: var(--text-primary);
+  }
+
+  .tile-title--s .tile-title__heading {
+    font: var(--type-display-xs);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: 0;
+  }
+
+  /* Red heading and the glyph before it (Figma paints the fire icon red-dark too). */
+  .tile-title--hot .tile-title__lead,
+  .tile-title--hot .tile-title__heading {
+    color: var(--text-primary);
+  }
+
+  .tile-title__aside {
+    display: flex;
+    flex-direction: row;
+    flex: none;
+    align-items: center;
+    gap: var(--space-16);
+  }
+
+  .tile-title__more {
+    font: var(--type-button-sm);
+    color: var(--tile-link, var(--link));
+    text-decoration: none;
+    text-transform: var(--button-case);
+    white-space: nowrap;
+  }
+
+  .tile-title__more:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (pointer: coarse) {
+    .tile-title__more {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

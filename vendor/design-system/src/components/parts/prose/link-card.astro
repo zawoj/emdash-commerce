@@ -1,0 +1,51 @@
+---
+// A single post of a social network inside a text (no Figma frame): the platform's name over the
+// link to the post. The post itself opens on the platform — nothing from a third party loads
+// with the page.
+interface Props {
+  platform: string
+  label: string
+  href: string
+}
+
+const { platform, label, href } = Astro.props
+---
+
+<aside class="prose-block prose-link-card">
+  <span class="prose-link-card__platform">{platform}</span>
+  <a class="prose-link-card__link" href={href} target="_blank" rel="noopener noreferrer">{label}</a>
+</aside>
+
+<style>
+  .prose-link-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    width: 100%;
+    padding: var(--space-20);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    text-align: start;
+  }
+
+  .prose-link-card__platform {
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    color: var(--text-muted);
+  }
+
+  .prose-link-card__link {
+    font: var(--type-text-medium-lg);
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+
+  .prose-link-card__link:hover {
+    text-decoration: underline;
+  }
+</style>

@@ -1,0 +1,83 @@
+---
+// A bundle's parts as a checklist on a quiet muted tile, with the saving ("$109 instead of $147")
+// as one chip underneath. It sits next to the buy button so the shopper sees what the price buys.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { BundleIncludesProps } from './types'
+
+type Props = BundleIncludesProps
+
+const { heading, items, saving } = Astro.props
+---
+
+{
+  items.length > 0 && (
+    <section class="bundle-includes" aria-label={heading}>
+      <h3 class="bundle-includes__heading">{heading}</h3>
+      <ul class="bundle-includes__list">
+        {
+          items.map((item) => (
+            <li class="bundle-includes__item">
+              <span class="bundle-includes__icon" aria-hidden="true"><Icon name={iconNames.check} size={16} /></span>
+              <span>{item}</span>
+            </li>
+          ))
+        }
+      </ul>
+      {saving && <p class="bundle-includes__saving">{saving}</p>}
+    </section>
+  )
+}
+
+<style>
+  .bundle-includes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    padding: var(--space-16) var(--space-20);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .bundle-includes__heading {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .bundle-includes__list {
+    display: grid;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bundle-includes__item {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-8);
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+  }
+
+  .bundle-includes__icon {
+    display: inline-flex;
+    flex: none;
+    align-self: center;
+    color: var(--text-primary);
+  }
+
+  .bundle-includes__saving {
+    align-self: flex-start;
+    margin: 0;
+    padding: var(--space-4) var(--space-12);
+    border-radius: var(--radius-chip);
+    background: var(--action-primary);
+    color: var(--on-action-primary);
+    font: var(--type-label-semibold-xs);
+  }
+</style>

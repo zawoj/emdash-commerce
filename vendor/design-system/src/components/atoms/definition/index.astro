@@ -1,0 +1,58 @@
+---
+// Definition — label + value pair in two layouts (stacked, inline). The value color differs by
+// layout: text-primary when stacked, text-body when inline.
+export const definitionLayouts = {
+  stacked: 'stacked',
+  inline: 'inline',
+} as const
+export type DefinitionLayout = (typeof definitionLayouts)[keyof typeof definitionLayouts]
+
+interface Props {
+  label: string
+  value: string
+  layout?: DefinitionLayout
+}
+
+const { label, value, layout = definitionLayouts.stacked } = Astro.props
+---
+
+<dl class="definition" data-layout={layout}>
+  <dt>{label}</dt>
+  <dd>{value}</dd>
+</dl>
+
+<style>
+  .definition {
+    display: flex;
+    width: 100%;
+    gap: var(--space-8);
+    margin: 0;
+  }
+
+  .definition dt {
+    font: var(--type-label-regular-xs);
+    color: var(--text-muted);
+  }
+
+  .definition dd {
+    font: var(--type-label-medium-sm);
+    margin: 0;
+  }
+
+  .definition[data-layout='stacked'] {
+    flex-direction: column;
+  }
+
+  .definition[data-layout='stacked'] dd {
+    color: var(--text-primary);
+  }
+
+  .definition[data-layout='inline'] {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .definition[data-layout='inline'] dd {
+    color: var(--text-body);
+  }
+</style>

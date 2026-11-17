@@ -1,0 +1,88 @@
+---
+// Figma "tile-ad" (home 944:29237 "in-text" in the main column, 944:29588
+// "banner-side-ad" in the sidebar; the same two slots on artykul / partner / wpisy-z-kategorii /
+// zawody): an ad creative (one exported image, clipped to the creative frame's radius) and the
+// "ad-info" caption 8px under it. In the main column the caption runs on one line across the
+// slot and the creative scales with the slot; an optional `narrow` creative (a different
+// composition) takes over while its media query matches. In the sidebar the creative keeps
+// Figma's 306.67px height at any slot width (cropped, as the 350px sidebar at 1200 shows) and
+// the caption keeps its 299px box.
+import AdInfo from '../ad-info/index.astro'
+import type { AdContent } from './types'
+import { adTilePlacements, type AdTilePlacement } from './variants'
+
+interface Props extends AdContent {
+  placement?: AdTilePlacement
+}
+
+const { creative, disclaimer, label, link, measure, narrow, placement = adTilePlacements.main } = Astro.props
+const isMain = placement === adTilePlacements.main
+// A linked creative is a sponsored link; without a link it is a plain block around the picture.
+const Creative = link ? 'a' : 'div'
+const linkAttributes = link
+  ? { href: link.href, rel: link.isNewTab ? 'sponsored noopener' : 'sponsored', target: link.isNewTab ? '_blank' : undefined }
+  : {}
+---
+
+<aside
+  class:list={['ad-tile', `ad-tile--${placement}`]}
+  aria-label={label}
+  data-ad-campaign={measure?.campaign}
+  data-ad-placement={measure?.slot}
+  data-ad-page-type={measure?.pageType}
+  style={`--ad-tile-width: ${creative.width}px; --ad-tile-height: ${creative.height}px`}
+>
+  <Creative class="ad-tile__link" {...linkAttributes}>
+    <picture class="ad-tile__picture">
+      {narrow && <source media={narrow.media} srcset={narrow.creative.src} width={narrow.creative.width} height={narrow.creative.height} />}
+      <img
+        class="ad-tile__creative"
+        src={creative.src}
+        srcset={creative.srcset}
+        sizes={creative.sizes}
+        width={creative.width}
+        height={creative.height}
+        alt={creative.alt}
+        loading="lazy"
+        decoding="async"
+      />
+    </picture>
+  </Creative>
+  <AdInfo text={disclaimer} isFitted={isMain} />
+</aside>
+
+<style>
+  /* an ad slot never grows past its creative's size (e.g. the sidebar slot once the sidebar stacks full width) */
+  .ad-tile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    width: 100%;
+    max-width: var(--ad-tile-width);
+    margin-inline: auto;
+  }
+
+  .ad-tile__link {
+    display: block;
+    color: inherit;
+  }
+
+  .ad-tile__picture {
+    display: block;
+  }
+
+  /* The creative scales with the slot at its own ratio (the <img>/<source> width and height). */
+  .ad-tile__creative {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    object-position: top;
+    border-radius: var(--radius-card);
+  }
+
+  .ad-tile--sidebar .ad-tile__creative {
+    height: var(--ad-tile-height);
+    object-position: center top;
+  }
+</style>

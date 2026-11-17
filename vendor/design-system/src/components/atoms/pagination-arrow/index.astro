@@ -1,0 +1,75 @@
+---
+// Figma pagination arrow (706:15925 / 706:17694, ellipsis 706:17685) — the same 34×34 box as
+// PaginationItem but icon-only (14px lucide chevron / ellipsis), for prev, next and the gap.
+// Structurally distinct from Pagination/Item (icon child vs. text label), hence a separate atom.
+// Icon markup comes from the caller via the "icon" slot (no icon-library dependency added here).
+export const paginationArrowDirections = {
+  prev: 'prev',
+  next: 'next',
+  ellipsis: 'ellipsis',
+} as const
+export type PaginationArrowDirection = (typeof paginationArrowDirections)[keyof typeof paginationArrowDirections]
+
+interface Props {
+  direction: PaginationArrowDirection
+  href?: string
+  ariaLabel?: string
+}
+
+const { direction, href, ariaLabel } = Astro.props
+const isEllipsis = direction === paginationArrowDirections.ellipsis
+const isLink = Boolean(href) && !isEllipsis
+---
+
+{
+  isLink ? (
+    <a class="pagination-arrow" href={href} aria-label={ariaLabel} data-direction={direction}>
+      <slot name="icon" />
+    </a>
+  ) : (
+    <span class="pagination-arrow" aria-hidden={isEllipsis} data-direction={direction}>
+      <slot name="icon" />
+    </span>
+  )
+}
+
+<style>
+  .pagination-arrow {
+    display: flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-control);
+    background: none;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  @media (hover: hover) {
+    a.pagination-arrow:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  .pagination-arrow :global(svg) {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* A full Figma sequence (prev, 1–5, …, last, next) is 338px at 34px per item — too wide for a
+     phone. Slightly smaller items keep it on one row. */
+  @media (max-width: 480px) {
+    .pagination-arrow {
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  @media (pointer: coarse) {
+    .pagination-arrow {
+      width: 44px; /* token-lint-ignore: touch target */
+      height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

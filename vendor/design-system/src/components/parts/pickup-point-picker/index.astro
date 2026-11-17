@@ -1,0 +1,434 @@
+---
+// A carrier-agnostic pickup-point picker (parcel lockers, shops). The points are radios in a list —
+// choosing one works by keyboard and without a script, and the chosen point is summarised below.
+// The search field is a plain postcode / city text field that posts with the form; with the
+// script (`@emdash-commerce/design-system/pickup-point-picker`) it fetches `endpoint` as the shopper types
+// and renders the results with `textContent`. The root carries the contract as data attributes:
+// `data-endpoint`, `data-query-param`, `data-min-length`, `data-radio-name`, `data-count-template`,
+// `data-empty-label`, `data-loading-label`, `data-error-label`, `data-cod-label`,
+// `data-distance-template`, `data-type-labels` (JSON); it fires `pickup-point:select`.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { PickupPointFieldNames, PickupPointPickerProps } from './types'
+
+type Props = PickupPointPickerProps
+
+const defaultFieldNames: PickupPointFieldNames = { name: 'pickupPointName', street: 'pickupPointStreet', postCode: 'pickupPointPostCode', city: 'pickupPointCity' }
+
+const {
+  id,
+  labels,
+  endpoint,
+  queryParam = 'q',
+  minLength = 2,
+  points = [],
+  selectedCode,
+  queryName = 'pickupPointQuery',
+  queryValue,
+  codeName = 'pickupPointCode',
+  fieldNames = defaultFieldNames,
+  geowidget,
+  error,
+  errorLabel,
+} = Astro.props
+const selected = points.find((point) => point.code === selectedCode)
+const searchId = `${id}-search`
+const statusText = points.length > 0 ? labels.countTemplate.replace('{count}', String(points.length)) : queryValue ? labels.emptyLabel : ''
+const typeLabel = (type: string) => labels.typeLabels?.[type]
+---
+
+<fieldset
+  class="pickup-point-picker"
+  id={id}
+  data-pickup-point-picker
+  data-endpoint={endpoint}
+  data-query-param={queryParam}
+  data-min-length={minLength}
+  data-radio-name={codeName}
+  data-count-template={labels.countTemplate}
+  data-empty-label={labels.emptyLabel}
+  data-loading-label={labels.loadingLabel}
+  data-error-label={labels.errorLabel}
+  data-cod-label={labels.codLabel}
+  data-distance-template={labels.distanceTemplate}
+  data-type-labels={labels.typeLabels ? JSON.stringify(labels.typeLabels) : undefined}
+>
+  <legend class="pickup-point-picker__legend">{labels.legend}</legend>
+
+  <div class="pickup-point-picker__search">
+    <label class="pickup-point-picker__label" for={searchId}>{labels.searchLabel}</label>
+    <div class="pickup-point-picker__row">
+      <input
+        class="pickup-point-picker__input"
+        id={searchId}
+        type="search"
+        name={queryName}
+        value={queryValue}
+        placeholder={labels.searchPlaceholder}
+        autocomplete="postal-code"
+        enterkeyhint="search"
+        data-pickup-search
+      />
+      <button class="pickup-point-picker__button" type="button" hidden data-pickup-search-button>
+        <Icon name={iconNames.magnifyingGlass} size={16} />
+        {labels.searchButton}
+      </button>
+    </div>
+  </div>
+
+  {
+    geowidget && (
+      <div
+        class="pickup-point-picker__map"
+        data-pickup-map
+        data-token={geowidget.token}
+        data-script-url={geowidget.scriptUrl}
+        data-style-url={geowidget.styleUrl}
+        data-config={geowidget.config}
+        data-language={geowidget.language}
+        data-open-label={geowidget.openLabel}
+        data-close-label={geowidget.closeLabel}
+      >
+        <button class="pickup-point-picker__map-toggle" type="button" hidden aria-expanded="false" data-pickup-map-toggle>
+          <Icon name={iconNames.mapPin} size={16} />
+          <span data-pickup-map-toggle-text>{geowidget.openLabel}</span>
+        </button>
+        <div class="pickup-point-picker__map-frame" hidden data-pickup-map-frame />
+      </div>
+    )
+  }
+
+  <p class="pickup-point-picker__status" role="status" aria-live="polite" data-pickup-status>{statusText}</p>
+
+  <ul class="pickup-point-picker__list" aria-label={labels.resultsLabel} data-pickup-results>
+    {
+      points.map((point, index) => (
+        <li class="pickup-point-picker__item">
+          <label class="pickup-point-picker__option" for={`${id}-point-${index}`}>
+            <input
+              class="pickup-point-picker__radio"
+              id={`${id}-point-${index}`}
+              type="radio"
+              name={codeName}
+              value={point.code}
+              checked={point.code === selectedCode}
+              data-name={point.name}
+              data-street={point.street}
+              data-post-code={point.postCode}
+              data-city={point.city}
+            />
+            <span class="pickup-point-picker__body">
+              <span class="pickup-point-picker__name">
+                {point.name}
+                {typeLabel(point.type) && <span class="pickup-point-picker__type"> {typeLabel(point.type)}</span>}
+              </span>
+              <span class="pickup-point-picker__address">{`${point.street}, ${point.postCode} ${point.city}`}</span>
+              {point.openingHours && <span class="pickup-point-picker__hours">{point.openingHours}</span>}
+              {point.isCodAvailable && <span class="pickup-point-picker__cod">{labels.codLabel}</span>}
+              {point.distance !== undefined && labels.distanceTemplate && (
+                <span class="pickup-point-picker__distance">{labels.distanceTemplate.replace('{distance}', point.distance.toFixed(1))}</span>
+              )}
+            </span>
+          </label>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="pickup-point-picker__selected" hidden={!selected} data-pickup-selected>
+    <span class="pickup-point-picker__selected-icon" aria-hidden="true"><Icon name={iconNames.mapPin} size={20} /></span>
+    <div>
+      <p class="pickup-point-picker__selected-label">{labels.selectedLabel}</p>
+      <p class="pickup-point-picker__selected-text" data-pickup-selected-text>{selected ? `${selected.name} — ${selected.street}, ${selected.postCode} ${selected.city}` : ''}</p>
+    </div>
+  </div>
+
+  <input type="hidden" name={fieldNames.name} value={selected?.name ?? ''} data-pickup-field="name" />
+  <input type="hidden" name={fieldNames.street} value={selected?.street ?? ''} data-pickup-field="street" />
+  <input type="hidden" name={fieldNames.postCode} value={selected?.postCode ?? ''} data-pickup-field="postCode" />
+  <input type="hidden" name={fieldNames.city} value={selected?.city ?? ''} data-pickup-field="city" />
+
+  {
+    error && (
+      <p class="pickup-point-picker__error" role="alert">
+        <Icon name={iconNames.octagonAlert} size={16} />
+        <span>{errorLabel && <span class="visually-hidden">{errorLabel}: </span>}{error}</span>
+      </p>
+    )
+  }
+</fieldset>
+
+<script>
+  import '@emdash-commerce/design-system/pickup-point-picker'
+</script>
+
+<style is:global>
+  /* Global on purpose: the results and the map pick are created by the script, and Astro's scoping attribute is not on them. */
+  .pickup-point-picker {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-12);
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .pickup-point-picker[aria-busy='true'] .pickup-point-picker__list {
+    opacity: 0.5;
+  }
+
+  .pickup-point-picker__legend {
+    margin-bottom: var(--space-4);
+    padding: 0;
+    color: var(--text-primary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .pickup-point-picker__search {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .pickup-point-picker__label {
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  .pickup-point-picker__row {
+    display: flex;
+    gap: var(--space-8);
+  }
+
+  .pickup-point-picker__input {
+    flex: 1;
+    min-width: 0;
+    height: 48px; /* token-lint-ignore: touch target */
+    padding: 0 var(--space-12);
+    border: var(--stroke-thin) solid var(--border-strong);
+    border-radius: var(--radius-field);
+    background: var(--surface);
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+  }
+
+  .pickup-point-picker__button:active {
+    background: var(--accent-pressed);
+  }
+
+  .pickup-point-picker__button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8);
+    height: 48px; /* token-lint-ignore: touch target */
+    padding: 0 var(--space-24);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: var(--control-solid);
+    color: var(--on-control-solid);
+    font: var(--type-button-sm);
+    text-transform: var(--button-case);
+    cursor: pointer;
+  }
+
+  .pickup-point-picker__button:hover {
+    background: var(--action-primary-hover);
+  }
+
+  .pickup-point-picker__button[hidden] {
+    display: none;
+  }
+
+  .pickup-point-picker__input:focus-visible {
+    border-color: var(--text-primary);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -1px;
+  }
+
+  .pickup-point-picker__button:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .pickup-point-picker__map {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .pickup-point-picker__map-toggle {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: var(--space-8);
+    height: 48px; /* token-lint-ignore: touch target */
+    padding: 0 var(--space-16);
+    border: var(--stroke-thin) solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--text-primary);
+    font: var(--type-button-sm);
+    text-transform: var(--button-case);
+    cursor: pointer;
+  }
+
+  .pickup-point-picker__map-toggle[hidden],
+  .pickup-point-picker__map-frame[hidden] {
+    display: none;
+  }
+
+  .pickup-point-picker__map-toggle:hover {
+    background: var(--surface-hover);
+  }
+
+  .pickup-point-picker__map-toggle:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .pickup-point-picker__map-frame {
+    height: min(70vh, 32rem); /* token-lint-ignore: map viewport */
+    overflow: hidden;
+    border: var(--stroke-thin) solid var(--border-strong);
+    border-radius: var(--radius-field);
+  }
+
+  .pickup-point-picker__map-frame inpost-geowidget {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .pickup-point-picker__status {
+    min-height: 1.25em;
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .pickup-point-picker__list {
+    display: flex;
+    max-height: 22rem;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  .pickup-point-picker__list:empty {
+    display: none;
+  }
+
+  .pickup-point-picker__option {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-12);
+    padding: var(--space-12) var(--space-16);
+    border: var(--stroke-thin) solid transparent;
+    border-radius: var(--radius-field);
+    background: var(--surface-muted);
+    cursor: pointer;
+  }
+
+  .pickup-point-picker__option:hover {
+    background: var(--surface-hover);
+  }
+
+  .pickup-point-picker__option:has(.pickup-point-picker__radio:checked) {
+    border-color: var(--text-primary);
+    background: var(--surface);
+    outline: 1px solid var(--text-primary); /* the second pixel of the 2px selected outline, inside the border */
+    outline-offset: -2px;
+  }
+
+  .pickup-point-picker__option:has(.pickup-point-picker__radio:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .pickup-point-picker__radio {
+    flex: none;
+    width: 18px; /* token-lint-ignore: native radio box */
+    height: 18px; /* token-lint-ignore: native radio box */
+    margin: var(--space-2) 0 0;
+    accent-color: var(--ink-1000);
+  }
+
+  .pickup-point-picker__body {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-2);
+    font: var(--type-text-regular-sm);
+  }
+
+  .pickup-point-picker__name {
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+  }
+
+  .pickup-point-picker__type {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .pickup-point-picker__address {
+    color: var(--text-body);
+  }
+
+  .pickup-point-picker__hours,
+  .pickup-point-picker__distance {
+    color: var(--text-secondary);
+  }
+
+  .pickup-point-picker__cod {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .pickup-point-picker__selected {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-12);
+    padding: var(--space-12) var(--space-16);
+    border-radius: var(--radius-field);
+    background: var(--surface-muted);
+  }
+
+  .pickup-point-picker__selected[hidden] {
+    display: none;
+  }
+
+  .pickup-point-picker__selected-icon {
+    display: inline-flex;
+    flex: none;
+    color: var(--text-primary);
+  }
+
+  .pickup-point-picker__selected-label {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-label-medium-sm);
+  }
+
+  .pickup-point-picker__selected-text {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  .pickup-point-picker__error {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+</style>

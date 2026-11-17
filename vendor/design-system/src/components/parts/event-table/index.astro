@@ -1,0 +1,264 @@
+---
+// Events table: an uppercase column header row (event / location [/ extra information]) over one
+// row per event built from the Date Badge atom. Featured events get the accent Date Badge. Rows hug
+// their content (4px + 8px cell padding around the 56px badge) and are separated by 1px borders
+// that overlap the next row.
+import DateBadge from '../../atoms/date-badge/index.astro'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { EventRowContent, EventTableColumns } from './types'
+import { eventTableVariants, type EventTableVariant } from './variants'
+
+interface Props {
+  columns: EventTableColumns
+  events: readonly EventRowContent[]
+  variant?: EventTableVariant
+}
+
+const { columns, events, variant = eventTableVariants.flush } = Astro.props
+const hasExtraInfo = Boolean(columns.extraInfo)
+---
+
+<div class:list={['event-table', `event-table--${variant}`, hasExtraInfo && 'event-table--extra']}>
+  <div class="event-table__header" aria-hidden="true">
+    <span class="event-table__cell event-table__cell--name">{columns.event}</span>
+    <span class="event-table__cell">{columns.location}</span>
+    {hasExtraInfo && <span class="event-table__cell">{columns.extraInfo}</span>}
+  </div>
+
+  <ol class="event-table__list">
+    {
+      events.map((event) => (
+        <li class="event-table__row">
+          <div class="event-table__cell event-table__cell--name">
+            <div class="event-table__badge">
+              <DateBadge isAccent={event.isFeatured}>
+                <span slot="day">{event.day}</span>
+                <span slot="month">{event.month}</span>
+              </DateBadge>
+            </div>
+            <div class="event-table__name">
+              <a class="event-table__title" href={event.href}>
+                {event.name}
+              </a>
+              {event.organizer && <span class="event-table__organizer">{event.organizer}</span>}
+            </div>
+          </div>
+
+          <div class="event-table__meta">
+            <div class="event-table__cell event-table__cell--location">
+              <span class="event-table__city">
+                <Icon name={iconNames.pin} />
+                {event.location}
+              </span>
+              <span class="event-table__region">{event.region}</span>
+            </div>
+
+            {hasExtraInfo && <div class="event-table__cell event-table__cell--extra">{event.extraInfo}</div>}
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<style>
+  /* --event-table-inset: the name column's left padding (24 flush / 12 boxed). */
+  .event-table {
+    --event-table-inset: var(--space-24);
+  }
+
+  /* Figma 1023:60270: a 1px gray/100 frame around the header and rows. */
+  .event-table--boxed {
+    --event-table-inset: var(--space-12);
+    overflow: hidden;
+    border-block: 1px solid var(--border);
+    border-radius: var(--radius-card);
+  }
+
+  /* The name column is 386px wide; the others share the rest. Columns overlap by 1px (gap -1). */
+  .event-table__header,
+  .event-table__row {
+    display: grid;
+    grid-template-columns: 385px minmax(0, 1fr); /* token-lint-ignore: name column width, no token */
+  }
+
+  .event-table--extra .event-table__header,
+  .event-table--extra .event-table__row {
+    grid-template-columns: 385px minmax(0, 1fr) minmax(0, 1fr); /* token-lint-ignore: name column width, no token */
+  }
+
+  /* Every separator is a 1px bottom border that the next row overlaps (margin -1px). */
+  .event-table__header {
+    align-items: center;
+    margin-bottom: -1px;
+    border-bottom: 1px solid var(--text-primary);
+    color: var(--text-primary);
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .event-table__list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .event-table__row {
+    align-items: stretch;
+    margin-bottom: -1px;
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .event-table__row:last-child {
+    margin-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .event-table__meta {
+    display: contents;
+  }
+
+  .event-table__cell {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    padding: var(--space-8) var(--space-12);
+  }
+
+  .event-table__cell--name {
+    gap: var(--space-16);
+    padding-left: var(--event-table-inset);
+  }
+
+  .event-table__badge {
+    position: relative;
+    flex: none;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+  }
+
+  .event-table__name {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  /* The name fills the rest of its column (Figma: 278px flush, 290px boxed). */
+  .event-table__title {
+    color: var(--text-primary);
+    font: var(--type-display-2xs);
+    font-stretch: var(--display-stretch-card);
+    letter-spacing: var(--tracking-display-2xs);
+    text-decoration: none;
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .event-table__title:hover {
+    text-decoration: underline;
+  }
+
+  .event-table__organizer {
+    color: var(--text-muted);
+    font: var(--type-label-medium-sm);
+  }
+
+  .event-table__cell--location {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--space-4);
+  }
+
+  .event-table__city {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-primary);
+    font: var(--type-label-medium-sm);
+  }
+
+  .event-table__city :global(svg) {
+    flex: none;
+  }
+
+  .event-table__region {
+    color: var(--text-muted);
+    font: var(--type-label-regular-xs);
+  }
+
+  .event-table__cell--extra {
+    color: var(--text-primary);
+    font: var(--type-label-medium-sm);
+  }
+
+  /* Narrow tables: drop the column header and stack each event — date + name on top,
+     location / extra info wrapping underneath, indented to the name.
+     The 3-column boxed table stacks as soon as its last column would get too narrow, the
+     2-column flush one below the two-column page width. */
+  @media (max-width: 1280px) {
+    .event-table--boxed .event-table__header {
+      display: none;
+    }
+
+    .event-table--boxed .event-table__row {
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-4) 0 var(--space-16);
+    }
+
+    .event-table--boxed .event-table__meta {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: var(--space-8) var(--space-16);
+      padding: 0 var(--space-12) 0 calc(var(--event-table-inset) + 56px + var(--space-16)); /* token-lint-ignore: 56px Date Badge width */
+    }
+
+    .event-table--boxed .event-table__meta .event-table__cell {
+      padding: 0;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .event-table--flush .event-table__header {
+      display: none;
+    }
+
+    .event-table--flush .event-table__row {
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-4) 0 var(--space-16);
+    }
+
+    .event-table--flush .event-table__meta {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: var(--space-8) var(--space-16);
+      padding: 0 var(--space-12) 0 calc(var(--event-table-inset) + 56px + var(--space-16)); /* token-lint-ignore: 56px Date Badge width */
+    }
+
+    .event-table--flush .event-table__meta .event-table__cell {
+      padding: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .event-table .event-table__meta {
+      padding-left: var(--event-table-inset);
+    }
+  }
+</style>

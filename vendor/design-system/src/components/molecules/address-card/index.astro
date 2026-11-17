@@ -1,0 +1,89 @@
+---
+// A saved or ordered address as a <address> card; the `actions` slot takes edit / delete / make-default controls.
+import type { AddressCardProps } from './types'
+
+type Props = AddressCardProps
+
+const { name, lines, title, badge } = Astro.props
+---
+
+<div class="address-card">
+  {
+    (title || badge) && (
+      <div class="address-card__head">
+        {title && <p class="address-card__title">{title}</p>}
+        {badge && <span class="address-card__badge">{badge}</span>}
+      </div>
+    )
+  }
+  <address class="address-card__address">
+    <strong class="address-card__name">{name}</strong>
+    {lines.map((line) => <span>{line}</span>)}
+  </address>
+  <div class="address-card__actions"><slot name="actions" /></div>
+</div>
+
+<style>
+  .address-card {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    gap: var(--space-12);
+    padding: var(--space-20);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .address-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8);
+    min-height: 24px; /* token-lint-ignore: keeps cards with and without a default marker aligned */
+  }
+
+  .address-card__title {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .address-card__badge {
+    padding: var(--space-4) var(--space-8);
+    border-radius: var(--radius-chip);
+    background: var(--accent);
+    color: var(--on-accent);
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .address-card__address {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+    font-style: normal;
+  }
+
+  .address-card__name {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .address-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+    margin-top: auto;
+  }
+
+  .address-card__actions:empty {
+    display: none;
+  }
+</style>

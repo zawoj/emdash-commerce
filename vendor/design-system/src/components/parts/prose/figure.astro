@@ -1,0 +1,60 @@
+---
+// Figma "Frame 198" (944:33143) — an inline photo (contained, 8px radius) centered in the text
+// column with its source caption. The image is the default slot, so the caller decides how its
+// `<img>` is built (responsive sources, lazy loading).
+import { proseFigureSizes, type ProseFigureSize } from './variants'
+
+interface Props {
+  caption?: string | null
+  /** How wide the photo is set: its own size (default), a fixed width, or the whole column. */
+  size?: ProseFigureSize
+}
+
+const { caption, size = proseFigureSizes.natural } = Astro.props
+---
+
+<figure class:list={['prose-block', 'prose-figure', `prose-figure--${size}`]}>
+  <slot />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .prose-figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-16);
+    width: 100%;
+  }
+
+  .prose-figure :global(img) {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--radius-card);
+  }
+
+  .prose-figure--sm :global(img) {
+    width: 400px; /* token-lint-ignore: small photo width, no Figma frame */
+  }
+
+  .prose-figure--md :global(img) {
+    width: 560px; /* token-lint-ignore: medium photo width, no Figma frame */
+  }
+
+  .prose-figure--full :global(img) {
+    width: 100%;
+  }
+
+  /* Figma sets the caption in Roboto 14px/1.5 -0.14px — Roboto is not a DS font, so it uses the
+     body face at the same size, line height and tracking. */
+  .prose-figure figcaption {
+    font: var(--type-text-regular-sm);
+    line-height: 21px; /* token-lint-ignore: Figma caption line height 1.5 */
+    letter-spacing: normal;
+    color: var(--text-secondary);
+    text-align: center;
+  }
+</style>

@@ -1,0 +1,271 @@
+---
+import ShopHero from "@emdash-commerce/design-system/components/blocks/heroes/shop-hero/index.astro";
+import ProductRail from "@emdash-commerce/design-system/components/blocks/sections/product-rail/index.astro";
+import ProductSpotlight from "@emdash-commerce/design-system/components/blocks/sections/product-spotlight/index.astro";
+import Banner from "@emdash-commerce/design-system/components/blocks/sections/banner/index.astro";
+import ShopTheLook from "@emdash-commerce/design-system/components/blocks/sections/shop-the-look/index.astro";
+import Newsletter from "@emdash-commerce/design-system/components/blocks/sections/newsletter/index.astro";
+import Faq from "@emdash-commerce/design-system/components/blocks/sections/faq/index.astro";
+import PromiseList from "@emdash-commerce/design-system/components/molecules/promise-list/index.astro";
+import Button from "@emdash-commerce/design-system/components/atoms/button/index.astro";
+import { buttonSizes, buttonVariants, promiseListLayouts, iconNames } from "@emdash-commerce/design-system";
+
+import { buildLookChoice } from "../catalog/domain/look-choice";
+import { catalogCopy } from "../catalog/copy";
+import { contentStrings, catalogStrings, format } from "../../lib/strings";
+import { imageFromUrl, imageFromView, urlFromCmsImage } from "../../lib/media";
+import { resolveLocale } from "../../lib/i18n";
+import { DEFAULT_CURRENCY } from "../../lib/money";
+import { intlLocaleOf } from "../../lib/i18n";
+import { fetchCatalogProductDetail, fetchCatalogProducts } from "../../utils/commerce-fetch";
+import { getSiteLocale } from "../../utils/locale";
+import { resolveBlogSiteIdentity } from "../../utils/site-identity";
+import { getEmDashEntry, getSiteSettingsWithCacheHint } from "emdash";
+import { toCard } from "../catalog/domain/card";
+import { dedupeRails, railByKey } from "./dedupe";
+import { homeCopy } from "./copy";
+import { loadHomeConfig } from "./load-config";
+import { readLook, readSpotlight } from "./home-points";
+import type { HomeRailLoaded } from "./dedupe";
+
+const locale = resolveLocale(getSiteLocale());
+const copy = contentStrings(locale);
+const catalog = catalogStrings(locale);
+const catalogLocale = catalogCopy[locale];
+const config = loadHomeConfig(locale);
+const homeStrings = homeCopy[locale];
+const origin = Astro.url.origin;
+const settings = await getSiteSettingsWithCacheHint();
+const { siteTitle } = resolveBlogSiteIdentity(settings.data);
+
+const { entry: homeEntry } = await getEmDashEntry("home", "home");
+const cta = homeEntry?.data;
+const look = readLook(cta?.look_hotspots);
+const spotlightPoints = readSpotlight(cta?.spotlight_callouts);
+const ctaImage = cta?.cta_image;
+const ctaImageSrc = urlFromCmsImage(ctaImage);
+const ctaHeading = cta?.cta_heading?.trim();
+const ctaLabel = cta?.cta_button_label?.trim();
+const hasCta = Boolean(ctaHeading && ctaLabel);
+
+const heroProduct = await fetchCatalogProductDetail(origin, config.hero.productSlug);
+const spotlightProduct = await fetchCatalogProductDetail(origin, config.spotlight.productSlug);
+
+const reservedProductIds = new Set<string>();
+if (heroProduct?.id) reservedProductIds.add(heroProduct.id);
+if (spotlightProduct?.id) reservedProductIds.add(spotlightProduct.id);
+
+const railData = await Promise.all(
+	config.rails.map(async (rail) => ({
+		key: rail.key,
+		title: rail.title,
+		items: (
+			await fetchCatalogProducts(origin, {
+				category: rail.category,
+				sort: rail.sort ?? "newest",
+				limit: rail.limit ?? 12,
+			})
+		)?.items ?? [],
+		config: rail,
+	})),
+);
+const rails = dedupeRails(railData, reservedProductIds);
+
+const railProps = (rail: HomeRailLoaded, eagerCount = 0) => ({
+	heading: rail.title,
+	headingId: `rail-${rail.key}`,
+	products: rail.items.map((item) => toCard(item, { locale, copy: catalog, hrefOf: (slug) => `/shop/${slug}` })),
+	more: rail.config.moreHref ? { href: rail.config.moreHref, label: rail.config.moreLabel ?? copy.seeMore } : undefined,
+	label: format(copy.railLabel, { title: rail.title }),
+	prevLabel: copy.railPrev,
+	nextLabel: copy.railNext,
+	eagerCount,
+});
+
+const lookProducts = await Promise.all(
+	(look?.points ?? []).map(async (hotspot, index) => {
+		const detail = await fetchCatalogProductDetail(origin, hotspot.productSlug);
+		if (!detail) return null;
+		const choice = buildLookChoice(
+			detail,
+			locale,
+			catalogLocale,
+			`/shop/${detail.slug}`,
+			`look-${index}`,
+			index + 1,
+		);
+		if (!choice) return null;
+		return { ...choice, hotspot };
+	}),
+);
+const lookChoices = lookProducts.filter((item): item is NonNullable<typeof item> => item !== null);
+const priceMap = Object.fromEntries(lookChoices.map((item) => [item.choice.id, item.priceIdBySurrogate]));
+const lookDialogId = "home-look-dialog";
+
+const promises = [
+	{ icon: iconNames.truck, text: copy.homePromiseDeliveryPlain },
+	{ icon: iconNames.rotateCcw, text: copy.homePromiseReturns },
+	{ icon: iconNames.creditCard, text: copy.homePromisePayments },
+];
+---
+
+<ShopHero
+	heading={config.hero.heading}
+	headingId="home-hero"
+	hasScrim={false}
+	eyebrow={config.hero.eyebrow}
+	image={imageFromUrl(config.hero.imageUrl, config.hero.imageAlt, { sizes: "100vw", isEager: true, isLead: true })}
+	action={{ label: config.hero.ctaLabel, href: config.hero.ctaHref }}
+	secondaryAction={{ label: config.hero.secondaryLabel, href: config.hero.secondaryHref }}
+	categoriesLabel={homeStrings.hero.categoriesLabel}
+	categories={config.activityCategories.map((item) => ({
+		label: item.name,
+		href: item.href,
+		image: imageFromUrl(item.imageUrl, "", { sizes: "48px" }),
+	}))}
+	product={{
+		title: heroProduct?.title ?? config.hero.productLabel,
+		href: heroProduct ? `/shop/${heroProduct.slug}` : "/shop",
+		image: imageFromUrl(
+			heroProduct?.images[0]?.url ?? config.hero.imageUrl,
+			heroProduct?.title ?? config.hero.productLabel,
+		),
+		price: heroProduct
+			? toCard(heroProduct, { locale, copy: catalog, hrefOf: (slug) => `/shop/${slug}` }).price
+			: { label: "—", value: 0 },
+		label: config.hero.productLabel,
+	}}
+/>
+<PromiseList items={promises} layout={promiseListLayouts.strip} />
+{
+	railByKey(rails, "new") ? (
+		<ProductRail {...railProps(railByKey(rails, "new")!)} />
+	) : null
+}
+{
+	spotlightProduct ? (
+		<ProductSpotlight
+			heading={spotlightProduct.title}
+			headingId="home-spotlight"
+			eyebrow={config.spotlight.eyebrow}
+			image={
+				spotlightPoints
+					? imageFromUrl(spotlightPoints.image.url, spotlightPoints.image.alt || spotlightProduct.title, {
+							sizes: "(min-width: 1024px) 50vw, 100vw",
+						})
+					: (imageFromView(spotlightProduct.images[0], { sizes: "(min-width: 1024px) 50vw, 100vw" }) ??
+						imageFromUrl(config.spotlight.imageUrl, config.spotlight.imageAlt, { sizes: "(min-width: 1024px) 50vw, 100vw" }))
+			}
+			calloutsLabel={copy.calloutsLabel}
+			callouts={spotlightPoints?.callouts ?? []}
+			specs={config.spotlight.specs}
+			price={toCard(spotlightProduct, { locale, copy: catalog, hrefOf: (slug) => `/shop/${slug}` }).price.label}
+			cta={{ label: format(copy.spotlightCta, { name: spotlightProduct.title }), href: `/shop/${spotlightProduct.slug}` }}
+		/>
+	) : null
+}
+{
+	railByKey(rails, "sale") ? (
+		<ProductRail {...railProps(railByKey(rails, "sale")!)} />
+	) : null
+}
+{
+	hasCta && homeEntry ? (
+		<Banner
+			heading={ctaHeading!}
+			headingId="home-cta"
+			eyebrow={cta?.cta_eyebrow?.trim() || undefined}
+			text={cta?.cta_text?.trim() || undefined}
+			image={ctaImageSrc ? imageFromUrl(ctaImageSrc, ctaImage?.alt ?? "", { sizes: "100vw" }) : undefined}
+			action={{ label: ctaLabel!, href: cta?.cta_button_url?.trim() || "/shop" }}
+			attrs={{
+				root: homeEntry.edit.cta_image,
+				eyebrow: homeEntry.edit.cta_eyebrow,
+				heading: homeEntry.edit.cta_heading,
+				text: homeEntry.edit.cta_text,
+				action: homeEntry.edit.cta_button_label,
+			}}
+		/>
+	) : null
+}
+{
+	look && lookChoices.length > 0 ? (
+		<ShopTheLook
+			heading={config.look.heading}
+			headingId="home-look"
+			eyebrow={config.look.eyebrow}
+			image={imageFromUrl(look.image.url, look.image.alt, { sizes: "(min-width: 1024px) 60vw, 100vw" })}
+			note={config.look.note}
+			cta={{ label: config.look.ctaLabel, href: "#" }}
+			listHeading={homeStrings.look.listHeading}
+			hotspotLabelTemplate={copy.lookHotspotTemplate}
+			items={lookChoices.map((entry) => ({
+				title: entry.choice.title,
+				href: entry.choice.href,
+				image: entry.choice.image,
+				price: entry.choice.defaultPrice,
+				action: { label: copy.lookChooseVariant, href: entry.choice.href },
+				choiceId: entry.choice.id,
+				x: entry.hotspot.x,
+				y: entry.hotspot.y,
+			}))}
+			dialog={{
+				id: lookDialogId,
+				products: lookChoices.map((entry) => entry.choice),
+				copy: {
+					close: copy.lookDialogClose,
+					chooseHeading: copy.lookDialogChooseHeading,
+					kitHeading: config.look.heading,
+					details: copy.lookDialogDetails,
+					addToCart: copy.lookDialogAddToCart,
+					adding: copy.lookDialogAdding,
+					soldOut: copy.lookDialogSoldOut,
+					stepLabel: copy.lookDialogStepLabel,
+					summaryLabel: copy.lookDialogSummaryLabel,
+					next: copy.lookDialogNext,
+					skip: copy.lookDialogSkip,
+					back: copy.lookDialogBack,
+					missing: copy.lookDialogMissing,
+					soldOutHint: copy.lookDialogSoldOutHint,
+					change: copy.lookDialogChange,
+					skipped: copy.lookDialogSkipped,
+					notChosen: copy.lookDialogNotChosen,
+					total: copy.lookDialogTotal,
+					addAll: copy.lookDialogAddAll,
+					buySet: copy.lookDialogBuySet,
+					addRemaining: copy.lookDialogAddRemaining,
+					addFailed: copy.lookDialogAddFailed,
+					partial: copy.lookDialogPartial,
+					nothingChosen: copy.lookDialogNothingChosen,
+					rowAdded: copy.lookDialogRowAdded,
+				},
+				money: { locale: intlLocaleOf(locale), currency: DEFAULT_CURRENCY },
+			}}
+		/>
+	) : null
+}
+{
+	railByKey(rails, "bundles") ? (
+		<ProductRail {...railProps(railByKey(rails, "bundles")!)} />
+	) : null
+}
+<Faq heading={copy.faqTitle} headingId="home-faq" items={config.faq} />
+<Newsletter
+	heading={copy.newsletterTitle}
+	headingId="home-newsletter"
+	body={copy.newsletterLead}
+>
+	<form action={config.newsletterAction} method="post" class="home-newsletter__form">
+		<div>
+			<input type="email" name="email" required autocomplete="email" aria-label={copy.formEmail} placeholder={copy.formEmail} />
+		</div>
+		<Button type="submit" variant={buttonVariants.accent} size={buttonSizes.lg}>{copy.formSubmit}</Button>
+	</form>
+</Newsletter>
+
+<script define:vars={{ priceMap }}>
+	window.__lookPriceMap = priceMap;
+</script>
+<script>
+	import "../../features/cart/client/look-cart.client";
+</script>

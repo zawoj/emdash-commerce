@@ -1,0 +1,136 @@
+---
+// The shop's promises (free returns, delivery date, guarantee) as up to three icon + text rows —
+// the same set on the product page, in the cart and in the checkout.
+import Icon from '../../atoms/icon/index.astro'
+import { PROMISE_LIST_LIMIT, promiseListLayouts } from './variants'
+import type { PromiseListProps } from './types'
+
+type Props = PromiseListProps
+
+const { items, layout = promiseListLayouts.row } = Astro.props
+const shown = items.slice(0, PROMISE_LIST_LIMIT)
+---
+
+{
+  shown.length > 0 && (
+    <ul class:list={['promise-list', `promise-list--${layout}`]}>
+      {
+        shown.map((item) => (
+          <li class="promise-list__item">
+            <span class="promise-list__icon" aria-hidden="true"><Icon name={item.icon} size={20} /></span>
+            <span class="promise-list__text">
+              <span class="promise-list__title">{item.text}</span>
+              {item.detail && <span class="promise-list__detail">{item.detail}</span>}
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  )
+}
+
+<style>
+  .promise-list {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .promise-list--row {
+    flex-wrap: wrap;
+    gap: var(--space-8) var(--space-24);
+  }
+
+  .promise-list--stack {
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .promise-list__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+  }
+
+  .promise-list__icon {
+    display: inline-flex;
+    flex: none;
+    color: var(--text-primary);
+  }
+
+  .promise-list__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .promise-list__detail {
+    color: var(--text-secondary);
+    font: var(--type-text-regular-xs);
+  }
+
+  /* Columns: the promises as quiet muted tiles on one row, the icon above two lines of text. */
+  .promise-list--columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-8);
+  }
+
+  .promise-list--columns .promise-list__item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-8);
+    padding: var(--space-12);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .promise-list--columns .promise-list__title {
+    font: var(--type-text-medium-sm);
+    color: var(--text-primary);
+  }
+
+  /* Strip: a calm row under the hero, the promises centred, no boxes. */
+  .promise-list--strip {
+    justify-content: center;
+    gap: var(--space-8) var(--space-48);
+    padding-block: var(--space-24);
+  }
+
+  .promise-list--strip .promise-list__item {
+    justify-content: center;
+    font: var(--type-text-medium-sm);
+  }
+
+  @media (max-width: 640px) {
+    .promise-list--row {
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+
+    /* Phone: one promise per row (a vertical stack of three), left-aligned. */
+    .promise-list--strip {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-12);
+      padding-block: var(--space-16);
+    }
+
+    .promise-list--strip .promise-list__item {
+      justify-content: flex-start;
+    }
+
+    .promise-list--columns {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .promise-list--columns .promise-list__item {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-12);
+    }
+  }
+</style>

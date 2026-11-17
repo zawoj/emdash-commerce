@@ -1,0 +1,154 @@
+---
+// The address fields of the checkout and the account, one control per CMS address key
+// (firstName … email) in a six-column grid: names side by side, street with its house and flat
+// number, postcode beside the city. Each control gets the right `autocomplete` token and input
+// type, a `data-address-field` hook for the app's blur validation and format helpers, and an
+// inline error under it. Labels name the field; placeholders only show the format.
+import FieldInput, { type FieldInputType } from '../../atoms/field-input/index.astro'
+import FieldSelect from '../../atoms/field-select/index.astro'
+import { addressFieldKeys, addressFieldOrder, type AddressFieldKey } from './variants'
+import type { AddressFormProps } from './types'
+
+type Props = AddressFormProps
+
+const { id, namePrefix = '', legend, fields, countryOptions = [], errorLabel } = Astro.props
+
+interface FieldSpec {
+  readonly autocomplete: string
+  readonly type: FieldInputType
+  readonly inputmode?: 'numeric' | 'tel' | 'email' | 'text'
+}
+
+const specs: Record<AddressFieldKey, FieldSpec> = {
+  firstName: { autocomplete: 'given-name', type: 'text' },
+  lastName: { autocomplete: 'family-name', type: 'text' },
+  company: { autocomplete: 'organization', type: 'text' },
+  taxId: { autocomplete: 'off', type: 'text' },
+  street: { autocomplete: 'address-line1', type: 'text' },
+  houseNumber: { autocomplete: 'off', type: 'text' },
+  apartmentNumber: { autocomplete: 'address-line2', type: 'text' },
+  postalCode: { autocomplete: 'postal-code', type: 'text' },
+  city: { autocomplete: 'address-level2', type: 'text' },
+  country: { autocomplete: 'country', type: 'text' },
+  phone: { autocomplete: 'tel', type: 'tel', inputmode: 'tel' },
+  email: { autocomplete: 'email', type: 'email', inputmode: 'email' },
+}
+
+const visibleKeys = addressFieldOrder.filter((key) => fields[key])
+---
+
+<fieldset class="address-form" data-address-form>
+  <legend class="visually-hidden">{legend}</legend>
+  {
+    visibleKeys.map((key) => {
+      const field = fields[key]
+      if (!field) return null
+      const spec = specs[key]
+      const controlId = `${id}-${key}`
+      const controlName = `${namePrefix}${key}`
+      return (
+        <div class={`address-form__field address-form__field--${key}`}>
+          {key === addressFieldKeys.country ? (
+            <FieldSelect
+              id={controlId}
+              name={controlName}
+              label={field.label}
+              options={countryOptions}
+              value={field.value}
+              description={field.description}
+              isRequired={field.isRequired}
+              autocomplete={field.autocomplete ?? spec.autocomplete}
+              data-address-field={key}
+            />
+          ) : (
+            <FieldInput
+              id={controlId}
+              name={controlName}
+              label={field.label}
+              type={spec.type}
+              placeholder={field.placeholder}
+              value={field.value}
+              description={field.description}
+              error={field.error}
+              errorLabel={errorLabel}
+              isRequired={field.isRequired}
+              autocomplete={field.autocomplete ?? spec.autocomplete}
+              inputmode={spec.inputmode}
+              data-address-field={key}
+            />
+          )}
+        </div>
+      )
+    })
+  }
+</fieldset>
+
+<style>
+  .address-form {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-16);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    container-type: inline-size;
+  }
+
+  .address-form__field {
+    grid-column: span 6;
+    min-width: 0;
+  }
+
+  .address-form__field--firstName,
+  .address-form__field--lastName,
+  .address-form__field--phone,
+  .address-form__field--email {
+    grid-column: span 3;
+  }
+
+  .address-form__field--street {
+    grid-column: span 4;
+  }
+
+  .address-form__field--houseNumber,
+  .address-form__field--apartmentNumber {
+    grid-column: span 1;
+  }
+
+  .address-form__field--postalCode {
+    grid-column: span 2;
+  }
+
+  .address-form__field--city {
+    grid-column: span 4;
+  }
+
+  /* A form narrower than ~1000px (checkout and account columns): a sixth of it cannot hold "Flat (optional)" on one
+     line, so the street takes its own row and the house and flat numbers share the next one. */
+  @container (width < 1000px) {
+    .address-form__field--street {
+      grid-column: span 6;
+    }
+
+    .address-form__field--houseNumber,
+    .address-form__field--apartmentNumber {
+      grid-column: span 3;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .address-form__field--firstName,
+    .address-form__field--lastName,
+    .address-form__field--phone,
+    .address-form__field--email,
+    .address-form__field--street {
+      grid-column: span 6;
+    }
+
+    .address-form__field--houseNumber,
+    .address-form__field--apartmentNumber {
+      grid-column: span 3;
+    }
+  }
+</style>

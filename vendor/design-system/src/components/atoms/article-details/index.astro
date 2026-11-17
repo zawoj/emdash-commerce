@@ -1,0 +1,50 @@
+---
+// Figma "article-details" (625:3999): the author + date line under article titles, 8px apart —
+// author label-medium-sm, date label-regular-xs. Either part may be omitted (Figma's showAuthor /
+// showDate).
+import { articleDetailsVariants, type ArticleDetailsVariant } from './variants'
+
+interface Props {
+  author?: string
+  date?: string
+  /** Machine-readable date for the `<time>` element. */
+  dateTime?: string
+  variant?: ArticleDetailsVariant
+  class?: string
+}
+
+const { author, date, dateTime, variant = articleDetailsVariants.onLight, class: className } = Astro.props
+---
+
+<p class:list={['article-details', `article-details--${variant}`, className]}>
+  {author && <span class="article-details__author">{author}</span>}
+  {date && <time class="article-details__date" datetime={dateTime}>{date}</time>}
+</p>
+
+<style>
+  .article-details {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .article-details__author {
+    font: var(--type-label-medium-sm);
+    color: var(--text-body);
+  }
+
+  .article-details__date {
+    font: var(--type-label-regular-xs);
+    color: var(--text-secondary);
+  }
+
+  .article-details--on-dark .article-details__author {
+    color: var(--ink-100);
+  }
+
+  .article-details--on-dark .article-details__date {
+    color: var(--ink-300);
+  }
+</style>

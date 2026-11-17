@@ -1,0 +1,64 @@
+---
+// Figma "Najnowsze" tile (944:29221): tile-title + two "row-4" rows of four card-articles, each
+// photo carrying its Category Label. Columns: 4 → 2 → 1 as the tile narrows. Renders nothing
+// without items.
+import ArticleCard from '../../../parts/article-card/index.astro'
+import ContentTile from '../../../parts/content-tile/index.astro'
+import type { LatestPostsProps } from './types'
+
+type Props = LatestPostsProps
+
+const { heading, headingId, items, more } = Astro.props
+const hasItems = items.length > 0
+---
+
+{
+  hasItems && (
+    <div class="latest-posts-section">
+      <ContentTile heading={heading} headingId={headingId} more={more}>
+        <div class="latest-grid">
+          {items.map((article) => <ArticleCard article={article} />)}
+        </div>
+      </ContentTile>
+    </div>
+  )
+}
+
+<style>
+  .latest-posts-section {
+    padding-block: var(--space-24);
+  }
+
+  /* The section header row: condensed heading left, a small underlined link right. */
+  .latest-posts-section :global(.tile-title__heading) {
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .latest-posts-section :global(.tile-title__more) {
+    font: var(--type-text-medium-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .latest-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-32) var(--space-24);
+  }
+
+  @container content-tile (width < 760px) {
+    .latest-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* One column of compact rows (thumbnail beside title) — rows sit closer than stacked cards. */
+  @container content-tile (width < 420px) {
+    .latest-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-20);
+    }
+  }
+</style>

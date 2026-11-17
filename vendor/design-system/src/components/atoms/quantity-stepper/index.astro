@@ -1,0 +1,111 @@
+---
+// A native number input with a − and a + button. The input works alone (typing, the browser's own
+// spinner, form submission); the buttons are revealed by the client script
+// (`@emdash-commerce/design-system/quantity-stepper`), which clamps to min/max, disables the button at the
+// bound, fires a bubbling `change` on the input and a `quantity:change` CustomEvent.
+import Icon from '../icon/index.astro'
+import { iconNames } from '../icon/names'
+import type { QuantityStepperProps } from './types'
+
+type Props = QuantityStepperProps
+
+const { id, name, value, min = 1, max, step = 1, label, decreaseLabel, increaseLabel, isDisabled = false } = Astro.props
+---
+
+<div class="quantity-stepper" data-quantity-stepper>
+  <button type="button" class="quantity-stepper__button" data-quantity-step="-1" aria-label={decreaseLabel} aria-controls={id} disabled={isDisabled} hidden>
+    <Icon name={iconNames.minus} size={16} />
+  </button>
+  <input
+    id={id}
+    class="quantity-stepper__input"
+    type="number"
+    name={name}
+    value={value}
+    min={min}
+    max={max}
+    step={step}
+    inputmode="numeric"
+    aria-label={label}
+    disabled={isDisabled}
+  />
+  <button type="button" class="quantity-stepper__button" data-quantity-step="1" aria-label={increaseLabel} aria-controls={id} disabled={isDisabled} hidden>
+    <Icon name={iconNames.plus} size={16} />
+  </button>
+</div>
+
+<script>
+  import '@emdash-commerce/design-system/quantity-stepper'
+</script>
+
+<style>
+  .quantity-stepper {
+    display: inline-flex;
+    height: 48px; /* token-lint-ignore: control height shared with the fields */
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-field);
+    background: var(--surface);
+  }
+
+  .quantity-stepper__button {
+    display: inline-flex;
+    width: 48px; /* token-lint-ignore: square control */
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .quantity-stepper__button[hidden] {
+    display: none;
+  }
+
+  @media (hover: hover) {
+    .quantity-stepper__button:hover:not(:disabled) {
+      background: var(--surface-hover);
+    }
+  }
+
+  .quantity-stepper__button:active:not(:disabled) {
+    background: var(--border);
+  }
+
+  .quantity-stepper__button:disabled {
+    color: var(--text-subtle);
+    cursor: not-allowed;
+  }
+
+  .quantity-stepper__button:focus-visible,
+  .quantity-stepper__input:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+  }
+
+  .quantity-stepper__input {
+    width: 48px; /* token-lint-ignore: fits three digits */
+    padding: 0;
+    border: 0;
+    border-inline: 1px solid var(--border);
+    background: none;
+    color: var(--text-primary);
+    font: var(--type-text-medium-md);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    appearance: textfield;
+  }
+
+  /* With the buttons shown the browser's own spinner is redundant. */
+  .quantity-stepper__input::-webkit-inner-spin-button,
+  .quantity-stepper__input::-webkit-outer-spin-button {
+    margin: 0;
+    appearance: none;
+  }
+
+  .quantity-stepper__input:disabled {
+    color: var(--text-subtle);
+    cursor: not-allowed;
+  }
+</style>

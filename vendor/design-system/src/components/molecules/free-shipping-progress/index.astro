@@ -1,0 +1,65 @@
+---
+// How far the basket is from free delivery: the message (the missing amount or the reward) and a
+// bar with an accessible value. The message labels the bar, so a screen reader hears it once.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { FreeShippingProgressProps } from './types'
+
+type Props = FreeShippingProgressProps
+
+const { message, value, target, isReached = value >= target, id } = Astro.props
+const percent = target > 0 ? Math.min(100, Math.max(0, Math.round((value / target) * 100))) : 100
+const labelId = `${id ?? 'free-shipping'}-message`
+---
+
+<div class:list={['free-shipping-progress', isReached && 'free-shipping-progress--reached']}>
+  <p class="free-shipping-progress__message" id={labelId}>
+    {isReached && <span class="free-shipping-progress__icon" aria-hidden="true"><Icon name={iconNames.circleCheck} size={16} /></span>}
+    {message}
+  </p>
+  <div
+    class="free-shipping-progress__track"
+    role="progressbar"
+    aria-labelledby={labelId}
+    aria-valuemin="0"
+    aria-valuemax="100"
+    aria-valuenow={percent}
+    aria-valuetext={`${percent}%`}
+  >
+    <span class="free-shipping-progress__bar" style={`width: ${percent}%`}></span>
+  </div>
+</div>
+
+<style>
+  .free-shipping-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .free-shipping-progress__message {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+  }
+
+  .free-shipping-progress__icon {
+    display: inline-flex;
+    flex: none;
+  }
+
+  .free-shipping-progress__track {
+    height: 8px; /* token-lint-ignore: bar height */
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+  }
+
+  .free-shipping-progress__bar {
+    display: block;
+    height: 100%;
+    background: var(--action-primary);
+  }
+</style>

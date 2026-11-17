@@ -1,0 +1,57 @@
+---
+// Scroll button — a 24x24 surface tile with a border and a
+// soft drop shadow, used to drive horizontal scroll (carousels, table of contents). Always a
+// <button> — scrolling is a script action, not a navigation target, so no `href`.
+interface Props {
+  label: string
+  isDisabled?: boolean
+  class?: string
+}
+
+const { label, isDisabled = false, class: className } = Astro.props
+---
+<button
+  class:list={['scroll-button', className]}
+  type="button"
+  aria-label={label}
+  disabled={isDisabled ? true : undefined}
+>
+  <span class="scroll-button__icon"><slot name="icon" /></span>
+</button>
+
+<style>
+  .scroll-button {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .scroll-button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .scroll-button__icon {
+    display: inline-flex;
+    width: 14px;
+    height: 14px;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+  }
+
+  @media (pointer: coarse) {
+    .scroll-button {
+      width: 44px; /* token-lint-ignore: touch target */
+      height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

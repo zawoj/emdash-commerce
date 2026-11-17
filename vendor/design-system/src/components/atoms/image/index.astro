@@ -1,0 +1,41 @@
+---
+// The one <img> of every CMS image in the design system. The caller passes what it knows about
+// the file (src, the generated renditions as srcset + sizes, intrinsic width/height) and whether the
+// image is above the fold: an eager one loads at high priority and decodes in the same frame (the LCP
+// candidate), any other is lazy and decoded off the main thread. Always exactly one `loading` attribute. The sources are
+// pre-sized by the CMS at upload, so no on-the-fly transform is involved; `data-image-component`
+// marks the element as this component for the Astro dev-toolbar audit.
+import type { HTMLAttributes } from 'astro/types'
+
+interface Props extends Omit<HTMLAttributes<'img'>, 'src' | 'alt' | 'width' | 'height' | 'srcset' | 'sizes'> {
+  src: string
+  alt: string
+  width?: number
+  height?: number
+  srcset?: string
+  sizes?: string
+  /** Above the fold: `loading="eager"` + `decoding="sync"` + `fetchpriority="high"`; otherwise lazy + async decode. */
+  isEager?: boolean
+  /** An eager image that is not the page's LCP candidate passes `false`: it loads at once but without `fetchpriority="high"` (one image per page asks for that). */
+  isLead?: boolean
+  class?: string
+}
+
+const { src, alt, width, height, srcset, sizes, isEager, isLead = true, loading, decoding: _decoding, fetchpriority: _fetchpriority, class: className, ...rest } = Astro.props
+const isAboveFold = isEager ?? loading === 'eager'
+---
+
+<img
+  {...rest}
+  class={className}
+  src={src}
+  srcset={srcset}
+  sizes={sizes}
+  width={width}
+  height={height}
+  alt={alt}
+  loading={isAboveFold ? 'eager' : 'lazy'}
+  decoding={isAboveFold ? 'sync' : 'async'}
+  fetchpriority={isAboveFold && isLead ? 'high' : undefined}
+  data-image-component
+/>

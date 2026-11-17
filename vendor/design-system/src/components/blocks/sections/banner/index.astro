@@ -1,0 +1,108 @@
+---
+// The "banner" section: a campaign tile inside the page column, rounded like every other tile. With a
+// photo: the photo under the scrim with a centred heading, a short text and a light button. Without one:
+// a dark tile with the accent button.
+import Button from '../../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../../atoms/button/variants'
+import type { BannerProps } from './types'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = BannerProps
+
+const { heading, headingId, text, image, action, eyebrow, attrs } = Astro.props
+---
+
+<section class:list={['banner', image && 'banner--with-image']} aria-labelledby={headingId} data-surface="dark" {...attrs?.root}>
+  {image && <Image class="banner__img" {...image} />}
+  <div class="banner__copy">
+    {eyebrow && <p class="banner__eyebrow" {...attrs?.eyebrow}>{eyebrow}</p>}
+    <h2 id={headingId} class="banner__heading" {...attrs?.heading}>{heading}</h2>
+    {text && <p class="banner__text" {...attrs?.text}>{text}</p>}
+    {action && <Button variant={image ? buttonVariants.inverse : buttonVariants.accent} size={buttonSizes.lg} href={action.href} {...attrs?.action}>{action.label}</Button>}
+  </div>
+</section>
+
+<style>
+  .banner {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    color: var(--ink-50);
+  }
+
+  .banner--with-image {
+    min-height: clamp(360px, 52vh, 520px); /* token-lint-ignore: a tile, shorter than a full band */
+  }
+
+  .banner--with-image::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--image-scrim);
+    content: '';
+  }
+
+  .banner__img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .banner__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-16);
+    width: 100%;
+    max-width: var(--page-max-width);
+    padding: var(--space-64) var(--space-24);
+    text-align: center;
+  }
+
+  .banner__eyebrow {
+    margin: 0;
+    color: var(--ink-50);
+    font: var(--type-text-medium-md);
+  }
+
+  .banner__heading {
+    margin: 0;
+    max-width: 22ch;
+    color: var(--ink-50);
+    font: var(--type-display-xl);
+    text-wrap: balance;
+  }
+
+  .banner__text {
+    margin: 0;
+    max-width: 48ch; /* token-lint-ignore: readable line length */
+    color: var(--ink-50);
+    font: var(--type-text-medium-lg);
+  }
+
+  .banner__copy :global(.button) {
+    margin-top: var(--space-8);
+  }
+
+  @media (max-width: 640px) {
+    .banner__copy {
+      padding-block: var(--space-48);
+    }
+
+    .banner__heading {
+      font: var(--type-display-md);
+    }
+
+    .banner__text {
+      font: var(--type-text-medium-md);
+    }
+  }
+</style>

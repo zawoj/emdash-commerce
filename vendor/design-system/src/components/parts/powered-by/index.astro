@@ -1,0 +1,74 @@
+---
+// Figma "Frame 481303" (home 944:29276 / 944:29515 next to the "Zdrowie" headings, article "polecane"): a
+// "powered by" caption in the category color and the partner logo (Figma "Frame 481286",
+// 88.5×18 at the top of an 89×21 frame). Content tiles render it twice — `heading` placement in
+// the TileTitle `after-heading` slot, `row` placement as the first content block — and the
+// tile's width shows one: below 460px of content the title row can't hold heading + credit +
+// link. `standalone` is always shown.
+import { categoryColor } from '../../../utils/category-color'
+import type { PartnerCredit } from './types'
+import { creditPlacements, type CreditPlacement } from './variants'
+import Image from '../../atoms/image/index.astro'
+
+interface Props {
+  credit: PartnerCredit
+  placement?: CreditPlacement
+}
+
+const { credit, placement = creditPlacements.standalone } = Astro.props
+const captionColor = categoryColor({ color: credit.color, key: credit.category })
+---
+
+<div
+  class:list={['powered-by', `powered-by--${placement}`]}
+  style={captionColor ? `--powered-by-color: ${captionColor}` : undefined}
+>
+  <span class="powered-by__caption">{credit.caption}</span>
+  <span class="powered-by__logo">
+    <Image {...credit.logo} />
+  </span>
+</div>
+
+<style>
+  .powered-by {
+    display: flex;
+    flex-direction: row;
+    flex: none;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .powered-by--row {
+    display: none;
+  }
+
+  @container content-tile (width < 460px) {
+    .powered-by--heading {
+      display: none;
+    }
+
+    .powered-by--row {
+      display: flex;
+    }
+  }
+
+  .powered-by__caption {
+    color: var(--powered-by-color, var(--text-primary));
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+    white-space: nowrap;
+  }
+
+  .powered-by__logo {
+    display: block;
+    width: 89px;
+    height: 21px;
+  }
+
+  .powered-by__logo :global(img) {
+    width: 88.5px;
+    height: 18px;
+  }
+</style>

@@ -1,0 +1,64 @@
+---
+// Discount banner (partner page): the deal's cover banner at a 1392:390 ratio (square). While
+// the discount is not on, its message follows under the banner.
+import DiscountMessage from '../../../parts/discount-message/index.astro'
+import type { DiscountBannerProps } from './types'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = DiscountBannerProps
+
+const { image, message, index = 1 } = Astro.props
+const isFirst = index === 0
+---
+
+<section class="partner-hero">
+  {
+    image && (
+      <div class="partner-hero__container">
+        <Image class="partner-hero__photo" {...image} isEager={isFirst} />
+      </div>
+    )
+  }
+  {message && (
+    <div class="partner-hero__message">
+      <DiscountMessage message={message} />
+    </div>
+  )}
+</section>
+
+<style>
+  .partner-hero {
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    padding: var(--space-24) var(--space-24) 0;
+  }
+
+  .partner-hero__container {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1392 / 390;
+    border-radius: var(--radius-card);
+  }
+
+  .partner-hero__photo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .partner-hero__message {
+    margin: var(--space-16) 0 0;
+  }
+
+  /* Phones: the banner keeps a readable height instead of shrinking to a strip. */
+  @media (max-width: 640px) {
+    .partner-hero {
+      padding: var(--space-16) var(--space-16) 0;
+    }
+
+    .partner-hero__container {
+      aspect-ratio: 16 / 9;
+    }
+  }
+</style>

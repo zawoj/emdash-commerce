@@ -1,0 +1,101 @@
+{
+  "name": "@emdash-commerce/design-system",
+  "version": "0.1.0",
+  "description": "Shop storefront design system: a warm ink and orange wireframe with no decoration (the Cloudflare palette) — design tokens and every visual component as props-driven Astro components, no app logic, no imports from any app.",
+  "keywords": [
+    "astro-component",
+    "astro",
+    "design-system",
+    "design-tokens",
+    "ui-components",
+    "storefront",
+    "ecommerce",
+    "emdash"
+  ],
+  "homepage": "https://github.com/zawoj/emdash-commerce/tree/main/packages/design-system#readme",
+  "bugs": {
+    "url": "https://github.com/zawoj/emdash-commerce/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zawoj/emdash-commerce.git",
+    "directory": "packages/design-system"
+  },
+  "license": "MIT",
+  "author": "Kacper Zawojski",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    },
+    "./components/*": "./src/components/*",
+    "./assets/*": "./src/assets/*",
+    "./category-color": "./src/utils/category-color.ts",
+    "./tokens.css": "./src/tokens/index.css",
+    "./reset.css": "./src/tokens/reset.css",
+    "./fonts.css": "./src/tokens/fonts.css",
+    "./balanced-clamp": "./src/utils/balanced-clamp.ts",
+    "./hero-slider": "./src/utils/hero-slider.ts",
+    "./prose-gallery": "./src/utils/prose-gallery.ts",
+    "./ad-rotation": "./src/utils/ad-rotation.ts",
+    "./quantity-stepper": "./src/utils/quantity-stepper.ts",
+    "./count-badge": "./src/utils/count-badge.ts",
+    "./plural-label": "./src/utils/plural-label.ts",
+    "./site-header-ids": "./src/components/chrome/site-header/ids.ts",
+    "./sold-out-note": "./src/utils/sold-out-note.ts",
+    "./action-bar": "./src/utils/action-bar.ts",
+    "./action-bar-core": "./src/utils/action-bar-core.ts",
+    "./password-toggle": "./src/utils/password-toggle.ts",
+    "./details-motion": "./src/utils/details-motion.ts",
+    "./details-motion-core": "./src/utils/details-motion-core.ts",
+    "./tabs-core": "./src/utils/tabs-core.ts",
+    "./tabs": "./src/utils/tabs.ts",
+    "./toggle-section": "./src/utils/toggle-section.ts",
+    "./variant-picker": "./src/utils/variant-picker.ts",
+    "./variant-availability": "./src/utils/variant-availability.ts",
+    "./variant-choice": "./src/utils/variant-choice.ts",
+    "./look-kit": "./src/utils/look-kit.ts",
+    "./look-dialog": "./src/utils/look-dialog.ts",
+    "./turnstile": "./src/utils/turnstile.ts",
+    "./mini-cart": "./src/utils/mini-cart.ts",
+    "./product-gallery": "./src/utils/product-gallery.ts",
+    "./product-gallery-core": "./src/utils/product-gallery-core.ts",
+    "./listing-filters": "./src/utils/listing-filters.ts",
+    "./category-bar": "./src/utils/category-bar.ts",
+    "./icon-names": "./src/components/atoms/icon/names.ts",
+    "./pickup-point-picker": "./src/utils/pickup-point-picker.ts",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "token-lint": "./scripts/token-lint.mjs",
+    "wireframe-lint": "./scripts/wireframe-lint.mjs"
+  },
+  "files": [
+    "src",
+    "scripts",
+    "!scripts/fixtures",
+    "!scripts/*.test.mjs",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "peerDependencies": {
+    "astro": "^7.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "astro": "7.3.2",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "typecheck": "astro check",
+    "test": "node scripts/token-lint.mjs src && node scripts/wireframe-lint.mjs src ../../apps/storefront/src && node --test scripts/wireframe-lint.test.mjs scripts/token-contrast.test.mjs"
+  }
+}

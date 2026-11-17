@@ -1,0 +1,259 @@
+---
+// The checkout's two columns: the step on the left, the sticky order summary on the right (under it
+// on a phone). The `actions` slot is the step's primary button row; on a phone it sticks to the
+// bottom of the screen so "continue" is never off-screen. The step is one `<form>`: it posts to
+// `action` (the app's endpoint for the step); `id` lets a button elsewhere (the summary) submit it.
+import BackLink from '../../atoms/back-link/index.astro'
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import type { CheckoutLayoutProps } from './types'
+
+type Props = CheckoutLayoutProps
+
+const { heading, action = '#', method = 'post', id, back, summaryToggle } = Astro.props
+---
+
+<div class="checkout-layout">
+  {back && <div class="checkout-layout__back"><BackLink href={back.href} label={back.label} /></div>}
+  <h1 class="checkout-layout__heading">{heading}</h1>
+  <div class="checkout-layout__steps"><slot name="steps" /></div>
+  <form class="checkout-layout__main" id={id} method={method} action={action} novalidate data-checkout-form>
+    <slot />
+    <div class="checkout-layout__actions"><slot name="actions" /></div>
+  </form>
+  <aside class="checkout-layout__aside">
+    {
+      summaryToggle ? (
+        <details class="checkout-layout__details" data-checkout-summary data-details-motion>
+          <summary class="checkout-layout__toggle">
+            <span class="checkout-layout__toggle-label">
+              <span class="checkout-layout__when-closed">{summaryToggle.label}</span>
+              <span class="checkout-layout__when-open">{summaryToggle.openLabel}</span>
+              <span class="checkout-layout__glyph checkout-layout__glyph--closed"><Icon name={iconNames.chevronDown} size={16} /></span>
+              <span class="checkout-layout__glyph checkout-layout__glyph--open"><Icon name={iconNames.chevronUp} size={16} /></span>
+            </span>
+            <span class="checkout-layout__toggle-total">{summaryToggle.total}</span>
+          </summary>
+          <div class="checkout-layout__panel"><slot name="aside" /></div>
+        </details>
+      ) : (
+        <slot name="aside" />
+      )
+    }
+  </aside>
+</div>
+
+<script>
+  import '../../../utils/details-motion'
+
+  // A wide screen always shows the summary; the fold is a phone affordance (and a no-op without script).
+  const wide = window.matchMedia('(min-width: 900px)')
+  const sync = () => {
+    document.querySelectorAll<HTMLDetailsElement>('[data-checkout-summary]').forEach((details) => {
+      if (wide.matches) details.open = true
+    })
+  }
+  sync()
+  wide.addEventListener('change', sync)
+</script>
+
+<style>
+  .checkout-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px; /* token-lint-ignore: summary column */
+    grid-template-areas:
+      'heading heading'
+      'steps   steps'
+      'main    aside';
+    gap: var(--space-24) var(--space-48);
+    align-items: start;
+  }
+
+  /* The back bar is a phone element; the button row carries the back link on wider screens. */
+  .checkout-layout__back {
+    display: none;
+    grid-area: back;
+  }
+
+  .checkout-layout__heading {
+    grid-area: heading;
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-md);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .checkout-layout__steps {
+    grid-area: steps;
+  }
+
+  .checkout-layout__main {
+    display: flex;
+    grid-area: main;
+    flex-direction: column;
+    gap: var(--space-32);
+    min-width: 0;
+  }
+
+  .checkout-layout__aside {
+    position: sticky;
+    top: var(--space-24);
+    grid-area: aside;
+  }
+
+  .checkout-layout__toggle {
+    display: none;
+  }
+
+  .checkout-layout__when-open {
+    display: none;
+  }
+
+  .checkout-layout__details[open]:not([data-closing]) .checkout-layout__when-open {
+    display: inline;
+  }
+
+  .checkout-layout__details[open]:not([data-closing]) .checkout-layout__when-closed {
+    display: none;
+  }
+
+  .checkout-layout__glyph {
+    display: inline-flex;
+  }
+
+  .checkout-layout__glyph--open,
+  .checkout-layout__details[open]:not([data-closing]) .checkout-layout__glyph--closed {
+    display: none;
+  }
+
+  .checkout-layout__details[open]:not([data-closing]) .checkout-layout__glyph--open {
+    display: inline-flex;
+  }
+
+  .checkout-layout__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-16);
+  }
+
+  @media (max-width: 899px) {
+    .checkout-layout {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        'heading'
+        'steps'
+        'aside'
+        'main';
+    }
+
+    .checkout-layout__aside {
+      position: static;
+    }
+
+    /* The folded summary: one bar with the total, full-bleed on the muted band. */
+    .checkout-layout__toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-16);
+      min-height: 56px; /* token-lint-ignore: touch target of the summary bar */
+      margin: 0 calc(-1 * var(--page-gutter));
+      padding: var(--space-12) var(--page-gutter);
+      border-block: 1px solid var(--border);
+      background: var(--surface-muted);
+      color: var(--text-primary);
+      cursor: pointer;
+      font: var(--type-text-medium-md);
+      list-style: none;
+    }
+
+    @media (hover: hover) {
+      .checkout-layout__toggle:hover {
+        background: var(--surface-hover);
+      }
+    }
+
+    .checkout-layout__toggle::-webkit-details-marker {
+      display: none;
+    }
+
+    .checkout-layout__toggle:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: -2px; /* token-lint-ignore: ring inside a full-bleed bar */
+    }
+
+    .checkout-layout__toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+
+    .checkout-layout__toggle-total {
+      font: var(--type-price-md);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .checkout-layout__panel {
+      margin: 0 calc(-1 * var(--page-gutter));
+    }
+
+    .checkout-layout__actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 5;
+      margin: 0 calc(-1 * var(--page-gutter));
+      padding: var(--space-12) var(--page-gutter) calc(var(--space-12) + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .checkout-layout__actions :global(.button) {
+      flex: 1;
+    }
+  }
+
+  /* Phone: the step's button row is fixed to the bottom of the screen like the other pages' action bar
+     (the checkout has no tab bar), above the home indicator, and the page keeps clear of it; the back link becomes
+     an app-style bar under the header (`back`); a focused
+     field scrolls into view above it. */
+  @media (max-width: 767px) {
+    .checkout-layout {
+      padding-bottom: calc(var(--action-bar-height) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .checkout-layout {
+      grid-template-areas:
+        'back'
+        'heading'
+        'steps'
+        'aside'
+        'main';
+    }
+
+    .checkout-layout__actions {
+      position: fixed;
+      inset: auto 0 0;
+      z-index: 30; /* token-lint-ignore: same layer as the other pages' action bar */
+      margin: 0;
+    }
+
+    .checkout-layout__back {
+      display: block;
+    }
+
+    :global(html:has(.checkout-layout__actions)) {
+      scroll-padding-bottom: calc(var(--action-bar-height) + env(safe-area-inset-bottom, 0px) + var(--space-16));
+    }
+  }
+
+  /* A wide screen keeps the summary open even if the script has not run. */
+  @media (min-width: 900px) {
+    .checkout-layout__details::details-content {
+      content-visibility: visible;
+    }
+  }
+</style>

@@ -1,0 +1,70 @@
+---
+// Figma kontakt "form" (1021:51717): the form tile — the large tile-title over the form, on the
+// light tile surface (20px padding and gap). The form itself (`<form>` with its fields and its
+// submit button) is the default slot; the tile stacks the form's children 16px apart.
+import TileTitle from '../../molecules/tile-title/index.astro'
+
+interface Props {
+  /** The tile title; the tile has none when empty. */
+  heading?: string | null
+  headingId?: string
+}
+
+const { heading, headingId } = Astro.props
+---
+
+<section class="form-tile" aria-labelledby={heading ? headingId : undefined}>
+  {heading && <TileTitle heading={heading} headingId={headingId} />}
+  <slot />
+</section>
+
+<style>
+  .form-tile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+    padding: var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  .form-tile :global(form) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+    margin: 0;
+  }
+
+  .form-tile :global(form[hidden]),
+  .form-tile :global([hidden]) {
+    display: none;
+  }
+
+  /* The submit button of the form spans the tile. */
+  .form-tile :global(form .button) {
+    width: 100%;
+  }
+
+  /* The captcha's legal line and the status the form script writes under it. */
+  .form-tile :global([data-form-notice]) {
+    margin: 0;
+    font: var(--type-text-regular-xs);
+    color: var(--text-muted);
+  }
+
+  .form-tile :global([data-form-notice] a) {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  .form-tile :global([data-form-status]),
+  .form-tile :global([data-form-confirmation]) {
+    margin: 0;
+    font: var(--type-text-regular-sm);
+    color: var(--text-body);
+  }
+
+  .form-tile :global([data-form-status]:empty) {
+    display: none;
+  }
+</style>

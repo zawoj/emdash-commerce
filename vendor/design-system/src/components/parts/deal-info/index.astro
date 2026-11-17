@@ -1,0 +1,70 @@
+---
+// Figma 1022:57232 "col-main" (partner strona): the deal's display-lg title and its body (the
+// default slot, set in `Prose`), a hairline, the shared "Tagi" list and the shared "Sitemap" trail.
+import Sitemap from '../sitemap/index.astro'
+import TagList from '../tag-list/index.astro'
+import type { DealInfoProps } from './types'
+
+type Props = DealInfoProps
+
+const { title, tagsLabel, sitemapLabel, idPrefix, tags, crumbs } = Astro.props
+---
+
+<article class="deal-info" aria-labelledby={title ? `${idPrefix}-title` : undefined}>
+  <div class="deal-info__body">
+    {title && <h1 id={`${idPrefix}-title`}>{title}</h1>}
+    <slot />
+  </div>
+  <hr />
+  {tags.length > 0 && <TagList label={tagsLabel} labelId={`${idPrefix}-tags-label`} tags={tags} />}
+  <Sitemap label={sitemapLabel} labelId={`${idPrefix}-sitemap-label`} crumbs={crumbs} />
+</article>
+
+<style>
+  /* 1022:57232 "col-main" (32px side padding, 64px bottom) → 1022:57233 "wrap" (gap 31). */
+  .deal-info {
+    display: flex;
+    flex-direction: column;
+    gap: 31px; /* token-lint-ignore: Figma wrap gap 31, no token */
+    min-width: 0;
+    padding: 0 var(--space-32) var(--space-64);
+  }
+
+  .deal-info__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  h1 {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  /* Figma "Line 9": a 0-height line whose 1px stroke sits just above its box. */
+  hr {
+    height: 1px;
+    margin: -1px 0 0;
+    border: 0;
+    background: var(--border);
+  }
+
+  /* Single column: the text lines up with the tiles above and below it. */
+  @media (max-width: 900px) {
+    .deal-info {
+      padding: 0 0 var(--space-32);
+    }
+  }
+
+  @media (max-width: 640px) {
+    h1 {
+      font: var(--type-display-md);
+      font-stretch: var(--display-stretch);
+    }
+  }
+</style>

@@ -1,0 +1,209 @@
+---
+// Figma article "title" (944:33071; 1200px: 1019:49620) + "Frame 481354" (944:36255; 1200px:
+// "image 60" 1019:48482) and zawody "title" (1017:42075): the large Category Label, the 64px
+// uppercase title, the justified lead and the byline (24px avatar, author, date), then the cover
+// at Figma's 1034:582 ratio with a 4px white inside stroke and its source caption. Every part
+// renders only when it has content. A page grid may place the two children (`.hero-content__title`,
+// `.hero-content__figure`) itself by making the wrapper `display: contents`.
+import CategoryLabel from '../../../atoms/category-label/index.astro'
+import { categoryLabelSizes } from '../../../atoms/category-label/variants'
+import NbspText from '../../../atoms/nbsp-text/index.astro'
+import type { HeroContentProps } from './types'
+import Image from '../../../atoms/image/index.astro'
+
+type Props = HeroContentProps
+
+const { title, lead, category, byline, figure, index = 1 } = Astro.props
+const author = byline?.author
+const avatar = author?.avatar
+const date = byline?.date
+const hasByline = Boolean(author || date)
+const isFirst = index === 0
+---
+
+<div class="hero-content">
+  <header class="hero-content__title">
+    <div class="hero-content__headline">
+      {category && <CategoryLabel category={category.key} color={category.color} size={categoryLabelSizes.l}>{category.label}</CategoryLabel>}
+      <h1>{title}</h1>
+      {lead && <p class="hero-content__lead"><NbspText text={lead} /></p>}
+    </div>
+    {
+      hasByline && (
+        <p class="hero-content__byline">
+          {
+            avatar && (
+              <span class="hero-content__avatar">
+                <Image
+                  {...avatar.image}
+                  alt=""
+                  style={avatar.crop ? `left: ${avatar.crop.x}px; top: ${avatar.crop.y}px; width: ${avatar.crop.width}px; height: ${avatar.crop.height}px` : undefined}
+                  data-is-cropped={avatar.crop ? '' : undefined}
+                />
+              </span>
+            )
+          }
+          {author && <span class="hero-content__author">{author.href ? <a href={author.href} rel="author">{author.name}</a> : author.name}</span>}
+          {date && <time class="hero-content__date" datetime={date.iso}>{date.label}</time>}
+        </p>
+      )
+    }
+  </header>
+  {
+    figure && (
+      <figure class="hero-content__figure">
+        <div class="hero-content__frame">
+          <Image {...figure.image} isEager={isFirst} />
+        </div>
+        {figure.caption && <figcaption>{figure.caption}</figcaption>}
+      </figure>
+    )
+  }
+</div>
+
+<style>
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    min-width: 0;
+  }
+
+  .hero-content__title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    min-width: 0;
+  }
+
+  .hero-content__headline {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-16);
+  }
+
+  .hero-content h1 {
+    margin: 0;
+    font: var(--type-display-3xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    color: var(--text-primary);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  .hero-content__lead {
+    margin: 0;
+    font: var(--type-text-regular-lg);
+    color: var(--text-body);
+    text-align: start;
+    max-width: 62ch;
+  }
+
+  .hero-content__byline {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-8);
+    margin: 0;
+  }
+
+  .hero-content__avatar {
+    position: relative;
+    display: block;
+    flex: none;
+    width: 24px; /* token-lint-ignore: Figma 24px avatar frame, no token */
+    height: 24px; /* token-lint-ignore: Figma 24px avatar frame, no token */
+    overflow: hidden;
+    border-radius: var(--radius-full);
+    background: var(--accent);
+  }
+
+  .hero-content__avatar :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero-content__avatar :global(img[data-is-cropped]) {
+    position: absolute;
+    max-width: none;
+  }
+
+  .hero-content__author {
+    font: var(--type-label-medium-sm);
+    color: var(--text-secondary);
+  }
+
+  .hero-content__author a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .hero-content__date {
+    font: var(--type-label-medium-sm);
+    color: var(--text-muted);
+  }
+
+  .hero-content__figure {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-12);
+    min-width: 0;
+    margin: 0;
+  }
+
+  /* The photo fills its square-cornered frame. */
+  .hero-content__frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1034 / 582;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+  }
+
+  /* The 1200 frame draws the photo at 778x438.184 — a hair taller than the 1440 ratio. */
+  @media (min-width: 1100px) and (max-width: 1279px) {
+    .hero-content__frame {
+      aspect-ratio: 778 / 438.184;
+    }
+  }
+
+  .hero-content__frame :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Figma sets the caption in Roboto 14px/1.5 -0.14px — Roboto is not a DS font, so it uses the
+     body face at the same size, line height and tracking. */
+  .hero-content__figure figcaption {
+    font: var(--type-text-regular-sm);
+    line-height: 21px; /* token-lint-ignore: Figma caption line height 1.5 */
+    letter-spacing: normal;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 900px) {
+    .hero-content h1 {
+      font: var(--type-display-xl);
+      font-stretch: var(--display-stretch);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero-content h1 {
+      font: var(--type-display-md);
+      font-stretch: var(--display-stretch);
+    }
+
+    .hero-content__lead {
+      font: var(--type-text-regular-md);
+      text-align: start;
+    }
+  }
+</style>

@@ -1,0 +1,110 @@
+---
+// Discount how-to tile (partner page, left bar): an accent tile with a 3px accent stroke around a
+// white panel with how to redeem the deal, the dashed discount-code field (copy button) and the
+// accent CTA.
+import Button from '../../../atoms/button/index.astro'
+import { buttonKinds, buttonVariants } from '../../../atoms/button/variants'
+import Icon from '../../../atoms/icon/index.astro'
+import { iconNames } from '../../../atoms/icon/names'
+import type { DiscountHowToProps } from './types'
+
+type Props = DiscountHowToProps
+
+const { heading, headingId, instructions, code, copyLabel, cta } = Astro.props
+---
+
+<section class="offer-card" aria-labelledby={headingId}>
+  <div class="offer-card__panel">
+    <div class="offer-card__intro">
+      <h2 id={headingId} class="offer-card__heading">{heading}</h2>
+      <p class="offer-card__instructions">{instructions}</p>
+    </div>
+    {
+      code && (
+        <button type="button" class="offer-card__code" data-code={code} aria-label={`${copyLabel}: ${code}`}>
+          <span>{code}</span>
+          <Icon name={iconNames.copy} />
+        </button>
+      )
+    }
+    <Button variant={buttonVariants.accent} kind={buttonKinds.cta} href={cta.href} class="offer-card__cta">
+      {cta.label}
+      <Icon name={iconNames.arrowUpRight} slot="icon" />
+    </Button>
+  </div>
+</section>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>('.offer-card__code')) {
+    button.addEventListener('click', () => {
+      void navigator.clipboard?.writeText(button.dataset.code ?? '')
+    })
+  }
+</script>
+
+<style>
+  .offer-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--accent);
+  }
+
+  /* 1022:57277: the white panel (radius-sm, 20px padding), its rows 16px apart. */
+  .offer-card__panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    margin: var(--space-4);
+    padding: var(--space-20);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .offer-card__intro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .offer-card__heading {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .offer-card__instructions {
+    margin: 0;
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+  }
+
+  /* 1023:58094: a dashed accent 48px field with the code and the copy glyph. */
+  .offer-card__code {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px; /* token-lint-ignore: Figma code field height, no token */
+    padding: var(--space-12) calc(var(--space-16) - 1px);
+    border: 1px dashed var(--text-primary);
+    border-radius: var(--radius-field);
+    background: none;
+    color: var(--text-primary);
+    font: var(--type-button-sm);
+    cursor: pointer;
+  }
+
+  .offer-card__code :global(svg) {
+    width: 20px;
+    height: 20px;
+  }
+
+  .offer-card__panel :global(.offer-card__cta.button--cta) {
+    width: 100%;
+  }
+</style>

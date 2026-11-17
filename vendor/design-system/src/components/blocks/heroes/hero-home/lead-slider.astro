@@ -1,0 +1,233 @@
+---
+// The lead article over its photo — category label, big condensed title, a 2-line excerpt and the
+// byline — anchored bottom-left on the photo's scrim above the slider's progress bars. The photo
+// fills the whole card. Every featured article is one slide stacked in the same cell; the progress
+// bars are the buttons that switch between them (the script is `utils/hero-slider.ts`).
+import ArticleDetails from '../../../atoms/article-details/index.astro'
+import { articleDetailsVariants } from '../../../atoms/article-details/variants'
+import CategoryLabel from '../../../atoms/category-label/index.astro'
+import type { HeroHomeSlide } from './types'
+import Image from '../../../atoms/image/index.astro'
+
+interface Props {
+  slides: readonly HeroHomeSlide[]
+  label?: string
+  /** The first slide's photo is the page's LCP image. */
+  isFirst?: boolean
+}
+
+const { slides, label, isFirst = false } = Astro.props
+const isSlider = slides.length > 1
+---
+
+<section class="lead-slider" data-surface="dark" data-hero-slider aria-roledescription="carousel" aria-label={label}>
+  {
+    slides.map((slide, position) => (
+      <article class="lead-slider__slide" data-hero-slide data-active={position === 0 ? '' : undefined} inert={position === 0 ? undefined : true} aria-roledescription="slide" aria-label={slide.label}>
+        <div class="lead-slider__media">
+          <Image {...slide.image} isEager={isFirst && position === 0} />
+        </div>
+        <div class="lead-slider__content">
+          <div class="lead-slider__wrapper">
+            <div class="lead-slider__text">
+              {slide.category && <CategoryLabel category={slide.category.key} color={slide.category.color}>{slide.category.label}</CategoryLabel>}
+              <h2 class="lead-slider__title"><a href={slide.href}>{slide.title}</a></h2>
+              {slide.excerpt && <p class="lead-slider__excerpt">{slide.excerpt}</p>}
+            </div>
+            <ArticleDetails author={slide.author} date={slide.date.label} dateTime={slide.date.iso} variant={articleDetailsVariants.onDark} />
+          </div>
+        </div>
+      </article>
+    ))
+  }
+  {
+    isSlider && (
+      <div class="lead-slider__progress" data-hero-progress hidden>
+        {slides.map((slide, position) => (
+          <button type="button" class="lead-slider__dot" data-hero-dot data-active={position === 0 ? '' : undefined} aria-current={position === 0 ? 'true' : undefined} aria-label={slide.label} />
+        ))}
+      </div>
+    )
+  }
+</section>
+
+<script>
+  import '@emdash-commerce/design-system/hero-slider'
+</script>
+
+<style>
+  .lead-slider {
+    position: relative;
+    display: grid;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .lead-slider__slide {
+    position: relative;
+    display: flex;
+    grid-area: 1 / 1;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 600px; /* token-lint-ignore: photo-led hero height */
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  .lead-slider__slide[data-active] {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* The photo fills the whole card; the scrim darkens its lower part under the copy. */
+  .lead-slider__media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .lead-slider__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .lead-slider__media::after {
+    position: absolute;
+    inset: 0;
+    background: var(--image-scrim);
+    content: '';
+  }
+
+  /* The bottom padding reserves the progress bars' row. */
+  .lead-slider__content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-width: 880px; /* token-lint-ignore: keeps the headline to a readable measure over the photo */
+    padding: var(--space-40) var(--space-32) calc(var(--space-32) + 3px + var(--space-24)); /* token-lint-ignore: 3px = the progress bar height */
+  }
+
+  .lead-slider__wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  .lead-slider__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-12);
+  }
+
+  .lead-slider__title {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0;
+    font: var(--type-display-3xl);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    color: var(--text-primary);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+  }
+
+  .lead-slider__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .lead-slider__title a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 6px;
+  }
+
+  .lead-slider__excerpt {
+    display: -webkit-box;
+    overflow: hidden;
+    max-width: 60ch;
+    margin: 0;
+    font: var(--type-text-regular-md);
+    color: var(--text-body);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  /* Thin bars: white on the photo, ink for the active slide. */
+  .lead-slider__progress {
+    position: absolute;
+    right: var(--space-32);
+    bottom: var(--space-32);
+    left: var(--space-32);
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-8);
+    height: 3px; /* token-lint-ignore: thin progress bar */
+  }
+
+  .lead-slider__progress[hidden] {
+    display: none;
+  }
+
+  /* The button is taller than the bar (a transparent hit area) without moving it. */
+  .lead-slider__dot {
+    position: relative;
+    flex: 1 0 0;
+    min-width: 1px;
+    height: 3px; /* token-lint-ignore: thin progress bar */
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: color-mix(in srgb, var(--ink-0) 40%, transparent);
+    cursor: pointer;
+  }
+
+  .lead-slider__dot::before {
+    position: absolute;
+    inset: -10px 0; /* token-lint-ignore: hit area around a 3px bar */
+    content: '';
+  }
+
+  .lead-slider__dot[data-active] {
+    background: var(--ink-0);
+  }
+
+  @media (max-width: 1100px) {
+    .lead-slider__slide {
+      min-height: 520px; /* token-lint-ignore: photo-led hero height */
+    }
+
+    .lead-slider__title {
+      font: var(--type-display-2xl);
+      font-stretch: var(--display-stretch);
+      letter-spacing: var(--tracking-display);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .lead-slider__slide {
+      min-height: 460px; /* token-lint-ignore: photo-led hero height */
+    }
+
+    .lead-slider__content {
+      padding: var(--space-24) var(--space-16) calc(var(--space-24) + 3px + var(--space-24)); /* token-lint-ignore: 3px = the progress bar height */
+    }
+
+    .lead-slider__progress {
+      right: var(--space-16);
+      bottom: var(--space-24);
+      left: var(--space-16);
+    }
+
+    .lead-slider__title {
+      font: var(--type-display-xl);
+      font-stretch: var(--display-stretch);
+      letter-spacing: var(--tracking-display);
+    }
+  }
+</style>

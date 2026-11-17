@@ -1,0 +1,171 @@
+---
+// Nothing to show yet (an empty cart, no orders, no results): a glyph, a title, one line of text and
+// the way forward, with room (the default slot) for something between the two. Unlike `StatusPage` it is a section inside a page, not the whole page.
+import Button from '../../atoms/button/index.astro'
+import { buttonSizes, buttonVariants } from '../../atoms/button/variants'
+import Icon from '../../atoms/icon/index.astro'
+import type { EmptyStateProps } from './types'
+
+type Props = EmptyStateProps
+
+const { title, text, icon, action, secondaryAction, headingLevel = 2, links = [], linksLabel } = Astro.props
+const Heading = `h${headingLevel}` as const
+---
+
+<div class="empty-state">
+  {icon && <span class="empty-state__icon" aria-hidden="true"><Icon name={icon} size={40} /></span>}
+  <Heading class="empty-state__title">{title}</Heading>
+  {text && <p class="empty-state__text">{text}</p>}
+  {/* Extra content between the text and the way forward (a listing puts the applied filters here). */}
+  <slot />
+  {
+    (action || secondaryAction) && (
+      <div class="empty-state__actions">
+        {action && <Button href={action.href} variant={buttonVariants.primary} size={buttonSizes.lg}>{action.label}</Button>}
+        {secondaryAction && <a class="empty-state__secondary" href={secondaryAction.href}>{secondaryAction.label}</a>}
+      </div>
+    )
+  }
+  {
+    links.length > 0 && (
+      <nav class="empty-state__links" aria-label={linksLabel}>
+        {linksLabel && <p class="empty-state__links-label" aria-hidden="true">{linksLabel}</p>}
+        <ul>
+          {links.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
+        </ul>
+      </nav>
+    )
+  }
+</div>
+
+<style>
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-16);
+    padding: var(--space-64) var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--surface-muted);
+    text-align: center;
+  }
+
+  .empty-state__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px; /* token-lint-ignore: glyph disc */
+    height: 80px; /* token-lint-ignore: glyph disc */
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    color: var(--text-primary);
+  }
+
+  .empty-state__title {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-display-lg);
+    font-stretch: var(--display-stretch);
+    letter-spacing: var(--tracking-display);
+    text-transform: var(--text-case);
+    text-wrap: balance;
+  }
+
+  /* Chips of applied filters (the default slot) sit on this panel: give them the page colour to stand out. */
+  .empty-state :global(.active-filters__chip) {
+    background: var(--surface);
+  }
+
+  .empty-state :global(.active-filters__list) {
+    justify-content: center;
+  }
+
+  .empty-state__text {
+    max-width: 40ch;
+    margin: 0;
+    color: var(--text-body);
+    font: var(--type-text-regular-md);
+  }
+
+  .empty-state__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-16);
+    margin-top: var(--space-8);
+  }
+
+  .empty-state__links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-12);
+    margin-top: var(--space-16);
+  }
+
+  .empty-state__links-label {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-label-caps-xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .empty-state__links ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .empty-state__links a {
+    display: inline-flex;
+    min-height: 40px; /* token-lint-ignore: touch target of a pill */
+    align-items: center;
+    padding: 0 var(--space-16);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--text-primary);
+    font: var(--type-text-medium-sm);
+    text-decoration: none;
+  }
+
+  .empty-state__links a:hover {
+    border-color: var(--text-primary);
+    background: var(--surface-hover);
+  }
+
+  .empty-state__links a:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .empty-state__secondary {
+    color: var(--link);
+    font: var(--type-text-medium-md);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 767px) {
+    .empty-state {
+      padding: var(--space-48) var(--space-16);
+    }
+
+    .empty-state__title {
+      font: var(--type-display-md);
+    }
+  }
+
+  @media (pointer: coarse) {
+    .empty-state__links a {
+      min-height: 44px; /* token-lint-ignore: touch target */
+    }
+  }
+</style>

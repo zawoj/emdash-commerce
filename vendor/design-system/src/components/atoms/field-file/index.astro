@@ -1,0 +1,77 @@
+---
+// A file field of a form: the caption above a bordered control that holds the browser's file
+// button and the chosen names. Further attributes (`accept`, `multiple`, `data-*`) go to the
+// `<input type="file">`.
+import type { HTMLAttributes } from 'astro/types'
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'id' | 'name' | 'type' | 'required' | 'disabled'> {
+  id: string
+  name: string
+  label: string
+  description?: string | null
+  isRequired?: boolean
+  isDisabled?: boolean
+}
+
+const { id, name, label, description, isRequired = false, isDisabled = false, ...attrs } = Astro.props
+const descriptionId = description ? `${id}-description` : undefined
+---
+
+<div class="field-file">
+  <label for={id}>{label}</label>
+  <input id={id} {...attrs} name={name} type="file" required={isRequired} disabled={isDisabled} aria-describedby={descriptionId} />
+  {description && <p id={descriptionId} class="field-file__description">{description}</p>}
+</div>
+
+<style>
+  .field-file {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .field-file label {
+    font: var(--type-text-medium-sm);
+    color: var(--text-primary);
+  }
+
+  .field-file input {
+    font: var(--type-text-regular-sm);
+    width: 100%;
+    min-height: 48px;
+    border-radius: var(--radius-field);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    padding: calc(var(--space-8) - 1px) calc(var(--space-16) - 1px);
+    color: var(--text-body);
+  }
+
+  .field-file input:focus-visible {
+    border-color: var(--text-primary);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .field-file input::file-selector-button {
+    margin-right: var(--space-12);
+    padding: var(--space-4) var(--space-12);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: var(--surface-muted);
+    font: var(--type-button-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .field-file__description {
+    margin: 0;
+    font: var(--type-text-regular-xs);
+    color: var(--text-muted);
+  }
+
+  .field-file input:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+</style>

@@ -1,0 +1,71 @@
+---
+// Figma 1017:40838 "section" (deals listing): the design-system SearchBar (1017:40841, strona /
+// empty) in an 800px search form, centred over the card grid (`card-grid`) of card-deals. Without a
+// deal the grid shows `emptyLabel`.
+import Icon from '../../atoms/icon/index.astro'
+import { iconNames } from '../../atoms/icon/names'
+import SearchBar from '../../molecules/search-bar/index.astro'
+import { searchBarSizes } from '../../molecules/search-bar/variants'
+import CardGrid from '../card-grid/index.astro'
+import DealCard from '../deal-card/index.astro'
+import type { DealGridProps } from './types'
+
+type Props = DealGridProps
+
+const { action, label, search, filterLabel, filters, sortLabel, sort, deals, emptyLabel } = Astro.props
+---
+
+<section class="deal-grid" aria-label={label}>
+  <form class="deal-grid__search" role="search" action={action} method="get">
+    <SearchBar
+      search={search}
+      filterLabel={filterLabel}
+      filters={filters}
+      sortLabel={sortLabel}
+      sort={sort}
+      size={searchBarSizes.l}
+    >
+      <Icon name={iconNames.search} slot="search-icon" />
+      <Icon name={iconNames.funnel} slot="filter-icon" />
+      <Icon name={iconNames.arrowDownAZ} slot="sort-icon" />
+      <Icon name={iconNames.chevronDown} slot="select-icon" />
+    </SearchBar>
+  </form>
+  <CardGrid isEmpty={deals.length === 0} emptyLabel={emptyLabel}>
+    {deals.map((deal) => <DealCard deal={deal} />)}
+  </CardGrid>
+</section>
+
+<!-- A select has no way to submit its form without a script; the query field submits with Enter. -->
+<script>
+  document.querySelectorAll<HTMLSelectElement>('.deal-grid__search select').forEach((select) => {
+    select.addEventListener('change', () => select.form?.requestSubmit())
+  })
+</script>
+
+<style>
+  /* 1017:40840 "col-main" (gap 24). The container (max 1400 between 24px gutters) is the page's: the
+     page grid, or the preview view's wrapper; the section only adds the 128px under the grid (less
+     the gutter the container already keeps). */
+  .deal-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-24);
+    width: 100%;
+    min-width: 0;
+    padding-bottom: calc(var(--space-128) - var(--space-24));
+  }
+
+  .deal-grid__search {
+    width: 100%;
+    max-width: 800px; /* token-lint-ignore: Figma search instance width, no token */
+  }
+
+  @media (max-width: 640px) {
+    .deal-grid {
+      gap: var(--space-16);
+      padding-bottom: calc(var(--space-64) - var(--space-16));
+    }
+  }
+</style>

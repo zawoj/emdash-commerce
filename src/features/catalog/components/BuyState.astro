@@ -1,0 +1,48 @@
+---
+import Price from "@emdash-commerce/design-system/components/atoms/price/index.astro";
+import { priceSizes } from "@emdash-commerce/design-system";
+import Availability from "@emdash-commerce/design-system/components/atoms/availability/index.astro";
+import type { BuyBoxState } from "../domain/product-view";
+
+interface Props {
+	state: BuyBoxState;
+	skuLabel: string;
+}
+
+const { state, skuLabel } = Astro.props;
+---
+
+<div class="buy-state">
+	<Price label={state.price.label} value={state.price.value} size={priceSizes.lg}>
+		{state.price.note ? <span slot="note">{state.price.note}</span> : null}
+	</Price>
+	<div class="buy-state__meta">
+		<Availability
+			label={state.availability.label}
+			isAvailable={state.availability.isAvailable}
+			isLow={state.availability.isLow}
+		/>
+		{state.sku ? <span class="buy-state__sku">{skuLabel}</span> : null}
+	</div>
+</div>
+
+<style>
+	.buy-state {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-8);
+	}
+
+	.buy-state__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-4) var(--space-16);
+	}
+
+	.buy-state__sku {
+		color: var(--text-muted);
+		font: var(--type-text-regular-xs);
+	}
+</style>

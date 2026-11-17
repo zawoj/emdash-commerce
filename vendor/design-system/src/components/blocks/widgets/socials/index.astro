@@ -1,0 +1,16 @@
+---
+// Figma "tile-socials-widget-R": the socials tile for the given
+// channels — each card's glyph follows from its key, the Figma order is kept. Renders
+// nothing without channels.
+import SocialsWidget from '../../../parts/socials-widget/index.astro'
+import { cardOf } from './looks'
+import type { SocialsProps } from './types'
+import { socialChannelOrder } from './variants'
+
+type Props = SocialsProps
+
+const { heading, headingId = 'socials-heading', channels } = Astro.props
+const cards = socialChannelOrder.flatMap((key) => channels.filter((channel) => channel.key === key).map(cardOf))
+---
+
+{cards.length > 0 && <SocialsWidget heading={heading} headingId={headingId} channels={cards} />}

@@ -1,0 +1,114 @@
+---
+// The kontakt form's select: the caption above a bordered 34px control like FieldInput, with the
+// chevron of the design's selects. The first option is the empty choice (`placeholder`). Further
+// attributes go to the `<select>`.
+import type { HTMLAttributes } from 'astro/types'
+
+import Icon from '../icon/index.astro'
+import { iconNames } from '../icon/names'
+
+export interface FieldSelectOption {
+  readonly label: string
+  readonly value: string
+}
+
+interface Props extends Omit<HTMLAttributes<'select'>, 'id' | 'name' | 'value' | 'required' | 'disabled'> {
+  id: string
+  name: string
+  label: string
+  options: readonly FieldSelectOption[]
+  /** The empty first choice. */
+  placeholder?: string
+  value?: string | null
+  description?: string | null
+  isRequired?: boolean
+  isDisabled?: boolean
+}
+
+const { id, name, label, options, placeholder, value, description, isRequired = false, isDisabled = false, ...attrs } = Astro.props
+const descriptionId = description ? `${id}-description` : undefined
+---
+
+<div class="field-select">
+  <label for={id}>{label}</label>
+  <div class="field-select__control">
+    <select id={id} {...attrs} name={name} required={isRequired} disabled={isDisabled} aria-describedby={descriptionId}>
+      {placeholder !== undefined && <option value="">{placeholder}</option>}
+      {options.map((option) => <option value={option.value} selected={option.value === value}>{option.label}</option>)}
+    </select>
+    <span class="field-select__chevron" aria-hidden="true"><Icon name={iconNames.chevronDown} /></span>
+  </div>
+  {description && <p id={descriptionId} class="field-select__description">{description}</p>}
+</div>
+
+<style>
+  .field-select {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .field-select label {
+    font: var(--type-text-medium-sm);
+    color: var(--text-primary);
+  }
+
+  .field-select__control {
+    position: relative;
+  }
+
+  .field-select select {
+    font: var(--type-text-regular-md);
+    width: 100%;
+    height: 48px;
+    appearance: none;
+    border-radius: var(--radius-field);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    padding: 0 var(--space-40) 0 calc(var(--space-16) - 1px);
+    color: var(--text-body);
+  }
+
+  @media (hover: hover) {
+    .field-select select:hover:not(:focus-visible, :disabled, [aria-invalid='true']) {
+      border-color: var(--text-primary);
+    }
+  }
+
+  .field-select select:focus-visible {
+    border-color: var(--text-primary);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -1px;
+  }
+
+  .field-select__chevron {
+    position: absolute;
+    top: 50%;
+    right: var(--space-16);
+    display: flex;
+    width: 14px;
+    height: 14px;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .field-select__description {
+    margin: 0;
+    font: var(--type-text-regular-xs);
+    color: var(--text-muted);
+  }
+
+  .field-select select:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* A control the visitor filled in wrong, or left empty and tried to submit (native validation). */
+  .field-select select:user-invalid {
+    border: var(--stroke-bold) solid var(--text-primary);
+  }
+</style>

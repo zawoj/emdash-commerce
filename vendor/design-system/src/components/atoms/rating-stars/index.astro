@@ -1,0 +1,64 @@
+---
+// A row of five stars showing a rating, whole or fractional. The stars draw outlines in the
+// text colour and fill the earned part, so the value reads without colour. The rating is spoken
+// once, as `label`, on the wrapper.
+import { RATING_STARS_MAX, ratingStarsSizes } from './variants'
+import type { RatingStarsProps } from './types'
+
+type Props = RatingStarsProps
+
+const { value, label, size = ratingStarsSizes.md } = Astro.props
+const STAR = 'M12 2.5l2.94 5.96 6.58.96-4.76 4.64 1.12 6.55L12 17.52l-5.88 3.09 1.12-6.55L2.48 9.42l6.58-.96L12 2.5z'
+const clamped = Math.min(Math.max(Number.isFinite(value) ? value : 0, 0), RATING_STARS_MAX)
+const stars = Array.from({ length: RATING_STARS_MAX }, (_, index) => Math.round(Math.min(Math.max(clamped - index, 0), 1) * 100))
+---
+
+<span class:list={['rating-stars', `rating-stars--${size}`]} role="img" aria-label={label}>
+  {
+    stars.map((fill) => (
+      <span class="rating-stars__star" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d={STAR} /></svg>
+        <span class="rating-stars__fill" style={`--fill: ${fill}%`}>
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d={STAR} /></svg>
+        </span>
+      </span>
+    ))
+  }
+</span>
+
+<style>
+  .rating-stars {
+    display: inline-flex;
+    gap: var(--space-2);
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+
+  .rating-stars--sm { --star: 14px; }
+  .rating-stars--md { --star: 18px; }
+  .rating-stars--lg { --star: 28px; }
+
+  .rating-stars__star {
+    position: relative;
+    display: inline-flex;
+    width: var(--star);
+    height: var(--star);
+  }
+
+  .rating-stars__star svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .rating-stars__fill {
+    position: absolute;
+    inset: 0;
+    width: var(--fill);
+    overflow: hidden;
+  }
+
+  .rating-stars__fill svg {
+    width: var(--star);
+    max-width: none;
+  }
+</style>

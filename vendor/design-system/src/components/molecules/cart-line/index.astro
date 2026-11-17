@@ -1,0 +1,241 @@
+---
+// A line of the cart: thumbnail, linked name, variant text, unit price ("2 × 599,00 zł", only when the
+// quantity is above one, so a single item shows its price once, in the line total), quantity stepper,
+// line total (with the previous price and a note when it changed) and a visible remove button. An
+// unavailable line is dimmed with its reason and a locked quantity — it is never removed silently.
+// The controls are plain form controls; the surrounding `<form>` (CartLines, MiniCart) submits them.
+import InlineNotice from '../../atoms/inline-notice/index.astro'
+import { noticeTones } from '../../atoms/inline-notice/variants'
+import Price from '../../atoms/price/index.astro'
+import QuantityStepper from '../../atoms/quantity-stepper/index.astro'
+import type { CartLineProps } from './types'
+import Image from '../../atoms/image/index.astro'
+
+type Props = CartLineProps
+
+const { line, isCompact = false } = Astro.props
+const { quantity } = line
+const hasMany = quantity.value > 1
+// One item: the unit price IS the line total, so the price-change comparison moves to the total.
+const totalCompareAt = line.previousLinePrice ?? (hasMany ? undefined : line.previousUnitPrice)
+---
+
+<div class:list={['cart-line', isCompact && 'cart-line--compact', line.isUnavailable && 'cart-line--unavailable']} data-testid="cart-line">
+  <div class="cart-line__media">
+    {line.image ? <Image class="cart-line__img" {...line.image} /> : <span class="cart-line__placeholder" aria-hidden="true"></span>}
+  </div>
+  <div class="cart-line__info">
+    <p class="cart-line__name"><a href={line.name.href}>{line.name.label}</a></p>
+    {line.variantText && <p class="cart-line__variant">{line.variantText}</p>}
+    {
+      hasMany && (
+        <p class="cart-line__unit">
+          <span class="cart-line__times">{quantity.value} ×</span>{' '}
+          <Price label={line.unitPrice.label} value={line.unitPrice.value} compareAt={line.previousUnitPrice && { ...line.previousUnitPrice, prefix: line.previousPriceLabel }} />
+        </p>
+      )
+    }
+    {line.priceChangedNote && <p class="cart-line__changed">{line.priceChangedNote}</p>}
+    {
+      line.isUnavailable && line.unavailableText && (
+        <InlineNotice tone={noticeTones.warning} toneLabel={line.unavailableLabel}>{line.unavailableText}</InlineNotice>
+      )
+    }
+    {line.notice && <InlineNotice tone={line.notice.tone} toneLabel={line.notice.toneLabel}>{line.notice.text}</InlineNotice>}
+  </div>
+  <div class="cart-line__quantity">
+    <QuantityStepper
+      id={`${line.id}-quantity`}
+      name={quantity.name}
+      value={quantity.value}
+      min={quantity.min}
+      max={quantity.max}
+      label={quantity.label}
+      decreaseLabel={quantity.decreaseLabel}
+      increaseLabel={quantity.increaseLabel}
+      isDisabled={line.isUnavailable}
+    />
+  </div>
+  <div class="cart-line__total">
+    <p class="cart-line__total-price"><Price label={line.linePrice.label} value={line.linePrice.value} compareAt={totalCompareAt && { ...totalCompareAt, prefix: line.previousPriceLabel }} /></p>
+    {line.savingsText && <p class="cart-line__savings">{line.savingsText}</p>}
+  </div>
+  <div class="cart-line__remove">
+    <button class="cart-line__remove-button" type="submit" name={line.remove.name} value={line.remove.value} aria-label={line.remove.ariaLabel}>
+      {line.remove.label}
+    </button>
+  </div>
+</div>
+
+<style>
+  .cart-line {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr) auto auto; /* token-lint-ignore: thumbnail column */
+    grid-template-areas:
+      'media info quantity total'
+      'media info remove   remove';
+    gap: var(--space-8) var(--space-24);
+    align-items: start;
+    padding: var(--space-20) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cart-line__media {
+    grid-area: media;
+    aspect-ratio: 4 / 5;
+    border: 1px solid var(--border);
+    background: var(--surface-muted);
+  }
+
+  .cart-line__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cart-line__placeholder {
+    display: block;
+    height: 100%;
+  }
+
+  .cart-line__info {
+    display: flex;
+    grid-area: info;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  .cart-line__name {
+    margin: 0;
+    font: var(--type-title-md);
+  }
+
+  .cart-line__name a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .cart-line__name a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .cart-line__variant,
+  .cart-line__changed {
+    margin: 0;
+    color: var(--text-secondary);
+    font: var(--type-text-regular-sm);
+  }
+
+  .cart-line__changed {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .cart-line__unit {
+    margin: 0;
+    color: var(--text-body);
+    font: var(--type-text-regular-sm);
+  }
+
+  .cart-line__quantity {
+    grid-area: quantity;
+  }
+
+  .cart-line__total {
+    display: flex;
+    grid-area: total;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-4);
+    min-width: 88px; /* token-lint-ignore: keeps line totals aligned */
+    margin: 0;
+    text-align: right;
+  }
+
+  .cart-line__total-price {
+    margin: 0;
+  }
+
+  .cart-line__savings {
+    margin: 0;
+    color: var(--text-primary);
+    font: var(--type-text-medium-xs);
+  }
+
+  .cart-line__remove {
+    grid-area: remove;
+    justify-self: end;
+  }
+
+  .cart-line__remove-button {
+    min-height: 44px; /* token-lint-ignore: touch target */
+    padding: 0 var(--space-4);
+    border: 0;
+    background: none;
+    color: var(--link);
+    font: var(--type-text-regular-sm);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .cart-line__remove-button:focus-visible {
+    outline: 2px solid var(--focus-ring);
+  }
+
+  /* Dimmed by colour, not opacity: only the photo is faded, the text keeps the muted token (AA on the surface). */
+  .cart-line--unavailable .cart-line__media {
+    opacity: 0.55;
+  }
+
+  .cart-line--unavailable .cart-line__name a,
+  .cart-line--unavailable .cart-line__unit,
+  .cart-line--unavailable .cart-line__total :global(.price) {
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .cart-line,
+    .cart-line--compact {
+      grid-template-columns: 72px minmax(0, 1fr); /* token-lint-ignore: thumbnail column */
+      grid-template-areas:
+        'media info'
+        'media total'
+        'quantity remove';
+      gap: var(--space-8) var(--space-16);
+    }
+
+    .cart-line__total {
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .cart-line__remove {
+      justify-self: end;
+    }
+
+    .cart-line__quantity {
+      align-self: center;
+    }
+  }
+
+  .cart-line--compact {
+    grid-template-columns: 72px minmax(0, 1fr); /* token-lint-ignore: thumbnail column */
+    grid-template-areas:
+      'media info'
+      'media total'
+      'quantity remove';
+    gap: var(--space-8) var(--space-16);
+    padding: var(--space-16) 0;
+  }
+
+  .cart-line--compact .cart-line__total {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .cart-line--compact .cart-line__name {
+    font: var(--type-title-sm);
+  }
+</style>

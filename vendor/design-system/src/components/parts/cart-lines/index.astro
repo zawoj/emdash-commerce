@@ -1,0 +1,77 @@
+---
+// The cart page's lines: a form around the list of `CartLine`s. Quantity inputs and the per-line
+// remove buttons submit to `action`; the app's script may submit on `change` (the stepper fires it),
+// and without scripts a noscript "update" button covers quantity edits. A visually hidden twin of that
+// button comes first, because Enter in a quantity field submits the form's first submit button — it must
+// update the quantities, not press the first line's "Remove".
+import Button from '../../atoms/button/index.astro'
+import { buttonVariants } from '../../atoms/button/variants'
+import CartLine from '../../molecules/cart-line/index.astro'
+import type { CartLinesProps } from './types'
+
+type Props = CartLinesProps
+
+const { lines, action, method = 'post', label, columnLabels, updateLabel, formId } = Astro.props
+---
+
+<form class="cart-lines" action={action} method={method} id={formId} data-cart-form>
+  {updateLabel && <button class="visually-hidden" type="submit" tabindex="-1" aria-hidden="true">{updateLabel}</button>}
+  {
+    columnLabels && (
+      <div class="cart-lines__head" aria-hidden="true">
+        <span>{columnLabels.product}</span>
+        <span>{columnLabels.quantity}</span>
+        <span>{columnLabels.total}</span>
+      </div>
+    )
+  }
+  <ul class="cart-lines__list" aria-label={label}>
+    {lines.map((line) => <li><CartLine line={line} /></li>)}
+  </ul>
+  {updateLabel && <noscript><Button type="submit" variant={buttonVariants.accent}>{updateLabel}</Button></noscript>}
+</form>
+
+<style>
+  .cart-lines {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .cart-lines__head {
+    display: none;
+    grid-template-columns: 96px minmax(0, 1fr) 128px 88px; /* token-lint-ignore: mirrors the CartLine columns */
+    gap: var(--space-24);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    font: var(--type-label-caps-2xs);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--tracking-label);
+    text-transform: var(--label-case);
+  }
+
+  .cart-lines__head span:first-child {
+    grid-column: 1 / 3;
+  }
+
+  .cart-lines__head span:last-child {
+    text-align: right;
+  }
+
+  .cart-lines__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cart-lines__list > li:first-child :global(.cart-line) {
+    padding-top: 0;
+  }
+
+  @media (min-width: 900px) {
+    .cart-lines__head {
+      display: grid;
+    }
+  }
+</style>

@@ -1,0 +1,92 @@
+---
+// Figma search-bar field (685:23047 …): a single-row bordered control with a trailing 16px "zoom"
+// glyph (gray/200), no visible label. Figma draws the border as an inside stroke, so the text starts
+// exactly `--search-field-inset` from the outer edge (12px by default). Per-state looks are hooks,
+// not forks: a caller may set `--search-field-inset`, `--search-field-font` (a `--type-*` value) and
+// `--search-field-tracking` on a wrapper (the SearchBar molecule does for its filled state).
+import { searchFieldSizes, type SearchFieldSize } from './variants'
+
+interface Props {
+  id: string
+  name: string
+  placeholder?: string
+  value?: string
+  ariaLabel?: string
+  size?: SearchFieldSize
+}
+
+const { id, name, placeholder, value, ariaLabel, size = searchFieldSizes.m } = Astro.props
+---
+
+<div class:list={['search-field', `search-field--${size}`]}>
+  <input
+    id={id}
+    name={name}
+    type="search"
+    placeholder={placeholder}
+    value={value}
+    aria-label={ariaLabel}
+  />
+  <span class="search-field__icon" aria-hidden="true">
+    <slot name="icon" />
+  </span>
+</div>
+
+<style>
+  .search-field {
+    display: flex;
+    width: 100%;
+    height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8);
+    border-radius: var(--radius-control);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    padding: var(--space-8) calc(var(--search-field-inset, var(--space-16)) - 1px);
+  }
+
+  .search-field--l {
+    height: 48px;
+  }
+
+  @media (hover: hover) {
+    .search-field:hover:not(:focus-within) {
+      border-color: var(--text-primary);
+    }
+  }
+
+  .search-field:focus-within {
+    border-color: var(--text-primary);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -1px;
+  }
+
+  .search-field input {
+    font: var(--search-field-font, var(--type-text-regular-sm));
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-body);
+  }
+
+  .search-field input:focus {
+    outline: none;
+  }
+
+  .search-field input::placeholder {
+    color: var(--text-subtle);
+  }
+
+  .search-field__icon {
+    display: flex;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+  }
+</style>

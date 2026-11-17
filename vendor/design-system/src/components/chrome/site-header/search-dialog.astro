@@ -1,0 +1,79 @@
+---
+// The header search: the modal <dialog> with Figma's "navbar search" panel (706:30430), 4px under the
+// main bar over a 60% black backdrop. Escape, the panel's close button or a click on the backdrop close
+// it and focus returns to the button that opened it (`data-site-search-open`: the header's search button or the tab bar's); opening
+// moves focus into the input.
+import type { SiteSearch } from '../types'
+import SearchPanel from './search-panel.astro'
+
+interface Props {
+  search: SiteSearch
+  id: string
+}
+
+const { search, id } = Astro.props
+---
+
+<dialog id={id} class="site-header__search-dialog" aria-label={search.copy.label} data-surface="light" data-site-search>
+  <SearchPanel search={search} inputId="site-search-input" />
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-site-search]')
+  // The header's search button and the phone tab bar's "search" tab both open it.
+  const openButtons = [...document.querySelectorAll<HTMLElement>('[data-site-search-open]')]
+  let openButton: HTMLElement | undefined = openButtons[0]
+  const panel = dialog?.querySelector<HTMLElement>('[data-search-panel]')
+  const input = dialog?.querySelector<HTMLInputElement>('[data-search-input]')
+
+  if (dialog && openButton && panel && input) {
+    const syncState = () => {
+      panel.dataset.state = input.value.trim() ? 'results' : 'empty'
+    }
+
+    for (const button of openButtons) {
+      button.addEventListener('click', () => {
+        openButton = button
+        dialog.showModal()
+        input.focus()
+      })
+    }
+    dialog.querySelector('[data-search-close]')?.addEventListener('click', () => dialog.close())
+    // Escape closes the panel at once (a search input would first spend it on clearing the query).
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      dialog.close()
+    })
+    dialog.addEventListener('close', () => openButton?.focus())
+    // A click whose target is the dialog itself landed on the backdrop, outside the panel.
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close()
+    })
+    input.addEventListener('input', syncState)
+  }
+</script>
+
+<style>
+  /* The panel sits under the main bar, centered, 600px wide. */
+  .site-header__search-dialog {
+    width: min(600px, calc(100% - var(--space-32)));
+    max-width: none;
+    max-height: calc(100% - 115px - var(--space-16));
+    margin: 115px auto 0;
+    padding: 0;
+    overflow: visible;
+    border: none;
+    background: none;
+  }
+
+  .site-header__search-dialog::backdrop {
+    background: color-mix(in srgb, var(--ink-1000) 60%, transparent);
+  }
+
+  @media (max-width: 640px) {
+    .site-header__search-dialog {
+      margin-top: var(--space-16);
+    }
+  }
+</style>
