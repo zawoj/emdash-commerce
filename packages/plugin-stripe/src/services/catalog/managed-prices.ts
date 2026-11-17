@@ -19,7 +19,7 @@ import type { CatalogEntityRef } from "../contracts.js";
  * - No amount (price cleared, or no price anywhere) archives the entry (`is_active` false); it is kept so a later
  *   price reuses it instead of piling up entries.
  * - The entry is created once and then updated: found by relation + `is_managed`, so replaying a hook, saving twice
- *   or two saves racing (serialised by one lock per product tree) never produce a second entry. Should a stray
+ *   or two saves racing (serialised by one lock per sellable) never produce a second entry. Should a stray
  *   duplicate exist, one entry stays and the others are archived.
  * - The write goes through content / `RelationsPort`, which fire no hooks; the caller runs the Stripe sync after
  *   (an amount change makes the sync create a new Stripe price and archive the old one, see sync-price.ts).
@@ -53,30 +53,47 @@ export const variantAmountOf = (product: Pick<Product, "price">, variant: Pick<V
 const managedAmountOfVariant = (product: Pick<Product, "price">, variant: Pick<Variant, "price" | "isActive">): number | null =>
 	variant.isActive ? variantAmountOf(product, variant) : null;
 
-const sellablesOf = (product: Product, variants: readonly Variant[]): Sellable[] =>
-	product.hasVariants
-		? [{ kind: "product", id: product.id, amount: null }, ...variants.map((variant): Sellable => ({ kind: "variant", id: variant.id, amount: managedAmountOfVariant(product, variant) }))]
-		: [{ kind: "product", id: product.id, amount: product.price }];
-
 /**
  * Brings the managed price entries of the sellables `ref` touches to what the product / variant prices say: a product
  * covers its whole tree, a variant only itself. Returns what changed (nothing when already converged).
+ *
+ * Each sellable converges under its own lock and is read again inside it, so two saves of one sellable never create a
+ * second entry, while saves of different variants of one product never wait for each other. The host gives a content
+ * hook 5 s; a product-wide lock made a burst of variant saves (a seed, a bulk edit) queue past it, and a hook that
+ * timed out lost its variant's price for good (nothing retries managed prices) and could leave its lock behind.
  */
 export const syncManagedPrices = async (container: CommerceContainer, ref: CatalogEntityRef): Promise<ManagedPriceChange[]> => {
 	if (ref.entity === "price") return [];
 	const productId = ref.entity === "product" ? ref.id : ((await container.catalog.getVariant(ref.id))?.productId ?? null);
 	if (!productId) return [];
-	return withLock(container, LOCK_KEY.managedPrices(productId), async () => {
+	if (ref.entity === "variant") return convergeSellable(container, productId, { kind: "variant", id: ref.id });
+	const product = await container.catalog.getProduct(productId);
+	if (!product) return [];
+	const targets: SellableTarget[] = [{ kind: "product", id: productId }];
+	if (product.hasVariants) for (const variant of await container.catalog.listVariants(productId)) targets.push({ kind: "variant", id: variant.id });
+	const changes: ManagedPriceChange[] = [];
+	for (const target of targets) changes.push(...(await convergeSellable(container, productId, target)));
+	return changes;
+};
+
+interface SellableTarget {
+	kind: "product" | "variant";
+	id: string;
+}
+
+/** Locks one sellable, reads the product (and the variant) again and reconciles its entry. */
+const convergeSellable = (container: CommerceContainer, productId: string, target: SellableTarget): Promise<ManagedPriceChange[]> =>
+	withLock(container, LOCK_KEY.managedPrice(target.id), async () => {
 		const product = await container.catalog.getProduct(productId);
 		if (!product) return [];
-		const variants = product.hasVariants ? await container.catalog.listVariants(productId) : [];
-		const all = sellablesOf(product, variants);
-		const wanted = ref.entity === "variant" ? all.filter((sellable) => sellable.kind === "variant" && sellable.id === ref.id) : all;
-		const changes: ManagedPriceChange[] = [];
-		for (const sellable of wanted) changes.push(...(await reconcileSellable(container, sellable)));
-		return changes;
+		if (target.kind === "variant") {
+			const variant = product.hasVariants ? await container.catalog.getVariant(target.id) : null;
+			if (!variant) return [];
+			return reconcileSellable(container, { ...target, amount: managedAmountOfVariant(product, variant) });
+		}
+		// A product with variants carries no managed entry itself (an old one is archived); a simple one mirrors its price.
+		return reconcileSellable(container, { ...target, amount: product.hasVariants ? null : product.price });
 	});
-};
 
 interface ManagedEntry {
 	id: string;

@@ -359,7 +359,7 @@ Pure rules live in `core/catalog-rules.ts` and `core/product-type.ts`; the servi
 - **Managed prices.** `syncManagedPrices` converges the `prices` entries flagged `is_managed`: a simple product has one
   (amount = product `price`), a product with variants one per active variant (amount = override, else the product
   price) and none on the product. The entry is created once (`createWithReferences`) and then updated, found by relation
-  + flag, under one lock per product tree; a stray duplicate is archived. `is_managed` is protected, and while it is
+  + flag, under one lock per sellable (a product or a variant); a stray duplicate is archived. `is_managed` is protected, and while it is
   set the money and activation fields are read-only too (`managedLock` in `schema/protected-fields.ts`). The write fires
   no hooks, so the caller runs the Stripe sync afterwards (an amount change creates a new Stripe Price and archives the
   old one, see Catalog sync).
