@@ -1,6 +1,6 @@
 {
   "name": "@emdash-commerce/plugin-stripe",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Stripe commerce plugin for EmDash CMS: product catalog with variants and prices, carts, Stripe Checkout, orders and webhooks. Community project, not official.",
   "keywords": [
     "emdash",
