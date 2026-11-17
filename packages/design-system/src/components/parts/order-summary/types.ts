@@ -18,6 +18,8 @@ export interface SummaryRow {
   readonly kind?: 'default' | 'discount' | 'muted'
   /** A short note under the label ("InPost Paczkomat"). */
   readonly note?: string
+  /** Optional stable hook for automated tests (`cart-subtotal`, …). */
+  readonly testId?: string
 }
 
 export interface OrderSummaryProps {
