@@ -51,6 +51,12 @@ Five parallel agent streams, each in its own worktree, merged into one branch. R
   temporary preview account cannot host the shop: R2 is forbidden and assets over 5 MiB are refused (an EmDash admin chunk is
   5.7 MB; normal accounts allow 25 MiB). It also showed that a first `wrangler deploy` refuses to create a Worker without the
   `secrets.required` secrets, so `docs/cloudflare.md` now uses `--secrets-file` for the first deploy.
+- **Two post-save races in the Stripe plugin (found by the Cloudflare e2e run).** Without a Stripe key, every price or variant
+  save got `stripe_sync_status=failed` written into its row just after the response, which collided on D1 with the seed's next
+  publish (409 `CONFLICT`); the sync now leaves rows alone for a missing key. One managed-price lock per product made 20 variant
+  hooks queue past EmDash's 5 s hook timeout, leaving variants without a price (disabled options on the product page); each
+  sellable now converges under its own lock. Both bugs predate this branch; machine load made them visible. Changeset
+  `no-failed-mirror-without-a-stripe-key`.
 - **Not covered:** a real Cloudflare account (the button, the token seed, D1 import and SMTP delivery from a deployed Worker); the npm organisation and first release, which are owner-only steps (the three packages pass
   `pnpm publish --dry-run`).
 

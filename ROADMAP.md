@@ -17,6 +17,7 @@ Work the maintainers intend to tackle when capacity allows, in rough priority. *
 | **Prove the deploy paths on a real Cloudflare account** | Press the Deploy button (the `cloudflare-template` branch), finish the passkey setup, seed with `EMDASH_TOKEN`, register the webhook, buy with a sandbox card, check the cron, and send an order email through a real SMTP relay from the deployed Worker. Needs an account with R2: a `wrangler deploy --temporary` preview account cannot host the shop (R2 forbidden, 5 MiB asset cap) — see [docs/cloudflare.md](docs/cloudflare.md). Email delivery itself is verified locally with Mailpit ([docs/email.md](docs/email.md)). |
 | **HTTP email provider** | EmDash's built-in provider is SMTP only; a small provider plugin over an HTTP API (through the `email:deliver` hook) would serve relays without SMTP. See [docs/email.md](docs/email.md). |
 | **E2E against the built Worker** | The Cloudflare e2e run uses `astro dev` on workerd with local D1/R2 (it needs the dev login to seed); the built Worker under `wrangler dev` is covered only by a manual check ([docs/testing.md](docs/testing.md)). |
+| **Managed-price sweep** | A plugin hook that exceeds EmDash's 5 s limit loses its work, and managed prices have no cron retry: a sweep in the maintenance task would converge any variant left without its price (`.ai/memory/emdash-plugin-stripe-no-key-writes-race-the-seed.md`). |
 
 ## Explicitly not planned (for this repo)
 
