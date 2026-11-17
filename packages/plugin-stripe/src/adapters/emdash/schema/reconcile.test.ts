@@ -11,6 +11,7 @@ import {
 	fingerprintDefinitions,
 	reconcileSchema,
 	resetEnsureSchemaMemo,
+	withoutRelations,
 	type SchemaPort,
 } from "./reconcile.js";
 
@@ -369,5 +370,61 @@ describe("fingerprintDefinitions with relations and visibility", () => {
 		};
 		expect(await fingerprintDefinitions(rebound)).not.toBe(original);
 		expect(await fingerprintDefinitions(testSchema({ hidden: true }))).not.toBe(original);
+	});
+});
+
+describe("ensureSchema while a site import is awaited (isDeferringRelations)", () => {
+	const deferred = (port: SchemaPort) => ({ createPort: async () => port, sleep: async () => undefined, isDeferringRelations: true });
+	const boundFieldSlugs = new Set(definitions.flatMap((definition) => definition.fields.filter((field) => field.validation?.relation).map((field) => field.slug)));
+
+	it("creates the collections but no relation and no relation-bound field on a site without relations", async () => {
+		const port = createFakePort();
+		const result = await ensureSchema(ctxWith(), options, deferred(port));
+		expect(result).toEqual({ isDeferred: true });
+		expect(port.relations.size).toBe(0);
+		expect(port.schema.size).toBe(definitions.length);
+		expect(boundFieldSlugs.size).toBeGreaterThan(0);
+		for (const fields of port.schema.values()) for (const field of fields) expect(boundFieldSlugs.has(field)).toBe(false);
+	});
+
+	it("leaves no list column naming a field the deferred seed does not carry", () => {
+		for (const definition of withoutRelations(schema).collections) {
+			const slugs = new Set(definition.fields.map((field) => field.slug));
+			expect(definition.listColumns.filter((column) => !slugs.has(column))).toEqual([]);
+		}
+	});
+
+	it("completes the schema, relations and bound fields included, once deferral is off", async () => {
+		const port = createFakePort();
+		const ctx = ctxWith();
+		await ensureSchema(ctx, options, deferred(port));
+		resetEnsureSchemaMemo();
+		const result = await ensureSchema(ctx, options, { createPort: async () => port, sleep: async () => undefined });
+		expect(result).toEqual({ isDeferred: false });
+		expect(port.relations.size).toBe(schema.relations.length);
+		expect(port.schema.get(definitions[0]!.slug)!.has("variants")).toBe(true);
+		expect(await ctx.kv.get(KV_KEY.schemaMarker)).toBe(await fingerprintDefinitions(schema));
+	});
+
+	it("reconciles the full schema when the site already has relations (an existing shop is unaffected)", async () => {
+		const port = createFakePort({}, {}, ["some_relation"]);
+		const result = await ensureSchema(ctxWith(), options, deferred(port));
+		expect(result).toEqual({ isDeferred: false });
+		expect(port.relations.size).toBe(schema.relations.length + 1);
+	});
+
+	it("skips the database on a warm deferred start", async () => {
+		const ctx = ctxWith();
+		await ctx.kv.set(KV_KEY.schemaMarker, `${await fingerprintDefinitions(schema)}:deferred`);
+		let ports = 0;
+		const result = await ensureSchema(ctx, options, {
+			isDeferringRelations: true,
+			createPort: async () => {
+				ports += 1;
+				return createFakePort();
+			},
+		});
+		expect(ports).toBe(0);
+		expect(result).toEqual({ isDeferred: true });
 	});
 });

@@ -15,7 +15,7 @@ import { resolveIntegrationIdentifier } from "../adapters/emdash/integration-ide
 import { buildCollectionDefinitions } from "../adapters/emdash/schema/collections.js";
 import { ensureSchema, type SchemaPort } from "../adapters/emdash/schema/reconcile.js";
 import { runDataMigrations } from "../adapters/emdash/schema/migrations.js";
-import { resolveSecrets, type CommerceSecrets } from "../adapters/emdash/settings.js";
+import { isDeferringRelations, resolveSecrets, type CommerceSecrets } from "../adapters/emdash/settings.js";
 import { createInventoryStore, type StockLevelDoc, type StoredReservation } from "../adapters/emdash/storage/inventory-store.js";
 import { createRecordIndex, type IndexEntry } from "../adapters/emdash/storage/record-index.js";
 import {
@@ -216,7 +216,9 @@ export const createContainer = (
 		},
 		async ensureReady() {
 			const createPort = deps.createSchemaPort ?? createRegistryPort;
-			await ensureSchema(ctx, options, { createPort, log: ctx.log });
+			const { isDeferred } = await ensureSchema(ctx, options, { createPort, log: ctx.log, isDeferringRelations: isDeferringRelations(deps.env) });
+			// Migrations read relation fields that a deferred schema does not have yet; they run once the schema is complete.
+			if (isDeferred) return;
 			const memoKey = `${ctx.plugin.id}:${JSON.stringify(slugs)}`;
 			if (migrationsDone.has(memoKey)) return;
 			const result = await runDataMigrations({

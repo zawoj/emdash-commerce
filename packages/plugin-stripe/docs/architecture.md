@@ -309,6 +309,12 @@ collection, labels, `maxChildrenPerParent`, `maxParentsPerChild`) in `schema/col
 the picker that lists children, the child side the one that selects parents). The admin renders both ends as an ordered
 list with a search picker. Relation slugs are in `CATALOG_RELATION` / `SALES_RELATION` (`schema/field-names/`).
 
+`COMMERCE_DEFER_RELATIONS=1` makes the reconciler (`withoutRelations`, `ensureSchema`) create the collections without any
+relation or relation-bound field (and without the list columns that name them) while `_emdash_relations` is empty, and skip the
+data migrations; the schema marker then carries a `:deferred` suffix, so the first start without the variable completes the
+schema through the normal additive path. It exists only because EmDash's importer treats a relation row as content
+(`.ai/decisions/2026-11-17-site-import-into-a-fresh-shop.md`).
+
 What EmDash 1.5 does with them, and what that means for the code:
 
 - **Relation-bound fields have no column.** `ctx.content.create/update` refuses them, `ctx.content.get/list` never

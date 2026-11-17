@@ -85,8 +85,9 @@ end-to-end suite uses neither: `pnpm test:e2e:smoke:cloudflare` keeps its state 
    The build inlines `apps/storefront/seed/seed.json` (`package.json#emdash.seed`) and the first request applies its schema to
    the empty D1 database. That file no longer contains the `feedback` collection of the Notes dev tool (it lives in
    `seed/dev-tools.json`, applied by `pnpm seed` against a dev server only), so nothing needs removing for a real production site.
-   Note that `emdash site import` is refused on the freshly deployed shop until the relation definitions the commerce plugin
-   created are cleared (`docs/production.md`, "Seeding a deployed site").
+   To fill the shop with `emdash site import`, deploy it with `COMMERCE_DEFER_RELATIONS=1` in `vars` (otherwise EmDash refuses
+   the import because the commerce plugin's relation definitions count as content): `docs/production.md`, "Export / import
+   instead". Not tried on Workers.
 
 3. **First administrator.** Open `https://<your host>/_emdash/admin` straight after the deploy and finish the setup wizard
    with a **passkey**: the first person through it becomes the administrator, so do it before anyone else can. The dev login
