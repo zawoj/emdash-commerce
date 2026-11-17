@@ -7,6 +7,11 @@ pnpm dev              # From the repo root: the storefront dev server on port 43
 npx emdash types      # Regenerate TypeScript types from a running site
 ```
 
+Cloudflare (Workers + D1 + R2) is a second runtime target of this same app, chosen with `DEPLOY_TARGET=cloudflare` in
+`astro.config.mjs` (unset = Node/SQLite, the default). Scripts: `dev:cloudflare --port <n>`, `build:cloudflare`,
+`deploy:cloudflare`, `types:cloudflare`; config in `wrangler.jsonc` and `src/worker.ts`. Guide, secrets and limits:
+`docs/cloudflare.md` at the repo root. Run `types:cloudflare` after changing `wrangler.jsonc`.
+
 The admin UI is at `http://localhost:4360/_emdash/admin`.
 
 ## Key Files

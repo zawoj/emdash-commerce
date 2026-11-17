@@ -1,0 +1,16 @@
+# Secrets of the Cloudflare target (DEPLOY_TARGET=cloudflare). Copy to .dev.vars for `pnpm dev:cloudflare` / `wrangler dev`
+# (apps/storefront/.env is read too when .dev.vars is absent). In production set them with `wrangler secret put <NAME>`.
+# Guide: docs/cloudflare.md
+
+# emdash_enc_v1_ + 43 base64url characters. Generate: npx emdash secrets generate (or pnpm bootstrap)
+EMDASH_ENCRYPTION_KEY=replace-with-emdash-secrets-generate
+
+# Stripe sandbox secret or restricted key. Never a live key outside a deployed production site.
+STRIPE_SECRET_KEY=sk_test_replace_me
+
+# Optional on a deployed site (press "Register webhook" in the Commerce admin page instead).
+# Locally: the whsec_... that `stripe listen` prints.
+STRIPE_WEBHOOK_SECRET=whsec_replace_me
+
+# Optional: signs the links in guest order emails. Generated on first use when EMDASH_ENCRYPTION_KEY is set.
+# COMMERCE_ACCESS_TOKEN_SECRET=
