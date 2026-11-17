@@ -13,7 +13,7 @@ import {
 	sweepCarts,
 	syncDueCatalog,
 } from "../services/maintenance.js";
-import { errorMessage, withTimeout } from "../services/payments/async.js";
+import { TimeoutError, errorMessage, withTimeout } from "../services/payments/async.js";
 import type { Logger } from "../ports/repositories.js";
 import { createContainer, type CommerceContainer, type ContainerDeps } from "./container.js";
 
@@ -75,13 +75,16 @@ export const runSteps = async (steps: readonly MaintenanceStep[], options: RunOp
 	const now = options.now ?? Date.now;
 	const startedAt = now();
 	const reports: StepReport[] = [];
+	// A step cut off by the timeout ran until the end of the budget. Reading the clock again is not enough: a timer can fire a
+	// millisecond before `now()` reaches the deadline, which would start the next step with a budget that is already spent.
+	let hasTimedOut = false;
 	for (const step of steps) {
 		if (step.isProviderBound && !options.hasProvider) {
 			reports.push({ name: step.name, status: STEP_STATUS.skipped, durationMs: 0, reason: "Stripe is not configured" });
 			continue;
 		}
 		const remaining = options.budgetMs - (now() - startedAt);
-		if (remaining <= 0) {
+		if (hasTimedOut || remaining <= 0) {
 			reports.push({ name: step.name, status: STEP_STATUS.skipped, durationMs: 0, reason: "time budget spent" });
 			continue;
 		}
@@ -90,6 +93,7 @@ export const runSteps = async (steps: readonly MaintenanceStep[], options: RunOp
 			const result = await withTimeout(step.run, remaining, `Maintenance step ${step.name}`);
 			reports.push({ name: step.name, status: STEP_STATUS.ok, durationMs: now() - stepStart, result });
 		} catch (error) {
+			if (error instanceof TimeoutError) hasTimedOut = true;
 			options.log.error("Maintenance step failed", { step: step.name, error: errorMessage(error) });
 			reports.push({ name: step.name, status: STEP_STATUS.failed, durationMs: now() - stepStart, reason: errorMessage(error) });
 		}

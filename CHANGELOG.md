@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-17 (cron budget)
+
+### fix(plugin-stripe): a timed-out maintenance step ends the run's budget — Claude Code
+- `runSteps` read the clock again after a step was cut off by its timeout. A timer can fire a millisecond before `Date.now()`
+  reaches the deadline, so the next step sometimes started with a spent budget. That made `cron.test.ts` flaky in CI (it
+  failed on Dependabot PR #4). A timeout now marks the budget as spent. A new test with a clock that never advances fails
+  without the fix every time.
+
 ## 2026-11-17 (release plumbing switched on)
 
 ### docs: record the first template publish and the Version Packages pull request — Claude Code

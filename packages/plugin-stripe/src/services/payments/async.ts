@@ -6,10 +6,13 @@ export const sleep = (ms: number): Promise<void> => new Promise((resolve) => set
  * Rejects when `promise` does not settle within `ms`. The underlying work is not cancelled (JavaScript
  * cannot), so a handler that times out may still finish: delivery is at-least-once and handlers idempotent.
  */
+/** Rejection of `withTimeout` when the deadline passes first (the operation itself may still be running). */
+export class TimeoutError extends Error {}
+
 export const withTimeout = async <T>(run: () => Promise<T>, ms: number, label: string): Promise<T> => {
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	const timeout = new Promise<never>((_, reject) => {
-		timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms} ms`)), ms);
+		timer = setTimeout(() => reject(new TimeoutError(`${label} timed out after ${ms} ms`)), ms);
 	});
 	try {
 		return await Promise.race([Promise.resolve().then(run), timeout]);
