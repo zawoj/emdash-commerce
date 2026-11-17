@@ -18,8 +18,8 @@ Read from `emdash/dist/email-smtp-*.mjs` and `emdash-runtime-*.mjs`, run against
   envelope check. The admin API refuses to save it without `fromEmail`.
 - **TLS is mandatory and verified.** STARTTLS must be offered (otherwise "does not offer STARTTLS"), no plaintext fallback, port
   25 refused. A local sink therefore needs a certificate for `localhost` that Node trusts (`NODE_EXTRA_CA_CERTS=cert.pem`),
-  with `AUTH PLAIN` or `LOGIN` advertised after the upgrade. workerd does not read `NODE_EXTRA_CA_CERTS`, so a self-signed sink
-  cannot be used from the Cloudflare dev server (implicit TLS: "Failed to connect"; STARTTLS: fails at the upgrade).
+  with `AUTH PLAIN` or `LOGIN` advertised after the upgrade. workerd trusts that CA too when `NODE_EXTRA_CA_CERTS` is set in the
+  shell that starts the dev server ([[miniflare-passes-node-extra-ca-certs-to-workerd]]; an earlier note here said it did not).
 - **Bodies are base64**, subjects are RFC 2047 encoded when non-ASCII: decode before grepping a captured message.
 - **The shop never shows a delivery failure.** `/orders/lookup` and `POST /orders/access-link` answer the same success whether
   the mail went out or not (by design). The signals are the log (`SMTP delivery failed`, trace of the last SMTP steps) and a

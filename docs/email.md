@@ -138,12 +138,49 @@ plugin**; whether a community one fits your provider is not something this repo 
 never prints a value). It cannot see settings saved in the admin or the secrets of a deployed Worker, so a "todo" there is
 expected for a site configured through the admin.
 
-### Trying real delivery locally
+### Test delivery locally with Mailpit
 
-To see the real SMTP path without a provider, point `EMAIL_SMTP_*` at a local sink. EmDash demands STARTTLS and verifies the
-certificate, so a plain-text sink (`smtp-sink`, `MailHog` without TLS) is refused. Use one with TLS and a certificate for
-`localhost` that Node trusts: `NODE_EXTRA_CA_CERTS=/path/to/that-cert.pem pnpm dev`. Accept any user and password. Turn the
-variables off again afterwards: with a complete set the console provider is bypassed.
+[Mailpit](https://mailpit.axllent.org) is a local SMTP sink with a web inbox and an HTTP API. EmDash demands STARTTLS (or
+implicit TLS), a certificate it can verify and a login, so a plain sink (`smtp-sink`, MailHog without TLS) is refused; Mailpit
+satisfies all three when it gets a certificate for `localhost` signed by a CA that Node trusts. Needs Docker and `openssl`.
+
+```bash
+pnpm mail:dev        # throwaway CA + localhost certificate in .mailpit/ (git-ignored), starts the pinned container
+pnpm mail:dev stop   # removes the container
+```
+
+It prints the environment below. The same by hand (the image tag is pinned, bump it to a release at least two weeks old):
+
+```bash
+mkdir -p .mailpit && cd .mailpit
+printf 'subjectAltName=DNS:localhost,IP:127.0.0.1\nbasicConstraints=CA:FALSE\nextendedKeyUsage=serverAuth\n' > localhost.ext
+openssl req -x509 -newkey rsa:2048 -nodes -days 30 -subj "/CN=Mailpit local CA" -keyout ca.key -out ca.pem
+openssl req -newkey rsa:2048 -nodes -subj "/CN=localhost" -keyout localhost.key -out localhost.csr
+openssl x509 -req -in localhost.csr -CA ca.pem -CAkey ca.key -CAcreateserial -days 30 -extfile localhost.ext -out localhost.pem
+docker run -d --rm --name emdash-commerce-mailpit -p 127.0.0.1:2526:1025 -p 127.0.0.1:8026:8025 -v "$PWD:/certs:ro" \
+  -e MP_SMTP_TLS_CERT=/certs/localhost.pem -e MP_SMTP_TLS_KEY=/certs/localhost.key \
+  -e MP_SMTP_REQUIRE_STARTTLS=true -e MP_SMTP_AUTH_ACCEPT_ANY=true axllent/mailpit:v1.33.0
+```
+
+Start the storefront with this in the **process environment** (an inline prefix or `export`, not `.env`: a complete
+`EMAIL_SMTP_*` set hides the dev console for good, and `pnpm run doctor` reads only `.env`):
+
+```bash
+NODE_EXTRA_CA_CERTS=$PWD/.mailpit/ca.pem EMAIL_SMTP_HOST=localhost EMAIL_SMTP_PORT=2526 EMAIL_SMTP_SECURE=starttls \
+EMAIL_SMTP_USER=mailpit EMAIL_SMTP_PASS=mailpit EMAIL_SMTP_FROM_EMAIL=shop@localhost EMAIL_SMTP_FROM_NAME="Mailpit Shop" \
+pnpm dev     # or: pnpm --filter @emdash-commerce/storefront start (a built server)
+```
+
+- **Read the mail:** the inbox at <http://localhost:8026>, or `curl localhost:8026/api/v1/messages` (list) and
+  `curl localhost:8026/api/v1/message/<ID>` (body in `Text` / `HTML`, headers in `From`, `To`, `Subject`).
+- **Cloudflare dev server (workerd):** the same Mailpit works. Start `dev:cloudflare` with `NODE_EXTRA_CA_CERTS` set in the
+  shell that starts it: Miniflare reads that file and hands the certificates to workerd as trusted. Without it the send fails
+  with `TLS handshake failed: invalid peer certificate: UnknownIssuer`. The `EMAIL_SMTP_*` names do **not** reach the Worker from
+  the shell or `.dev.vars` (see the trap above): save SMTP in Settings → Email instead, or `PUT /_emdash/api/settings/email`
+  with `{"provider":"smtp","smtp":{"host":"localhost","port":2526,"secure":"starttls","user":"mailpit","pass":"mailpit","fromEmail":"shop@mailpit.test"}}`.
+  That API validates the sender as an address with a dot in the domain (`shop@localhost` is refused there, though the
+  environment variable accepts it).
+- Stop the container and unset the variables afterwards; remove `.mailpit/` when you are done.
 
 ## What was verified
 
@@ -151,6 +188,7 @@ variables off again afterwards: with a complete set the console provider is bypa
   `EMAIL_SMTP_*` pointing at a local STARTTLS sink: the order confirmation and, after `POST /orders/access-link`, the
   access-link mail arrived at the sink with the right envelope recipient, the configured sender and the login; the link
   inside opened `/orders/view` with status 200 and the order. Nothing in the dev mailbox: SMTP replaced the console provider.
+- Mailpit v1.33.0 (Docker) with a throwaway CA, 2026-11-17: the **built** Node server (`astro build` with the database paths set, a token seed, `stripe listen`) took a real sandbox purchase; Mailpit received "order ORD-… confirmed" and, after the `/orders/lookup` form, "your link to order ORD-…", both from `Mailpit Shop <shop@localhost>` to the buyer; the link read from the Mailpit message opened `/orders/view` with 200. On the Cloudflare dev server a test email was delivered to Mailpit with `NODE_EXTRA_CA_CERTS` set, and failed with `UnknownIssuer` without it.
 - The `pnpm run doctor` check is unit tested (`scripts/lib/bootstrap-env.test.mjs`).
 
 - Cloudflare dev server (workerd): the settings API saved SMTP and an env-configured SMTP was auto-selected once the names were
