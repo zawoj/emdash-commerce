@@ -1,6 +1,6 @@
 # @emdash-commerce/plugin-stripe
 
-Backend-only commerce for [EmDash](https://github.com/emdash-cms/emdash) on Stripe. A native EmDash plugin that
+Backend-only commerce for [EmDash](https://github.com/emdash-cms/emdash) on Stripe (a community plugin, not part of EmDash). A native EmDash plugin that
 owns the catalog sync, carts, Stripe Checkout Sessions, orders, payments, refunds, disputes, subscriptions, guest
 customers and a durable webhook pipeline. It has **no storefront**: a site renders its own pages and talks to the
 plugin over a small public HTTP API (`docs/api.md`) and reacts to domain events (`docs/extending.md`).
@@ -54,7 +54,14 @@ data model again (see `CHANGELOG.md`). Design rationale (repo root):
 
 ## Install and wire
 
-The package is a workspace dependency of `apps/storefront`. Register it in `astro.config.mjs`:
+```bash
+pnpm add @emdash-commerce/plugin-stripe
+```
+
+Peer dependencies: `emdash` (`^1.5.0`) and `astro` (`>=6.0.0-beta.0`). The package ships TypeScript source (like EmDash's
+own plugins) and an `.astro` block component; the site's Vite build compiles them, so no build step runs on install. It
+is a **native** plugin (route handlers, cron, an admin page, a content-policy hook), so it cannot be a sandboxed
+registry plugin. Register it in `astro.config.mjs`:
 
 ```js
 emdash({

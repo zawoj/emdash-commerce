@@ -1,8 +1,30 @@
 {
   "name": "@emdash-commerce/plugin-image-hotspots",
   "version": "0.1.0",
-  "private": true,
+  "description": "Image hotspots field widget for EmDash CMS: place numbered points on an image, link them to products or callouts. Community project, not official.",
+  "keywords": [
+    "emdash",
+    "cms",
+    "plugin",
+    "field-widget",
+    "hotspots",
+    "image",
+    "react",
+    "shop-the-look"
+  ],
+  "homepage": "https://github.com/zawoj/emdash-commerce/tree/main/packages/plugin-image-hotspots#readme",
+  "bugs": {
+    "url": "https://github.com/zawoj/emdash-commerce/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zawoj/emdash-commerce.git",
+    "directory": "packages/plugin-image-hotspots"
+  },
+  "license": "MIT",
+  "author": "Kacper Zawojski",
   "type": "module",
+  "main": "src/index.ts",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -15,7 +37,21 @@
     "./value": {
       "types": "./src/value/index.ts",
       "default": "./src/value/index.ts"
-    }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=22.16.0"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

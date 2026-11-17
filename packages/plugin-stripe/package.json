@@ -1,8 +1,31 @@
 {
   "name": "@emdash-commerce/plugin-stripe",
   "version": "0.2.0",
-  "private": true,
+  "description": "Stripe commerce plugin for EmDash CMS: product catalog with variants and prices, carts, Stripe Checkout, orders and webhooks. Community project, not official.",
+  "keywords": [
+    "emdash",
+    "cms",
+    "plugin",
+    "stripe",
+    "ecommerce",
+    "commerce",
+    "checkout",
+    "payments",
+    "astro"
+  ],
+  "homepage": "https://github.com/zawoj/emdash-commerce/tree/main/packages/plugin-stripe#readme",
+  "bugs": {
+    "url": "https://github.com/zawoj/emdash-commerce/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zawoj/emdash-commerce.git",
+    "directory": "packages/plugin-stripe"
+  },
+  "license": "MIT",
+  "author": "Kacper Zawojski",
   "type": "module",
+  "main": "src/index.ts",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -19,7 +42,25 @@
     "./astro": {
       "types": "./src/astro/index.ts",
       "default": "./src/astro/index.ts"
-    }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "docs",
+    "!src/**/*.test.ts",
+    "!src/**/*.contract.ts",
+    "!src/**/test-support.ts",
+    "!src/testing/fixtures",
+    "!src/adapters/emdash/real-host",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=22.16.0"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -27,17 +68,19 @@
     "build": "tsc --noEmit"
   },
   "dependencies": {
-    "emdash": "^1.5.0",
-    "stripe": "23.1.0",
+    "stripe": "^23.1.0",
     "zod": "^4.1.12"
+  },
+  "peerDependencies": {
+    "astro": ">=6.0.0-beta.0",
+    "emdash": "^1.5.0"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",
+    "astro": "7.3.2",
+    "emdash": "^1.5.0",
     "kysely": "0.29.8",
     "typescript": "^5.9.3",
     "vitest": "4.1.5"
-  },
-  "peerDependencies": {
-    "emdash": "^1.5.0"
   }
 }

@@ -5,6 +5,32 @@ pick an image from the media library, click it to place points, drag or arrow-ke
 means. Used on the storefront home for "Shop the look" (a product per point) and the spotlight callouts (title, text,
 side per point).
 
+## Install
+
+```bash
+pnpm add @emdash-commerce/plugin-image-hotspots
+```
+
+Peer dependencies: `emdash` and `@emdash-cms/admin` (`^1.5.0`), `react` and `react-dom` (`^19.0.0`). The package ships
+TypeScript and React source (like EmDash's own plugins); the site's Vite build compiles it. Register it in
+`astro.config.mjs`:
+
+```js
+emdash({
+  plugins: [
+    {
+      id: "image-hotspots",
+      entrypoint: "@emdash-commerce/plugin-image-hotspots",
+      adminEntry: "@emdash-commerce/plugin-image-hotspots/admin",
+      fieldWidgets: [{ name: "hotspots", label: "Image with points", fieldTypes: ["json"] }],
+    },
+  ],
+});
+```
+
+This is a community plugin for [EmDash](https://github.com/emdash-cms/emdash), not part of it. It is a native plugin with
+a React admin entry, so it cannot be a sandboxed registry plugin.
+
 ## Value (a `json` field)
 
 ```ts
