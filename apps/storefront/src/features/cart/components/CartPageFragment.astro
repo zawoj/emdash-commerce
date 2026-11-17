@@ -1,0 +1,107 @@
+---
+import ActionBar from "@emdash-commerce/design-system/components/chrome/action-bar/index.astro";
+import Button from "@emdash-commerce/design-system/components/atoms/button/index.astro";
+import InlineNotice from "@emdash-commerce/design-system/components/atoms/inline-notice/index.astro";
+import { buttonSizes, buttonVariants } from "@emdash-commerce/design-system";
+import { noticeTones } from "@emdash-commerce/design-system/components/atoms/inline-notice/variants.ts";
+import { iconNames } from "@emdash-commerce/design-system";
+import CartLines from "@emdash-commerce/design-system/components/parts/cart-lines/index.astro";
+import EmptyState from "@emdash-commerce/design-system/components/parts/empty-state/index.astro";
+import OrderSummary from "@emdash-commerce/design-system/components/parts/order-summary/index.astro";
+import type { CartCopy } from "../copy";
+import { CART_PAGE_FORM_ID } from "../constants";
+import type { CartPageModel } from "../view-model";
+
+interface Props {
+	copy: CartCopy;
+	model: CartPageModel;
+	initialAlert?: string | null;
+}
+
+const { copy, model, initialAlert } = Astro.props;
+const alertText = initialAlert ?? model.alertText;
+---
+
+<div data-cart-page-fragment>
+<div class="cart-page__body" data-cart-page-body>
+	{
+		alertText ? (
+			<InlineNotice tone={noticeTones.warning} toneLabel={copy.warningLabel} data-cart-alert>
+				{alertText}
+			</InlineNotice>
+		) : null
+	}
+	{
+		model.isEmpty ? (
+			<EmptyState
+				title={copy.cartEmpty}
+				text={copy.cartEmptyText}
+				icon={iconNames.shoppingBag}
+				headingLevel={2}
+				action={{ href: "/shop", label: copy.continueShopping }}
+			/>
+		) : (
+			<div class="cart-page__grid">
+				<CartLines
+					lines={model.lines}
+					action="#"
+					label={copy.linesLabel}
+					columnLabels={{ product: copy.columnProduct, quantity: copy.columnQuantity, total: copy.columnPrice }}
+					updateLabel={copy.updateQuantities}
+					formId={CART_PAGE_FORM_ID}
+				/>
+				<OrderSummary {...model.summary}>
+					<Button
+						type="button"
+						variant={buttonVariants.primary}
+						size={buttonSizes.lg}
+						isDisabled={!model.isCheckoutReady}
+						data-cart-checkout
+						data-testid="cart-checkout"
+						id="cart-checkout"
+					>
+						{copy.checkout}
+					</Button>
+				</OrderSummary>
+			</div>
+		)
+	}
+</div>
+{
+	!model.isEmpty ? (
+		<ActionBar
+			label={copy.actionBarLabel}
+			caption={copy.subtotal}
+			value={model.summary.rows[0]?.value ?? "—"}
+			action={{ label: copy.checkout, isDisabled: !model.isCheckoutReady, href: "#" }}
+			proxy="#cart-checkout"
+		/>
+	) : null
+}
+</div>
+
+<style>
+	.cart-page__body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-24);
+	}
+
+	.cart-page__grid {
+		display: grid;
+		gap: var(--space-32);
+		align-items: start;
+	}
+
+	@media (min-width: 900px) {
+		.cart-page__grid {
+			grid-template-columns: minmax(0, 1fr) 400px; /* token-lint-ignore: summary column */
+		}
+	}
+
+	@media (max-width: 767px) {
+		:global(html:has(.cart-page)) {
+			padding-bottom: calc(var(--action-bar-height) + env(safe-area-inset-bottom, 0px));
+		}
+	}
+</style>

@@ -20,6 +20,21 @@ const en = {
 	cartEmptyText: "Add something from the shop.",
 	continueShopping: "Continue shopping",
 	subtotal: "Subtotal",
+	total: "Total",
+	summaryHeading: "Order summary",
+	linesLabel: "Products in your cart",
+	updateQuantities: "Update quantities",
+	loadingCart: "Loading your cart…",
+	loadFailed: "Could not load your cart.",
+	checkoutStarting: "Starting checkout…",
+	checkoutFailed: "Checkout could not be started.",
+	checkoutNotReady: "Your cart is not ready for checkout.",
+	rateLimited: "Too many requests — wait a moment and try again.",
+	checkoutRateLimited: "Too many checkout attempts — wait a moment and try again.",
+	checkoutNoticeEmpty: "Your cart is empty. Add something from the shop to check out.",
+	checkoutNoticeNotReady: "Your cart changed or an item is no longer available. Review your cart and try again.",
+	checkoutNoticeRateLimited: "Too many checkout attempts. Wait a moment and try again.",
+	actionBarLabel: "Cart checkout",
 } as const;
 
 export type CartCopy = { [K in keyof typeof en]: string };
@@ -46,6 +61,21 @@ const pl: CartCopy = {
 	cartEmptyText: "Dodaj coś ze sklepu.",
 	continueShopping: "Kontynuuj zakupy",
 	subtotal: "Suma częściowa",
+	total: "Razem",
+	summaryHeading: "Podsumowanie zamówienia",
+	linesLabel: "Produkty w koszyku",
+	updateQuantities: "Zaktualizuj ilości",
+	loadingCart: "Ładowanie koszyka…",
+	loadFailed: "Nie udało się wczytać koszyka.",
+	checkoutStarting: "Przechodzenie do kasy…",
+	checkoutFailed: "Nie udało się rozpocząć płatności.",
+	checkoutNotReady: "Koszyk nie jest gotowy do płatności.",
+	rateLimited: "Zbyt wiele żądań — odczekaj chwilę i spróbuj ponownie.",
+	checkoutRateLimited: "Zbyt wiele prób płatności — odczekaj chwilę i spróbuj ponownie.",
+	checkoutNoticeEmpty: "Koszyk jest pusty. Dodaj coś ze sklepu, aby przejść do płatności.",
+	checkoutNoticeNotReady: "Koszyk się zmienił albo pozycja nie jest już dostępna. Sprawdź koszyk i spróbuj ponownie.",
+	checkoutNoticeRateLimited: "Zbyt wiele prób płatności. Odczekaj chwilę i spróbuj ponownie.",
+	actionBarLabel: "Płatność za koszyk",
 };
 
 export const cartCopy = { en, pl };
