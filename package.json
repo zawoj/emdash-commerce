@@ -20,6 +20,7 @@
     "bootstrap": "node scripts/bootstrap.mjs",
     "doctor": "node scripts/bootstrap.mjs --check",
     "art": "node scripts/art/index.mjs",
+    "template:cloudflare": "node scripts/template/index.mjs",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "changeset publish",

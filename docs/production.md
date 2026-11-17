@@ -17,8 +17,8 @@ stays the reference for what a deploy does and does not move, and for an agent c
 | On the **first** deploy only: the schema and structure of `seed/seed.json` | Content and media |
 | EmDash's own core migrations (applied on the first request, or by `emdash migrate`) | Users, sessions, tokens, plugin settings, `EMDASH_ENCRYPTION_KEY` |
 
-There is no one-command or one-click local → production deploy (the Deploy to Cloudflare button cannot deploy this
-monorepo as it stands: `docs/cloudflare.md`). Build and ship with
+There is no one-command or one-click local → production deploy (the Deploy to Cloudflare button needs the generated
+standalone template branch and has not been pressed: `docs/cloudflare.md`). Build and ship with
 `pnpm --filter @emdash-commerce/storefront deploy:cloudflare` (Cloudflare) or the Node/Docker flow (`pnpm build`). Editing `seed/seed.json` later does nothing to an existing
 database, and production is the source of truth for the schema once it is live.
 

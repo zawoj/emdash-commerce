@@ -13,5 +13,7 @@ dist
 
 # end-to-end suite: throwaway server state and Playwright output
 /.e2e/
+# generated Cloudflare template (pnpm template:cloudflare)
+/.template/
 /playwright-report/
 /test-results/
