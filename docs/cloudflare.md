@@ -241,7 +241,7 @@ workerd 1.20261116.1, Stripe sandbox, no Cloudflare account (nothing was logged 
   link was in the dev email log. Opening the link was not checked on this target.
 
 On 2026-11-17 (same machine and versions) the Playwright suite also ran against this target: `pnpm test:e2e:smoke:cloudflare`
-(`astro dev` on workerd, throwaway local D1/R2 state in `.e2e-cloudflare/`, 41 passed, 4 skipped known-issue cases) and the purchase
+(`astro dev` on workerd, throwaway local D1/R2 state in `.e2e-cloudflare/`, 45 passed, 0 skipped, also from a cold Vite cache) and the purchase
 project (3 passed: cart quantity, a sandbox purchase through hosted Checkout with the signed webhook and the emailed order link,
 the lookup-page link), plus a measurement in the suite that the server really is `workerd`. It runs in CI on every pull request
 (smoke) and weekly (purchase). It is the dev server, not the built Worker; details and limits in `docs/testing.md`.
