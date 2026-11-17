@@ -34,3 +34,5 @@ Layout, naming and rules: [../README.md](../README.md). Read this index at sessi
 - [stripe listen needs an event selection](stripe-listen-needs-an-event-selection.md) — CLI 1.55 exits for a bare --forward-to; add --all-snapshot; STRIPE_API_KEY selects the account; the Ready line prints the secret
 - [InlineNotice drops data-* attributes](inline-notice-drops-data-attributes.md) — a data-testid or script hook on InlineNotice never reaches the DOM; hook a wrapper instead
 - [The mini-cart repeats the cart-line test id](mini-cart-repeats-the-cart-line-test-id.md) — cart-page locators must be scoped to main; the header dialog renders the same lines a moment after load
+- [The Node build bakes the database path](emdash-node-build-bakes-the-database-path.md) — astro build inlines EMDASH_DATABASE_FILE / EMDASH_UPLOADS_DIR; a built server ignores them at start and opens ./data.db, so set them when you build
+- [`emdash site import` refuses a fresh shop](emdash-site-import-refuses-a-fresh-shop.md) — the plugin's 19 _emdash_relations rows count as content (TRANSFER_TARGET_NOT_EMPTY); clear them, import, then run pnpm catalog:resync

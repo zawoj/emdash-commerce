@@ -1,0 +1,60 @@
+{
+  "$schema": "https://emdashcms.com/seed.schema.json",
+  "version": "1",
+  "meta": {
+    "name": "Dev tools",
+    "description": "Collections of the dev-only editing tools. Applied by pnpm seed against a dev server, never part of the production seed.",
+    "author": "emdash-commerce"
+  },
+  "collections": [
+    {
+      "slug": "feedback",
+      "label": "Feedback",
+      "labelSingular": "Feedback",
+      "description": "Dev tool: comments left on page elements with the editing pill (Notes). An agent marks them done.",
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "slug": "comment",
+          "label": "Comment",
+          "type": "text"
+        },
+        {
+          "slug": "state",
+          "label": "State (open, done, wontfix)",
+          "type": "string"
+        },
+        {
+          "slug": "resolution",
+          "label": "Resolution",
+          "type": "text"
+        },
+        {
+          "slug": "page_path",
+          "label": "Page path",
+          "type": "string"
+        },
+        {
+          "slug": "page_url",
+          "label": "Page URL",
+          "type": "string"
+        },
+        {
+          "slug": "selector",
+          "label": "Selector",
+          "type": "string"
+        },
+        {
+          "slug": "element",
+          "label": "Element",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

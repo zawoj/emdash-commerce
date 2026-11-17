@@ -82,8 +82,10 @@ Stop the Node dev server first or use another port; the two targets keep separat
    `docs/production.md`).
 
    The build inlines `apps/storefront/seed/seed.json` (`package.json#emdash.seed`) and the first request applies its schema to
-   the empty D1 database. That file contains the `feedback` collection of the Notes dev tool: leave it out of the seed for a
-   real production site (`docs/production.md`, "Before the first deploy").
+   the empty D1 database. That file no longer contains the `feedback` collection of the Notes dev tool (it lives in
+   `seed/dev-tools.json`, applied by `pnpm seed` against a dev server only), so nothing needs removing for a real production site.
+   Note that `emdash site import` is refused on the freshly deployed shop until the relation definitions the commerce plugin
+   created are cleared (`docs/production.md`, "Seeding a deployed site").
 
 3. **First administrator.** Open `https://<your host>/_emdash/admin` straight after the deploy and finish the setup wizard
    with a **passkey**: the first person through it becomes the administrator, so do it before anyone else can. The dev login
@@ -104,11 +106,19 @@ Stop the Node dev server first or use another port; the two targets keep separat
    final: the endpoint URL is built from it. Use the Stripe **sandbox** account; never a live key outside a deployed
    production environment you intend to be live.
 
-6. **Catalog and content.** `pnpm seed` cannot run against a deployed site: it signs in through the dev login. Create products
-   in the admin, through the MCP (`docs/production.md`), or move a seeded local site with `emdash site export` /
-   `emdash site import` (an empty target only; `docs/production.md`). Stripe product and price ids live in plugin storage
-   (`catalog_links`), which an export does not carry, so after an import queue and drive a catalog resync
-   (`admin/catalog/sync`) so each variant gets its Stripe Product and Price. The import path was not run for this target.
+6. **Catalog and content.** Finish the setup wizard first (step 3), create an API token in the admin (Settings, API Tokens, scope
+   `admin`, a short expiry) and run, from your machine:
+
+   ```bash
+   EMDASH_URL=https://<your host> EMDASH_TOKEN=ec_pat_… pnpm seed
+   ```
+
+   It creates the vocabulary, products, variants, prices, media and the Homepage fields over the REST API with
+   `Authorization: Bearer` (no dev login), then drives the Stripe catalog resync (`admin/catalog/sync`) until nothing is due; re-run
+   it any time. `pnpm catalog:resync` runs only the resync. Alternatives: create products in the admin or over MCP
+   (`docs/production.md`), or move a seeded local site with `emdash site export` / `import` and then run
+   `pnpm catalog:resync` (Stripe ids live in plugin storage, not in the export; `docs/production.md`). Both paths were run on a
+   **local built Node server** only; against D1/R2 on a Cloudflare account they were not run.
 
 ## Secrets: where each one comes from
 
