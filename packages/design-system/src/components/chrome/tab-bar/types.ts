@@ -1,3 +1,4 @@
+import type { PluralLabelForms } from '../../../utils/plural-label'
 import type { TabBarAction, TabBarIcon } from './variants'
 
 export interface TabBarItem {
@@ -12,7 +13,7 @@ export interface TabBarItem {
   /** The id of the dialog the button opens (the menu drawer, the search overlay) or of the mini-cart. */
   controls?: string
   /** A count bubble on the glyph (the cart). */
-  badge?: { count: number; labelTemplate: string }
+  badge?: { count: number; labelTemplate: string; labelForms?: PluralLabelForms; locale?: string }
 }
 
 export interface TabBarProps {

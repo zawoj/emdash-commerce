@@ -216,8 +216,9 @@ colour contrast (a sold-out product card, a cart line that is not ready for chec
 (then nothing is synced and the line is unavailable); with a sandbox key the line is purchasable and the case is skipped.
 A dimmed state is a faded photo plus `--text-secondary` text, never `opacity` on text.
 
-Smaller things seen and not asserted: the cart badge's spoken text for one item is "1 items in the cart" (the label
-template has no singular form), and the quantity stepper's two buttons share the accessible name "Quantity" in the cart.
+Smaller thing seen and not asserted: the quantity stepper's two buttons share the accessible name "Quantity" in the cart.
+The cart badge's spoken text and a line's unavailable warning are asserted in `e2e/tests/cart.spec.ts` ("1 item in the
+cart", one warning per line).
 
 ## Where each kind of bug is caught
 

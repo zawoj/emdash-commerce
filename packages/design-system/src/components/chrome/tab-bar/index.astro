@@ -44,7 +44,7 @@ const { label, items } = Astro.props
                   {glyph.details.map((d) => <path class="tab-bar__detail" d={d} />)}
                   {glyph.lines.map((d) => <path class="tab-bar__line" d={d} />)}
                 </svg>
-                {item.badge && <span class="tab-bar__badge"><CountBadge count={item.badge.count} labelTemplate={item.badge.labelTemplate} /></span>}
+                {item.badge && <span class="tab-bar__badge"><CountBadge count={item.badge.count} labelTemplate={item.badge.labelTemplate} labelForms={item.badge.labelForms} locale={item.badge.locale} /></span>}
               </span>
               <span class="tab-bar__label">{item.label}</span>
             </Tag>

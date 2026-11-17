@@ -9,5 +9,7 @@ metadata:
 
 `GET /api/cart/summary?html=1` fills a `<dialog>` in the header with the same `CartLine` markup the cart page uses, so
 `getByTestId("cart-line")` is 1 right after `goto("/cart")` and 2 a few hundred milliseconds later (a flaky `toHaveCount(1)`
-and a strict-mode violation on `[data-quantity-step]`). Scope the cart page's locators to `page.getByRole("main")`. The same
-fragment is why the header badge is read through `[data-count-bubble]`: its spoken text for one item is "1 items in the cart".
+and a strict-mode violation on `[data-quantity-step]`). Scope the cart page's locators to `page.getByRole("main")`. The header
+badge is read through `[data-count-bubble]` (the visible number); its spoken text is a plural form ("1 item in the cart") in
+`[data-count-spoken]`. The cart link's own accessible name is just "Cart" (a `role=status` child does not feed it) and the
+badge's `textContent` joins the bubble and the spoken text ("11 item in the cart"), so assert the spoken text through `[data-count-spoken]`.
