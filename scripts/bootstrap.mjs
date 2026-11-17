@@ -4,7 +4,7 @@
  *
  *   pnpm bootstrap          prepares apps/storefront/.env (generates the encryption key, optionally takes a Stripe
  *                           sandbox key and fetches the webhook secret from the Stripe CLI), then prints what to run next
- *   pnpm doctor             the same checks, changes nothing, exits 1 when a required check fails
+ *   pnpm run doctor         the same checks, changes nothing, exits 1 when a required check fails
  *
  * Idempotent: a value that is already set is never overwritten. Secrets are never printed. A live Stripe key is refused.
  * Dependency-free (Node >= 24.22.1). The rules live in scripts/lib/bootstrap-env.mjs (unit-tested).

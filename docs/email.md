@@ -68,7 +68,7 @@ Either way works on both targets. Use **port 587 (STARTTLS)** or **465 (implicit
   stayed active; listing the four names made EmDash pick SMTP from env). For a local Cloudflare run use option B below, or
   list the names temporarily. What a *deployed* Worker does with an unlisted `wrangler secret put` was not tested, so after
   deploying check `GET /_emdash/api/settings/email`: `smtp.source` must say `env` (or use option B). Details:
-  `.ai/memory/cloudflare-secrets-required-filters-dev-vars.md`.
+  `.ai/memory/wrangler-passes-only-required-secrets-to-the-worker.md`.
 - A new variable needs a restart (Node) or a deploy (Cloudflare).
 
 ### B. Settings → Email in the admin

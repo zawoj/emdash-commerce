@@ -51,8 +51,11 @@ ${packagesLine}
    - \`STRIPE_SECRET_KEY\` — a Stripe **sandbox** key (\`sk_test_...\` / \`rk_test_...\`) from the Stripe dashboard.
 3. Open \`https://<your worker>/_emdash/admin\`, finish the setup wizard, then **Plugins → Stripe commerce → Register webhook**.
    That stores the webhook signing secret encrypted in D1, so \`STRIPE_WEBHOOK_SECRET\` is optional.
-4. Create products in the admin (the mock catalog seed is a local-dev tool of the monorepo and cannot run against a deployed
-   site).
+4. Set up email (order confirmations and guest order links need an SMTP provider): Settings → Email in the admin, see
+   [docs/email.md](${REPO_URL}/blob/main/docs/email.md).
+5. Create products in the admin, or fill the mock catalog from a clone of the monorepo with an API token (Settings → API
+   Tokens, scope \`admin\`): \`EMDASH_URL=https://<your worker> EMDASH_TOKEN=ec_pat_... pnpm seed\` — see
+   [docs/production.md](${REPO_URL}/blob/main/docs/production.md), "Seeding a deployed site".
 
 Build and deploy commands Cloudflare runs: \`pnpm run build\` (Cloudflare target) and \`pnpm run deploy\` (\`wrangler deploy\`).
 The Workers **Paid** plan is needed in practice (CPU time and subrequest limits).

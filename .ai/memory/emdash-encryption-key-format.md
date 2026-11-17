@@ -19,7 +19,7 @@ What a bad key looks like (it does not stop the dev server, it breaks everything
 Rules:
 
 - Make a key with `pnpm bootstrap` (`encryptionKeyFrom` in `scripts/lib/bootstrap-env.mjs`) or `npx emdash secrets generate`.
-  `pnpm doctor` fails a key in any other shape (`isEncryptionKey`).
+  `pnpm run doctor` fails a key in any other shape (`isEncryptionKey`).
 - Never swap the key on a database that has already stored a secret: the generated access-token secret is encrypted with it,
   and the next read answers `PluginSettingEncryptionError: encrypted with an unavailable key` (500). Restore the old key, or
   reset `apps/storefront/data.db*` and seed again.

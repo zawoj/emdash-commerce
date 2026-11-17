@@ -16,7 +16,7 @@ describe("isCopied", () => {
 	});
 
 	it("skips tests, the Vitest config and the monorepo-only agent and Nx files", () => {
-		for (const path of ["src/lib/money.test.ts", "src/dev-tools/a.test.tsx", "vitest.config.ts", "project.json", "AGENTS.md", "README.md", "package.json", ".agents/skills/x/SKILL.md", ".mcp.json", ".cursor/mcp.json", ".vscode/mcp.json", ".env.example"]) {
+		for (const path of ["src/lib/money.test.ts", "src/dev-tools/a.test.tsx", "vitest.config.ts", "project.json", "AGENTS.md", "README.md", "package.json", ".agents/skills/x/SKILL.md", ".mcp.json", ".cursor/mcp.json", ".vscode/mcp.json", ".env.example", "seed/dev-tools.json"]) {
 			expect(isCopied(path), path).toBe(false);
 		}
 	});

@@ -93,7 +93,7 @@ feature for real (dev server, curl, browser). Tell me what you verified and what
 ### Set it up on my machine
 
 ```text
-Get this clone running. Use `pnpm doctor` to see what is missing, then `pnpm bootstrap`. Start the dev server, run
+Get this clone running. Use `pnpm run doctor` to see what is missing, then `pnpm bootstrap`. Start the dev server, run
 `pnpm seed`, restart the server once after the first seed, and open /shop. Stop and tell me exactly what you need from me
 (for example my Stripe sandbox key) instead of guessing. Do not paste secrets into the chat.
 ```

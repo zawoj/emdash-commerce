@@ -6,7 +6,7 @@ unofficial **mock Cloudflare-merch store**: fictional products in USD, generated
 
 **Shortcut:** after `pnpm install`, `pnpm bootstrap` does steps 3 and part of 4 for you (it creates `.env`, generates the
 encryption key, takes your Stripe sandbox key and reads the webhook secret from the Stripe CLI, and refuses a live key);
-`pnpm doctor` re-checks everything without changing anything. The sections below are the same steps by hand.
+`pnpm run doctor` re-checks everything without changing anything. The sections below are the same steps by hand.
 
 1. [Prerequisites](#1-prerequisites)
 2. [A Stripe sandbox and its keys](#2-a-stripe-sandbox-and-its-keys)

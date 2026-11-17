@@ -13,12 +13,12 @@ Work the maintainers intend to tackle when capacity allows, in rough priority. *
 
 | Area | Intent |
 | --- | --- |
-| **One-click Deploy to Cloudflare** | A standalone deployable copy of `apps/storefront` (vendored workspace packages or published npm deps) so Cloudflare's Deploy button and template flows can build without `workspace:*` siblings. Today only Workers Builds with monorepo root directory works — see [docs/cloudflare.md](docs/cloudflare.md). |
-| **Production seeding** | A path to populate a deployed site without `pnpm seed` (dev login only). Options: document `emdash site export` / `import`, an admin-first catalog workflow, and always queue **catalog resync** after import because Stripe ids live in plugin storage, not in export files. |
-| **npm organisation and first release** | Create `@emdash-commerce` on npm, wire `NPM_TOKEN`, merge the pending Changesets "Version Packages" PR — see [docs/releasing.md](docs/releasing.md). |
-| **Email on deployed sites** | Document and optionally automate EmDash email provider setup (SMTP or provider plugin) so order confirmation and guest order-link emails deliver outside dev. |
-| **Production `seed.json` hygiene** | Remove or gate the `feedback` collection (Notes dev tool) from `apps/storefront/seed/seed.json` for real production deploys — called out in [docs/cloudflare.md](docs/cloudflare.md) and [docs/production.md](docs/production.md). |
-| **Playwright e2e on the Cloudflare target** | The Playwright suite ([docs/testing.md](docs/testing.md)) covers the Node target; the Cloudflare target is verified by hand. Also open: four colour-contrast cases (`test.fixme`) caused by reduced-opacity states in the design system. |
+| **npm organisation and first release** | Create `@emdash-commerce` on npm, wire `NPM_TOKEN`, merge the pending Changesets "Version Packages" PR — see [docs/releasing.md](docs/releasing.md). Owner-only steps; the packages pass `pnpm publish --dry-run`. Afterwards switch the Cloudflare template workflow to `pnpm template:cloudflare --npm`. |
+| **Prove the deploy paths on a real Cloudflare account** | Run the `cloudflare-template` workflow on `main`, press the Deploy button, then seed the site with `EMDASH_TOKEN` and send an order email through a real SMTP relay from the deployed Worker. Today all three paths are verified only locally (workerd, built Node server, a local SMTP sink) — see [docs/cloudflare.md](docs/cloudflare.md), [docs/production.md](docs/production.md), [docs/email.md](docs/email.md). |
+| **`emdash site import` into a fresh shop** | The commerce plugin creates its relation definitions at startup, so EmDash's importer refuses a brand-new shop as "not empty" (`TRANSFER_TARGET_NOT_EMPTY`); today the workaround is a manual `DELETE` ([docs/production.md](docs/production.md), "Export / import instead"). Create them lazily or teach the import path about them. |
+| **HTTP email provider** | EmDash's built-in provider is SMTP only; a small provider plugin over an HTTP API (through the `email:deliver` hook) would serve relays without SMTP. See [docs/email.md](docs/email.md). |
+| **E2E against the built Worker** | The Cloudflare e2e run uses `astro dev` on workerd with local D1/R2 (it needs the dev login to seed); the built Worker under `wrangler dev` is covered only by a manual check ([docs/testing.md](docs/testing.md)). |
+| **Small copy and a11y gaps** | The unavailable cart line shows its warning twice (`CartLine` renders both `unavailableText` and `notice`); the cart count reads "1 items in the cart" (no plural form in `features/shell/copy.ts`). |
 
 ## Explicitly not planned (for this repo)
 

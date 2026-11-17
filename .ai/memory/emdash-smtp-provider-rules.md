@@ -13,7 +13,7 @@ Read from `emdash/dist/email-smtp-*.mjs` and `emdash-runtime-*.mjs`, run against
   leaving it in `.env` means no mail shows at `/_emdash/api/dev/emails`. Without env the provider is registered but manual
   (Settings → Email or `PUT /_emdash/api/settings/email`). Admin-saved settings win over env on every send.
 - **An invalid env set is ignored with a log warning** (`Ignoring SMTP environment variables: …`), not an error: port 25, a bad
-  `EMAIL_SMTP_SECURE`, missing user or password. `pnpm doctor` mirrors those rules (`smtpEnvStatus`).
+  `EMAIL_SMTP_SECURE`, missing user or password. `pnpm run doctor` mirrors those rules (`smtpEnvStatus`).
 - **Sender.** Without `EMAIL_SMTP_FROM_EMAIL` / `EMAIL_SMTP_FROM` the sender is the SMTP user; a user such as `apikey` fails the
   envelope check. The admin API refuses to save it without `fromEmail`.
 - **TLS is mandatory and verified.** STARTTLS must be offered (otherwise "does not offer STARTTLS"), no plaintext fallback, port

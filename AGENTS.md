@@ -51,7 +51,7 @@ keys, `stripe listen`, seed, reset, troubleshooting). Governance: [`CONTRIBUTING
 | --- | --- |
 | `pnpm install` | Dependencies |
 | `pnpm dev` | Storefront dev server on `4360` (`npx astro dev stop` in `apps/storefront` stops it) |
-| `pnpm bootstrap` · `pnpm doctor` | First-run `.env` setup (idempotent, never prints a secret, refuses a live Stripe key) · read-only health check |
+| `pnpm bootstrap` · `pnpm run doctor` | First-run `.env` setup (idempotent, never prints a secret, refuses a live Stripe key) · read-only health check |
 | `pnpm seed` | Mock catalog (`scripts/lib/merch-catalog.mjs`) and Homepage fields (`scripts/seed-demo.mjs`; dev server must run) |
 | `pnpm art` | Regenerates the mock product art (`scripts/art/` → `apps/storefront/public/merch/`, PNG, committed) |
 | `pnpm lint` | oxlint (zero errors in CI) |

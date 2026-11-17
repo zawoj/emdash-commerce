@@ -38,4 +38,4 @@ env on every send). It needs STARTTLS or implicit TLS, `PLAIN`/`LOGIN` auth, and
 - The doctor check cannot see admin-saved settings or Worker secrets, so a "todo" there is normal for those sites.
 - Only providers that offer SMTP on 587/465 with `PLAIN`/`LOGIN` work out of the box (no OAuth2 mailboxes).
 - What runs on Cloudflare Workers is limited to what was verified; see `docs/email.md` and
-  `.ai/memory/cloudflare-secrets-required-filters-dev-vars.md`.
+  `.ai/memory/wrangler-passes-only-required-secrets-to-the-worker.md`.

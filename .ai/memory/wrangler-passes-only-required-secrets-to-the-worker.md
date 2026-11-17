@@ -1,6 +1,6 @@
 ---
 name: wrangler-passes-only-required-secrets-to-the-worker
-description: with `secrets` in wrangler.jsonc, local dev forwards only the listed required secrets to workerd, so STRIPE_WEBHOOK_SECRET in .dev.vars never arrives (webhooks 503); and a found .dev.vars.<env> stops .env from being read
+description: with `secrets` in wrangler.jsonc, local dev forwards only the listed required secrets to workerd, so STRIPE_WEBHOOK_SECRET (webhooks 503) and EMAIL_SMTP_* in .dev.vars never arrive; and a found .dev.vars.<env> stops .env from being read
 metadata:
   type: project
 ---
@@ -23,4 +23,10 @@ Found 2026-11-17 while running the purchase suite on workerd (wrangler 4.163.0, 
   `.dev.vars*` file is found it does **not** read `.env` (and does not merge `process.env`). So `CLOUDFLARE_ENV=e2e` plus a
   generated `.dev.vars.e2e` keeps the developer's `.env` keys out of a test run. Without such a file `.env` values win over
   `process.env`. The price is a harmless warning that `wrangler.jsonc` has no `env.e2e`.
+- The same filter drops `EMAIL_SMTP_*` (seen by the email work, `docs/email.md`): with the four SMTP names in `.dev.vars`,
+  `GET /_emdash/api/settings/email` answered `smtp.configured: false` and the console provider stayed selected; adding them to
+  `secrets.required` gave `source: "env"` and selected `emdash-builtin-smtp`. For local runs save SMTP in Settings → Email (works,
+  verified) instead of listing the names permanently: a listed secret becomes mandatory for every deploy and the Deploy button.
+  `smtp.source` (`env` / `db` / `null`) in that response tells which one is active.
+- What a **deployed** Worker does with a secret set by `wrangler secret put` that is not listed was **not** tested.
 - The astro process's own environment never reaches workerd; only these files do.

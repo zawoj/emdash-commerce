@@ -3,7 +3,10 @@ import { posix } from "node:path";
 /** Folders and files that never belong in the copy: build output, local state, secrets. Matched on any path segment. */
 const SKIPPED_NAMES = new Set(["node_modules", "dist", ".astro", ".wrangler", ".nx", ".cache", "uploads", "data.db", ".dev.vars"]);
 
-/** Repo-only files of `apps/storefront` (relative path): agent skills and MCP configs that describe the monorepo, the Nx project, Vitest. */
+/**
+ * Repo-only files of `apps/storefront` (relative path): agent skills and MCP configs that describe the monorepo, the Nx project,
+ * Vitest, and the dev-tools seed fragment (only the monorepo's `pnpm seed` applies it, against a dev server).
+ */
 const SKIPPED_PATHS = new Set([
 	".agents",
 	".cursor",
@@ -15,6 +18,7 @@ const SKIPPED_PATHS = new Set([
 	"vitest.config.ts",
 	"package.json",
 	".env.example",
+	"seed/dev-tools.json",
 ]);
 
 const isSecretFile = (name) =>
