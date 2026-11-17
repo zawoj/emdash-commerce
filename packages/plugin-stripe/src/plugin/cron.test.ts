@@ -44,6 +44,18 @@ describe("runSteps", () => {
 		expect(ran).toEqual([]);
 	});
 
+	it("skips the rest after a timeout even when the clock still shows budget left", async () => {
+		// A clock that never advances: the timer fires but `now()` still reports the whole budget as remaining.
+		const ran: string[] = [];
+		const reports = await runSteps(
+			[step("hang", () => new Promise<void>(() => undefined)), step("late", async () => void ran.push("late"))],
+			{ budgetMs: 20, hasProvider: true, log: log(), now: () => 0 },
+		);
+		expect(reports[0]).toMatchObject({ name: "hang", status: STEP_STATUS.failed });
+		expect(reports[1]).toMatchObject({ name: "late", status: STEP_STATUS.skipped, reason: "time budget spent" });
+		expect(ran).toEqual([]);
+	});
+
 	it("skips steps that start after the budget is spent (injected clock)", async () => {
 		let now = 0;
 		const ran: string[] = [];
