@@ -53,7 +53,7 @@ importers:
         version: 7.1.9(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
       '@emdash-cms/cloudflare':
         specifier: 1.5.0
-        version: 1.5.0(0b26fb80eef72b6b9325de8c075adab9)
+        version: 1.5.0(67f0b68d474517420c8031ffa34eaf94)
       '@emdash-commerce/design-system':
         specifier: workspace:*
         version: link:../../packages/design-system
@@ -80,14 +80,14 @@ importers:
         version: 0.34.5
     devDependencies:
       '@astrojs/check':
-        specifier: ^0.9.10
-        version: 0.9.10(prettier@3.10.1)(typescript@6.0.3)
+        specifier: ^0.9.12
+        version: 0.9.12(prettier@3.10.1)(typescript@6.0.3)
       '@cloudflare/workers-types':
         specifier: ^5.20261117.1
         version: 5.20261117.1
       axe-core:
-        specifier: 4.14.0
-        version: 4.14.0
+        specifier: 4.14.1
+        version: 4.14.1
       happy-dom:
         specifier: 20.9.0
         version: 20.9.0
@@ -104,8 +104,8 @@ importers:
   packages/design-system:
     devDependencies:
       '@astrojs/check':
-        specifier: 0.9.10
-        version: 0.9.10(prettier@3.10.1)(typescript@5.9.3)
+        specifier: 0.9.12
+        version: 0.9.12(prettier@3.10.1)(typescript@5.9.3)
       astro:
         specifier: 7.3.2
         version: 7.3.2(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@24.19.2)(yaml@2.9.1)
@@ -169,8 +169,8 @@ importers:
         specifier: ^1.5.0
         version: 1.5.0(@astrojs/react@7.1.9(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@5.9.3))(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0))(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(astro@7.3.2(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@24.19.2)(yaml@2.9.1))(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       kysely:
-        specifier: 0.29.8
-        version: 0.29.8
+        specifier: 0.29.9
+        version: 0.29.9
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -184,8 +184,8 @@ packages:
     resolution: {integrity: sha512-5dJqY4i1AlXxcsSFHkaegnrgdVs9J4U93y/YF0xmvmSOcNYVQnf4db3IhvqHZ5v8biLPlPlFmlYsqHj0c4/ZSA==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@astrojs/check@0.9.10':
-    resolution: {integrity: sha512-zgx/UQMozdjOa3bOxjgeCFdtpE3c9rRX6xHwa+2QXvy8z8Akifu2AtubHyv/zzC2znO8dl8fFWL4K+Ba9kS8HQ==}
+  '@astrojs/check@0.9.12':
+    resolution: {integrity: sha512-hazpqxIfZWj2VhyPyR0pOEQ/IhFDM/2nIApL96zMXABdD8NrUKYDmhxTy7h+drTDl9MQG/Sd1ET/4amadVJUUA==}
     hasBin: true
     peerDependencies:
       typescript: ^5.0.0 || ^6.0.0
@@ -2255,8 +2255,8 @@ packages:
       y-protocols: ^1.0.1
       yjs: ^13.6.13
 
-  '@tybys/wasm-util@0.10.4':
-    resolution: {integrity: sha512-W3c4gRigFS0T/Ma4qIYF3GDAc5AQdHb1yL5znJT1Zv1YaD9Kitx656wBjvr19qbiosmZT8lWDM5BEMynUqX65A==}
+  '@tybys/wasm-util@0.10.5':
+    resolution: {integrity: sha512-dOGOPxlaNV+G046mZzN+9C0dAcQZeSKcXiVaM0TYy/LM4ttTmgSBDxYfovcYI8Em3+eAbiAYpvWLOv8+ZVRJKA==}
 
   '@tybys/wasm-util@0.9.0':
     resolution: {integrity: sha512-6+7nlbMVX/PVDCwaIQ8nTOPveOcFLSt8GcXdx8hD0bt39uWxYT88uXzqTd4fTvqta7oeUJqudepapKNt2DYJFw==}
@@ -2500,8 +2500,8 @@ packages:
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
 
-  axe-core@4.14.0:
-    resolution: {integrity: sha512-9WTZxEjsZ7b13TH8JPmbV2z8CHbl80/2hm3XPEG4JgNdQLK81IBRXmSxHfMAOkSqQeRxT/0dwNDz2GOm3zzpcQ==}
+  axe-core@4.14.1:
+    resolution: {integrity: sha512-FHfa+lmNjQZfJz1q8wKqIDwC6DExcHt/pkjNQb09a3NPjCKg2rhu5qb2S4r76ASyFNNtuFooJpZe37OgudVGtQ==}
     engines: {node: '>=4'}
 
   axios@1.15.0:
@@ -2576,10 +2576,6 @@ packages:
 
   character-entities-legacy@3.0.0:
     resolution: {integrity: sha512-RpPp0asT/6ufRm//AJVwpViZbGM/MkjQFxJccQRHmISF/22NBtsHqAWmL+/pmkPWoIUJdWyeVleTl1wydHATVQ==}
-
-  chokidar@4.0.3:
-    resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
-    engines: {node: '>= 14.16.0'}
 
   chokidar@5.0.0:
     resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
@@ -3320,6 +3316,10 @@ packages:
     resolution: {integrity: sha512-ixHU1H4R+LeC5Y0nAhYgiGRFpFRHm2DXKEmJSs/vbes9sKXyssyzxzE/NYiOJX5fY0BL28biCre3GqlCqUwyXQ==}
     engines: {node: '>=22.0.0'}
 
+  kysely@0.29.9:
+    resolution: {integrity: sha512-K48ErswC3MlIcBqR0pYIIEl+n9rIgwxgzaM1FxKHMXn7egxr1NHj7bCeF98mXl9A3/QoL5I7mo5S/mLXgeDgGA==}
+    engines: {node: '>=22.0.0'}
+
   launch-editor@2.14.2:
     resolution: {integrity: sha512-NHJEb30MGBCkmZXLZwz25t37QR4aY03ZzPYUJXOJaOa92uWwExI9SBQUuIznBYc1xkD7cJNGX7oc3Nl3sq2kQQ==}
 
@@ -3920,10 +3920,6 @@ packages:
   readable-stream@3.6.2:
     resolution: {integrity: sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==}
     engines: {node: '>= 6'}
-
-  readdirp@4.1.2:
-    resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
-    engines: {node: '>= 14.18.0'}
 
   readdirp@5.1.1:
     resolution: {integrity: sha512-Kko+Y5XQ6fM+Ce3dq3m9YGxnacYZYl9cA1wZjaF3Vbry2L3i1qVg8+CAgNPsXRArPMUMCaOR7oa9Nqntc43JKA==}
@@ -4786,10 +4782,10 @@ snapshots:
       '@emnapi/runtime': 1.11.3
       '@napi-rs/wasm-runtime': 1.2.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
 
-  '@astrojs/check@0.9.10(prettier@3.10.1)(typescript@5.9.3)':
+  '@astrojs/check@0.9.12(prettier@3.10.1)(typescript@5.9.3)':
     dependencies:
       '@astrojs/language-server': 2.17.3(prettier@3.10.1)(typescript@5.9.3)
-      chokidar: 4.0.3
+      chokidar: 5.0.0
       kleur: 4.1.5
       typescript: 5.9.3
       yargs: 18.2.0
@@ -4797,10 +4793,10 @@ snapshots:
       - prettier
       - prettier-plugin-astro
 
-  '@astrojs/check@0.9.10(prettier@3.10.1)(typescript@6.0.3)':
+  '@astrojs/check@0.9.12(prettier@3.10.1)(typescript@6.0.3)':
     dependencies:
       '@astrojs/language-server': 2.17.3(prettier@3.10.1)(typescript@6.0.3)
-      chokidar: 4.0.3
+      chokidar: 5.0.0
       kleur: 4.1.5
       typescript: 6.0.3
       yargs: 18.2.0
@@ -5167,7 +5163,7 @@ snapshots:
 
   '@axe-core/playwright@4.14.0(playwright-core@1.65.1)':
     dependencies:
-      axe-core: 4.14.0
+      axe-core: 4.14.1
       playwright-core: 1.65.1
 
   '@babel/helper-string-parser@7.29.14': {}
@@ -5904,7 +5900,7 @@ snapshots:
       - date-fns
       - zod
 
-  '@emdash-cms/cloudflare@1.5.0(0b26fb80eef72b6b9325de8c075adab9)':
+  '@emdash-cms/cloudflare@1.5.0(67f0b68d474517420c8031ffa34eaf94)':
     dependencies:
       '@astrojs/cloudflare': 14.3.4(@types/node@24.19.2)(astro@7.3.2(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@24.19.2)(yaml@2.9.1))(esbuild@0.28.2)(workerd@1.20261116.1)(wrangler@4.163.0(@cloudflare/workers-types@5.20261117.1)(@types/node@24.19.2))(yaml@2.9.1)
       '@cloudflare/ai-search-snippet': 0.0.42
@@ -5912,8 +5908,8 @@ snapshots:
       astro: 7.3.2(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@24.19.2)(yaml@2.9.1)
       emdash: 1.5.0(@astrojs/react@7.1.9(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@6.0.3))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0))(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(astro@7.3.2(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(@types/node@24.19.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
       jose: 6.2.17
-      kysely: 0.29.8
-      kysely-d1: 0.4.0(kysely@0.29.8)
+      kysely: 0.29.9
+      kysely-d1: 0.4.0(kysely@0.29.9)
       ulidx: 2.4.1
     optionalDependencies:
       '@cloudflare/kumo': 2.15.0(@date-fns/tz@1.5.0)(@phosphor-icons/react@2.1.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@types/react@19.2.8)(date-fns@4.4.0)(echarts@6.1.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.6.7)
@@ -6551,27 +6547,27 @@ snapshots:
     dependencies:
       '@emnapi/core': 1.11.3
       '@emnapi/runtime': 1.11.3
-      '@tybys/wasm-util': 0.10.4
+      '@tybys/wasm-util': 0.10.5
 
   '@napi-rs/wasm-runtime@1.2.6(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)':
     dependencies:
       '@emnapi/core': 2.0.0-beta.2
       '@emnapi/runtime': 2.0.0-beta.2
-      '@tybys/wasm-util': 0.10.4
+      '@tybys/wasm-util': 0.10.5
     optional: true
 
   '@napi-rs/wasm-runtime@1.2.7(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
     dependencies:
       '@emnapi/core': 1.11.1
       '@emnapi/runtime': 1.11.1
-      '@tybys/wasm-util': 0.10.4
+      '@tybys/wasm-util': 0.10.5
     optional: true
 
   '@napi-rs/wasm-runtime@1.2.7(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)':
     dependencies:
       '@emnapi/core': 2.0.0-beta.2
       '@emnapi/runtime': 2.0.0-beta.2
-      '@tybys/wasm-util': 0.10.4
+      '@tybys/wasm-util': 0.10.5
     optional: true
 
   '@neon-rs/load@0.0.4':
@@ -7161,7 +7157,7 @@ snapshots:
       y-protocols: 1.0.7(yjs@13.6.33)
       yjs: 13.6.33
 
-  '@tybys/wasm-util@0.10.4':
+  '@tybys/wasm-util@0.10.5':
     dependencies:
       tslib: 2.9.1
 
@@ -7533,7 +7529,7 @@ snapshots:
 
   asynckit@0.4.0: {}
 
-  axe-core@4.14.0: {}
+  axe-core@4.14.1: {}
 
   axios@1.15.0:
     dependencies:
@@ -7612,10 +7608,6 @@ snapshots:
   character-entities-html4@2.1.0: {}
 
   character-entities-legacy@3.0.0: {}
-
-  chokidar@4.0.3:
-    dependencies:
-      readdirp: 4.1.2
 
   chokidar@5.0.0:
     dependencies:
@@ -8570,11 +8562,13 @@ snapshots:
 
   kleur@4.1.5: {}
 
-  kysely-d1@0.4.0(kysely@0.29.8):
+  kysely-d1@0.4.0(kysely@0.29.9):
     dependencies:
-      kysely: 0.29.8
+      kysely: 0.29.9
 
   kysely@0.29.8: {}
+
+  kysely@0.29.9: {}
 
   launch-editor@2.14.2:
     dependencies:
@@ -9289,8 +9283,6 @@ snapshots:
       inherits: 2.0.4
       string_decoder: 1.3.0
       util-deprecate: 1.0.2
-
-  readdirp@4.1.2: {}
 
   readdirp@5.1.1: {}
 
