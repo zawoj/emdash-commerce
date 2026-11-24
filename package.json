@@ -37,7 +37,7 @@
     "@changesets/changelog-github": "^1.0.1",
     "@changesets/cli": "^3.0.3",
     "@playwright/test": "^1.65.1",
-    "@types/node": "^24.19.2",
+    "@types/node": "^26.6.6",
     "nx": "22.7.0",
     "oxlint": "1.94.0",
     "sharp": "0.34.5",
