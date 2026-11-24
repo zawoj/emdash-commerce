@@ -40,7 +40,7 @@
     "axe-core": "4.14.0",
     "happy-dom": "20.9.0",
     "typescript": "6.0.3",
-    "vitest": "4.1.5",
+    "vitest": "5.1.0",
     "wrangler": "^4.163.0"
   },
   "description": "Mock Cloudflare-merch storefront on EmDash (Astro): catalog, cart and Stripe Checkout through the stripe-commerce plugin. Runs on Node + SQLite or on Cloudflare Workers + D1 + R2.",
