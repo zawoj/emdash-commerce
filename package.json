@@ -38,7 +38,7 @@
     "@changesets/cli": "^3.0.3",
     "@playwright/test": "^1.65.1",
     "@types/node": "^24.19.2",
-    "nx": "22.7.0",
+    "nx": "24.0.6",
     "oxlint": "1.94.0",
     "sharp": "0.34.5",
     "typescript": "6.0.3"
